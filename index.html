@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>Caelian Vàel — Case File</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@600;700;800&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+  <header class="dossier-header">
+    <span class="save-status" id="saveStatus">Saved</span>
+    <div class="seal">
+      <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="currentColor">
+        <circle cx="50" cy="16" r="4" fill="currentColor" stroke="none"/>
+        <line x1="50" y1="20" x2="50" y2="75" stroke-width="3"/>
+        <line x1="25" y1="30" x2="75" y2="30" stroke-width="3"/>
+        <line x1="25" y1="30" x2="18" y2="48" stroke-width="2"/>
+        <line x1="25" y1="30" x2="32" y2="48" stroke-width="2"/>
+        <path d="M12 48 Q25 60 38 48" fill="none" stroke-width="2.5" stroke-linecap="round"/>
+        <line x1="75" y1="30" x2="68" y2="48" stroke-width="2"/>
+        <line x1="75" y1="30" x2="82" y2="48" stroke-width="2"/>
+        <path d="M62 48 Q75 60 88 48" fill="none" stroke-width="2.5" stroke-linecap="round"/>
+        <line x1="38" y1="75" x2="62" y2="75" stroke-width="3" stroke-linecap="round"/>
+      </svg>
+    </div>
+    <div class="stamp">Case File Nº <span class="case-no" id="caseNo">005</span></div>
+    <input class="char-name-input" id="f-name" type="text" spellcheck="false">
+    <div class="char-sub-row">
+      <input id="f-race" type="text">
+      <span class="sub-sep">·</span>
+      <input id="f-class" type="text">
+      <input id="f-level" type="number" min="1" max="20">
+      <span class="sub-sep">·</span>
+      <input id="f-alignment" type="text">
+    </div>
+  </header>
+
+  <main class="content">
+
+    <!-- OVERVIEW -->
+    <section class="panel active" id="panel-overview">
+      <div class="card">
+        <h2>Ability Scores</h2>
+        <div class="ability-grid" id="abilityGrid"></div>
+      </div>
+
+      <div class="card">
+        <h2>Vitality</h2>
+        <div class="hp-block">
+          <div class="hp-top"><label>Hit Points</label></div>
+          <div class="hp-values">
+            <input id="hp-current" type="number">
+            <span class="hp-sep">/</span>
+            <input id="hp-max" class="hp-max" type="number">
+          </div>
+          <div class="hp-bar-track"><div class="hp-bar-fill" id="hpBarFill"></div></div>
+          <div class="hp-steppers">
+            <button data-hp="-5">−5</button>
+            <button data-hp="-1">−1</button>
+            <button data-hp="1">+1</button>
+            <button data-hp="5">+5</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Armor Class</h2>
+        <div class="stat-row">
+          <div class="stat-box"><label>AC</label><div class="computed-value" id="out-ac-total">18</div></div>
+          <div class="stat-box"><label>Touch</label><div class="computed-value" id="out-ac-touch">10</div></div>
+          <div class="stat-box"><label>Flat-Foot</label><div class="computed-value" id="out-ac-ff">18</div></div>
+        </div>
+        <div class="power-block" id="balanceBlock">
+          <div class="power-head">
+            <div>
+              <div class="power-title">Balance Domain · Granted Power</div>
+              <div class="power-desc">1/day, free action: add Wis bonus to AC for 1 round per cleric level.</div>
+            </div>
+            <div class="power-uses" id="balanceUses">1/1</div>
+          </div>
+          <div class="power-status" id="balanceStatus">Ready</div>
+          <div class="power-actions">
+            <button class="power-btn primary" id="balanceActivate">Activate</button>
+            <button class="power-btn" id="balanceTick">−1 round</button>
+            <button class="power-btn" id="balanceEnd">End</button>
+            <button class="power-btn ghost" id="balanceReset">New day</button>
+          </div>
+        </div>
+        <details class="breakdown">
+          <summary>Edit breakdown</summary>
+          <div class="breakdown-body">
+            <div class="bd-group">
+              <div class="bd-title">10 + Armor + Shield + Dex + Size + Natural + Deflect + Misc</div>
+              <div class="bd-row">
+                <div class="bd-field"><label>Armor</label><input id="ac-armor" type="number"></div>
+                <div class="bd-field"><label>Shield</label><input id="ac-shield" type="number"></div>
+                <div class="bd-field"><label>Dex</label><input id="ac-dex" type="number"></div>
+                <div class="bd-field"><label>Size</label><input id="ac-size" type="number"></div>
+              </div>
+              <div class="bd-row">
+                <div class="bd-field"><label>Natural</label><input id="ac-natural" type="number"></div>
+                <div class="bd-field"><label>Deflect</label><input id="ac-deflection" type="number"></div>
+                <div class="bd-field"><label>Misc</label><input id="ac-misc" type="number"></div>
+              </div>
+            </div>
+          </div>
+        </details>
+      </div>
+
+      <div class="card">
+        <h2>Saving Throws</h2>
+        <div class="stat-row">
+          <div class="stat-box"><label>Fortitude</label><div class="computed-value" id="out-save-fort">+8</div></div>
+          <div class="stat-box"><label>Reflex</label><div class="computed-value" id="out-save-ref">+2</div></div>
+          <div class="stat-box"><label>Will</label><div class="computed-value" id="out-save-will">+11</div></div>
+        </div>
+        <details class="breakdown">
+          <summary>Edit breakdown</summary>
+          <div class="breakdown-body">
+            <div class="bd-group">
+              <div class="bd-title">Base + ability (auto) + magic + misc + temp</div>
+              <div class="save-bd-row">
+                <span class="save-bd-label">Fort</span>
+                <div class="bd-field"><label>Base</label><input id="save-fort-base" type="number"></div>
+                <div class="bd-field"><label>Con</label><div class="auto-readout" id="auto-save-fort">+3</div></div>
+                <div class="bd-field"><label>Magic</label><input id="save-fort-magic" type="number"></div>
+                <div class="bd-field"><label>Misc</label><input id="save-fort-misc" type="number"></div>
+                <div class="bd-field"><label>Temp</label><input id="save-fort-temp" type="number"></div>
+              </div>
+              <div class="save-bd-row">
+                <span class="save-bd-label">Ref</span>
+                <div class="bd-field"><label>Base</label><input id="save-ref-base" type="number"></div>
+                <div class="bd-field"><label>Dex</label><div class="auto-readout" id="auto-save-ref">+0</div></div>
+                <div class="bd-field"><label>Magic</label><input id="save-ref-magic" type="number"></div>
+                <div class="bd-field"><label>Misc</label><input id="save-ref-misc" type="number"></div>
+                <div class="bd-field"><label>Temp</label><input id="save-ref-temp" type="number"></div>
+              </div>
+              <div class="save-bd-row">
+                <span class="save-bd-label">Will</span>
+                <div class="bd-field"><label>Base</label><input id="save-will-base" type="number"></div>
+                <div class="bd-field"><label>Wis</label><div class="auto-readout" id="auto-save-will">+6</div></div>
+                <div class="bd-field"><label>Magic</label><input id="save-will-magic" type="number"></div>
+                <div class="bd-field"><label>Misc</label><input id="save-will-misc" type="number"></div>
+                <div class="bd-field"><label>Temp</label><input id="save-will-temp" type="number"></div>
+              </div>
+            </div>
+          </div>
+        </details>
+      </div>
+
+      <div class="card">
+        <h2>Attack</h2>
+        <div class="stat-row">
+          <div class="stat-box"><label>BAB</label><div class="signed"><span>+</span><input id="bab" type="number"></div></div>
+          <div class="stat-box"><label>Grapple</label><div class="computed-value" id="out-grapple">+7</div></div>
+        </div>
+        <details class="breakdown">
+          <summary>Edit breakdown</summary>
+          <div class="breakdown-body">
+            <div class="bd-group">
+              <div class="bd-title">Grapple = BAB + Str + Size + Misc</div>
+              <div class="bd-row">
+                <div class="bd-field"><label>Size</label><input id="grapple-size" type="number"></div>
+                <div class="bd-field"><label>Misc</label><input id="grapple-misc" type="number"></div>
+              </div>
+            </div>
+          </div>
+        </details>
+      </div>
+
+      <div class="card">
+        <h2>Initiative &amp; Speed</h2>
+        <div class="stat-row">
+          <div class="stat-box"><label>Initiative</label><div class="computed-value" id="out-init">+0</div></div>
+          <div class="stat-box"><label>Speed (ft)</label><input id="speed" type="number"></div>
+        </div>
+        <details class="breakdown">
+          <summary>Edit breakdown</summary>
+          <div class="breakdown-body">
+            <div class="bd-group">
+              <div class="bd-title">Initiative = Dex (auto) + Misc</div>
+              <div class="bd-row">
+                <div class="bd-field"><label>Misc</label><input id="init-misc" type="number"></div>
+              </div>
+            </div>
+          </div>
+        </details>
+      </div>
+    </section>
+
+    <!-- COMBAT -->
+    <section class="panel" id="panel-combat">
+      <div class="card">
+        <h2>Attacks</h2>
+        <div id="attacksList"></div>
+        <button class="add-row-btn" id="addAttack">+ Add attack</button>
+      </div>
+
+      <div class="card">
+        <h2>Armor &amp; Shield</h2>
+        <div class="stat-row">
+          <div class="stat-box" style="text-align:left;padding:10px 12px;">
+            <label>Armor</label>
+            <input id="armor" type="text" style="text-align:left;font-family:var(--font-body);font-size:14px;">
+          </div>
+          <div class="stat-box" style="text-align:left;padding:10px 12px;">
+            <label>Shield</label>
+            <input id="shield" type="text" style="text-align:left;font-family:var(--font-body);font-size:14px;">
+          </div>
+        </div>
+        <div class="hint" style="margin:2px 0 0;">Armor and Shield bonuses to AC are set separately in Overview → Armor Class → Edit breakdown.</div>
+      </div>
+    </section>
+
+    <!-- SKILLS -->
+    <section class="panel" id="panel-skills">
+      <div class="card">
+        <h2>Skills</h2>
+        <div class="stat-row">
+          <div class="stat-box"><label>Points</label><div class="computed-value" id="skillPoints">0/16</div></div>
+          <div class="stat-box"><label>Max ranks</label><div class="computed-value" id="skillMax">8 / 4</div></div>
+          <div class="stat-box"><label>Armor pen.</label><input id="skill-acp" type="number"></div>
+        </div>
+        <div class="hint">Tick = class skill. Cross-class ranks cost 2 points and cap at half. Armor penalty hits skills tagged ACP (double on Swim). "—" means it can't be used untrained.</div>
+        <div class="skill-head"><span></span><span>Skill</span><span>Ranks</span><span>Misc</span><span>Total</span></div>
+        <div id="skillsList"></div>
+        <button class="add-row-btn" id="addSkill">+ Add skill</button>
+      </div>
+
+      <div class="card">
+        <h2>Feats</h2>
+        <div id="featsList"></div>
+        <button class="add-row-btn" id="addFeat">+ Add feat</button>
+        <div class="hint" style="margin-top:10px;">Planned progression</div>
+        <textarea class="text-block" id="futureFeats" style="min-height:60px;"></textarea>
+      </div>
+
+      <div class="card">
+        <h2>Special Abilities — Lesser Aasimar</h2>
+        <div id="racialList"></div>
+        <button class="add-row-btn" id="addRacial">+ Add trait</button>
+      </div>
+    </section>
+
+    <!-- MAGIC -->
+    <section class="panel" id="panel-magic">
+      <div class="card">
+        <h2>Domains</h2>
+        <div class="domain-block">
+          <span class="domain-name">Balance</span>
+          <textarea class="text-block" id="domainBalance" style="min-height:70px;"></textarea>
+        </div>
+        <div class="domain-block">
+          <span class="domain-name">Magic</span>
+          <textarea class="text-block" id="domainMagic" style="min-height:70px;"></textarea>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Spells</h2>
+        <div class="hint">Each level tracks its own save DC, spells per day, and prepared list — same clustering as a paper sheet.</div>
+        <div id="spellLevelsList"></div>
+        <button class="add-row-btn" id="addSpellLevel">+ Add spell level</button>
+      </div>
+    </section>
+
+    <!-- GEAR -->
+    <section class="panel" id="panel-gear">
+      <div class="card">
+        <h2>Main Equipment</h2>
+        <div id="equipmentList"></div>
+        <button class="add-row-btn" id="addEquipment">+ Add item</button>
+      </div>
+
+      <div class="card">
+        <h2>Mount &amp; Travel</h2>
+        <div id="mountList"></div>
+        <button class="add-row-btn" id="addMount">+ Add item</button>
+      </div>
+
+      <div class="card">
+        <h2>Coin Ledger</h2>
+        <div class="ledger-total"><span class="lbl">Gold on hand</span><span class="amt" id="ledgerTotal">0 gp</span></div>
+        <div id="ledgerList"></div>
+        <button class="add-row-btn" id="addLedger">+ Add entry</button>
+      </div>
+    </section>
+
+    <!-- STORY -->
+    <section class="panel" id="panel-story">
+      <div class="card story-card">
+        <div class="banner-wrap" id="bgTrigger">
+          <img class="banner-img" id="bgImage" alt="">
+          <div class="banner-placeholder" id="bgPlaceholder">
+            <span class="plus">+</span>
+            <span>Tap to add a background image</span>
+          </div>
+          <button class="img-edit-btn" id="bgEditBtn" aria-label="Change background">✎</button>
+        </div>
+        <div class="portrait-row">
+          <div class="portrait-circle" id="portraitTrigger">
+            <img class="portrait-img" id="portraitImage" alt="">
+            <div class="portrait-placeholder" id="portraitPlaceholder">+</div>
+            <button class="img-edit-btn small" id="portraitEditBtn" aria-label="Change portrait">✎</button>
+          </div>
+        </div>
+        <div class="portrait-caption-pad">
+          <div class="char-title" id="storyName">Caelian Vàel</div>
+          <div class="char-subtitle" id="storySubtitle">Lesser Aasimar · Cleric 5</div>
+        </div>
+        <input type="file" id="bgFileInput" accept="image/*" style="display:none;">
+        <input type="file" id="portraitFileInput" accept="image/*" style="display:none;">
+      </div>
+
+      <div class="card">
+        <h2>Appearance</h2>
+        <div class="hint">How Caelian looks and carries himself.</div>
+        <textarea class="text-block" id="appearance" style="min-height:90px;"></textarea>
+      </div>
+
+      <div class="card">
+        <h2>Backstory</h2>
+        <div class="hint">Origins, key events, how he became who he is.</div>
+        <textarea class="text-block" id="backstory" style="min-height:220px;"></textarea>
+      </div>
+
+      <div class="card">
+        <h2>Ideal</h2>
+        <div class="hint">The principle Caelian holds to, and how he means to live up to it.</div>
+        <textarea class="text-block" id="ideal" style="min-height:120px;"></textarea>
+      </div>
+
+      <div class="card">
+        <h2>Session Notes</h2>
+        <div class="hint">Free space for whatever comes up at the table.</div>
+        <textarea class="text-block" id="sessionNotes" style="min-height:200px;"></textarea>
+      </div>
+
+      <div class="card">
+        <h2>Case File Controls</h2>
+        <div class="hint">Erases any edits you've made and restores Caelian's original stats.</div>
+        <button class="danger-btn" id="resetBtn">Restore original case file</button>
+      </div>
+    </section>
+
+  </main>
+
+  <nav class="tab-bar">
+    <button class="tab-btn active" data-tab="overview">Overview</button>
+    <button class="tab-btn" data-tab="combat">Combat</button>
+    <button class="tab-btn" data-tab="skills">Skills</button>
+    <button class="tab-btn" data-tab="magic">Magic</button>
+    <button class="tab-btn" data-tab="gear">Gear</button>
+    <button class="tab-btn" data-tab="story">Story</button>
+  </nav>
+
+<script src="js/storage.js"></script>
+<script src="js/data.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>

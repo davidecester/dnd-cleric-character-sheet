@@ -2,8 +2,6 @@
 
 A single-page, mobile-friendly character sheet for **Caelian Vàel**, a Lesser Aasimar Cleric 5 (D&D 3.5e). Built as one self-contained HTML file — no build step, no dependencies, no backend.
 
-**Live site:** _add your GitHub Pages link here once it's live, e.g. `https://YOUR-USERNAME.github.io/dnd-caelian-cleric-character-sheet/`_
-
 ## What it does
 
 - Ability scores, HP tracker, Armor Class, Saving Throws, Attack/Grapple, and Initiative — with the math (AC breakdown, save components, grapple, initiative) computed from the 3.5e SRD rules, not just typed-in totals

@@ -1,6 +1,6 @@
 # Caelian Vàel — Case File
 
-A single-page, mobile-friendly character sheet for **Caelian Vàel**, a Lesser Aasimar Cleric 5 (D&D 3.5e). Built as one self-contained HTML file — no build step, no dependencies, no backend.
+A single-page, mobile-friendly character sheet for **Caelian Vàel**, a Lesser Aasimar Cleric 5 (D&D 3.5e). Plain HTML, CSS and JavaScript — no build step, no dependencies, no backend.
 
 ## What it does
 

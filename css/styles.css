@@ -40,6 +40,13 @@ body{
 }
 ::selection{background:var(--gold);color:#1a1408;}
 button, input, textarea{font-family:inherit;}
+
+/* Hide the browser's up/down arrows on number fields. They take space on
+   the right, which pushes centered numbers off-center and covers narrow
+   fields like BAB. Mobile keyboards still show the number pad. */
+input[type=number]{-moz-appearance:textfield;appearance:textfield;}
+input[type=number]::-webkit-inner-spin-button,
+input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none;margin:0;}
 :focus-visible{outline:2px solid var(--celestial);outline-offset:2px;}
 @media (prefers-reduced-motion: reduce){
   *{animation:none !important;transition:none !important;}
@@ -103,7 +110,7 @@ button, input, textarea{font-family:inherit;}
 .ability-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;}
 .ability-cell{background:rgba(255,255,255,0.05);border:1px solid var(--glass-border);border-radius:var(--radius-md);padding:9px 4px;text-align:center;}
 .ability-cell label{display:block;font-family:var(--font-mono);font-size:10px;letter-spacing:1.5px;color:var(--text-2);margin-bottom:3px;}
-.ability-cell input{width:100%;background:transparent;border:none;color:var(--text-1);font-family:var(--font-mono);font-size:19px;font-weight:600;text-align:center;}
+.ability-cell input{width:100%;padding:0;margin:0;background:transparent;border:none;color:var(--text-1);font-family:var(--font-mono);font-size:19px;font-weight:600;text-align:center;}
 .ability-cell input:focus{outline:none;}
 .ability-mod{font-family:var(--font-mono);font-size:12.5px;color:var(--celestial);margin-top:1px;}
 
@@ -113,7 +120,7 @@ button, input, textarea{font-family:inherit;}
 .stat-box label{display:block;font-family:var(--font-mono);font-size:9px;letter-spacing:1px;color:var(--text-2);margin-bottom:4px;text-transform:uppercase;}
 .stat-box .signed{display:flex;align-items:center;justify-content:center;gap:0;}
 .stat-box .signed span{font-family:var(--font-mono);font-size:16px;color:var(--text-2);}
-.stat-box .signed input{width:2ch;flex:0 0 auto;padding:0;text-align:left;}
+.stat-box .signed input{width:3ch;flex:0 0 auto;padding:0;text-align:left;font-size:16px;}
 .stat-box input{width:100%;background:transparent;border:none;color:var(--text-1);font-family:var(--font-mono);font-size:16px;text-align:center;}
 .stat-box input:focus{outline:none;}
 .computed-value{font-family:var(--font-mono);font-size:16px;color:var(--text-1);}

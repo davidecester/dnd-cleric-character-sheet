@@ -4,10 +4,12 @@ A single-page, mobile-friendly character sheet for **Caelian Vàel**, a Lesser A
 
 ## What it does
 
-- Ability scores, HP tracker, Armor Class, Saving Throws, Attack/Grapple, and Initiative — with the math (AC breakdown, save components, grapple, initiative) computed from the 3.5e SRD rules, not just typed-in totals
+- Ability scores, HP tracker, Armor Class, Saving Throws, Attack/Grapple, Initiative and Speed — with the math computed from the 3.5e SRD rules, not just typed-in totals
+- Balance domain power with an activate button, round countdown, and once-per-day tracking that adds to AC while active
+- Full 3.5e skills list with class skills, ranks, armor check penalty, skill point budget, and max-rank warnings
 - Spells organized by level, each with its own save DC, spells-per-day total, and prepared-spell list
-- Combat, Domains, Gear (equipment, mount gear, coin ledger), and Notes tabs
-- A Story tab for a background image, portrait, appearance, backstory, and ideal
+- Tabs for Overview, Combat, Skills, Magic, Gear, and Story
+- A Story tab for a background image, portrait, appearance, backstory, ideal, and session notes
 - Every field is editable and saves automatically as you play
 
 ## Project structure

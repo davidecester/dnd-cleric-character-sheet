@@ -1,4 +1,4 @@
-# Caelian Vàel — Case File
+# Caelian Vàel — Character Sheet
 
 A single-page, mobile-friendly character sheet for **Caelian Vàel**, a Lesser Aasimar Cleric 5 (D&D 3.5e). Plain HTML, CSS and JavaScript — no build step, no dependencies, no backend.
 
@@ -15,7 +15,7 @@ A single-page, mobile-friendly character sheet for **Caelian Vàel**, a Lesser A
 ## Project structure
 
 ```
-dnd-caelian-cleric-character-sheet/
+dnd-cleric-character-sheet/
 ├── index.html        Page layout: header, tabs, and every card
 ├── css/
 │   └── styles.css    All styling (Liquid Glass look, colors, spacing)
@@ -39,7 +39,7 @@ The scripts load in this order: `storage.js` → `data.js` → `app.js`. Keep th
 | Add or rename a card or section | `index.html` |
 | Change how a number is calculated | `js/app.js` (look for `recomputeDerived` and `updateSkillTotals`) |
 
-Changes to `data.js` only show up after pressing **Restore original case file** (Story tab), because edits you've already made in the browser take priority.
+Changes to `data.js` only show up after pressing **Restore original character sheet** (Story tab), because edits you've already made in the browser take priority.
 
 ## How saving works
 

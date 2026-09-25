@@ -1,7 +1,7 @@
 /* =========================================================
    Character defaults
    Edit this file to change Caelian's baseline stats. These are the
-   values restored by the "Restore original case file" button.
+   values restored by the "Restore original character sheet" button.
    ========================================================= */
 window.CaseFile = window.CaseFile || {};
 (function(){

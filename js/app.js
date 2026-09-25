@@ -294,7 +294,7 @@
     document.getElementById("f-class").value = state.className;
     document.getElementById("f-level").value = state.level;
     document.getElementById("f-alignment").value = state.alignment;
-    document.getElementById("caseNo").textContent = String(state.level).padStart(3, "0");
+    document.getElementById("levelNo").textContent = state.level;
     document.getElementById("storyName").textContent = state.name;
     document.getElementById("storySubtitle").textContent = state.race + " · " + state.className + " " + state.level;
   }
@@ -493,7 +493,7 @@
     document.getElementById("f-class").addEventListener("input", function(e){ state.className = e.target.value; syncStoryCaption(); scheduleSave(); });
     document.getElementById("f-level").addEventListener("input", function(e){
       state.level = e.target.value === "" ? "" : Number(e.target.value);
-      document.getElementById("caseNo").textContent = String(state.level || 0).padStart(3, "0");
+      document.getElementById("levelNo").textContent = state.level || "";
       syncStoryCaption();
       recomputeDerived();
       scheduleSave();
@@ -523,7 +523,7 @@
 
   function bindReset(){
     document.getElementById("resetBtn").addEventListener("click", function(){
-      var confirmed = window.confirm("Restore the case file to Caelian's original stats? This erases any changes you've made.");
+      var confirmed = window.confirm("Restore the character sheet to Caelian's original stats? This erases any changes you've made.");
       if (!confirmed) return;
       state = clone(DEFAULT_DATA);
       renderAll();

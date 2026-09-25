@@ -294,6 +294,7 @@
     document.getElementById("f-class").value = state.className;
     document.getElementById("f-level").value = state.level;
     document.getElementById("f-alignment").value = state.alignment;
+    renderHeaderView();
     document.getElementById("levelNo").textContent = state.level;
     document.getElementById("storyName").textContent = state.name;
     document.getElementById("storySubtitle").textContent = state.race + " · " + state.className + " " + state.level;
@@ -482,6 +483,38 @@
     safe(renderLedger, "renderLedger");
   }
 
+  function renderHeaderView(){
+    document.getElementById("v-name").textContent = state.name;
+    var parts = [state.race, (state.className + " " + state.level).trim(), state.alignment];
+    var sub = document.getElementById("v-sub");
+    sub.textContent = "";
+    parts.filter(function(p){ return String(p).trim() !== ""; }).forEach(function(p, i){
+      if (i > 0) {
+        var sep = document.createElement("span");
+        sep.className = "sub-sep"; sep.textContent = "·";
+        sub.appendChild(sep);
+      }
+      var span = document.createElement("span");
+      span.className = "sub-part"; span.textContent = p;
+      sub.appendChild(span);
+    });
+  }
+
+  function bindHeaderEditToggle(){
+    var btn = document.getElementById("headerEditBtn");
+    var view = document.getElementById("headerView");
+    var edit = document.getElementById("headerEdit");
+    btn.addEventListener("click", function(){
+      var editing = edit.hidden;
+      edit.hidden = !editing;
+      view.hidden = editing;
+      btn.setAttribute("aria-pressed", String(editing));
+      btn.textContent = editing ? "✓ Done" : "✎ Edit";
+      if (editing) document.getElementById("f-name").focus();
+      else renderHeaderView();
+    });
+  }
+
   function syncStoryCaption(){
     document.getElementById("storyName").textContent = state.name;
     document.getElementById("storySubtitle").textContent = state.race + " · " + state.className + " " + state.level;
@@ -613,6 +646,7 @@
   loadState().then(function(){
     renderAll();
     safe(bindHeaderFields, "bindHeaderFields");
+    safe(bindHeaderEditToggle, "bindHeaderEditToggle");
     safe(bindAddButtons, "bindAddButtons");
     safe(bindReset, "bindReset");
     safe(bindTabs, "bindTabs");

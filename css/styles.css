@@ -24,6 +24,9 @@
 }
 *{box-sizing:border-box;}
 html,body{margin:0;padding:0;}
+/* Dark base behind everything so Safari's toolbar tint and overscroll
+   bounce area match the sheet instead of showing white. */
+html{background:#0c0f1c;color-scheme:dark;}
 body{
   background:
     radial-gradient(1000px 700px at 12% -8%, rgba(94,200,255,0.32), transparent 60%),
@@ -53,7 +56,7 @@ input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none;margin:0;}
 }
 
 /* ---------- Header ---------- */
-.dossier-header{position:relative;padding:30px 20px 20px;text-align:center;}
+.dossier-header{position:relative;padding:calc(30px + env(safe-area-inset-top)) calc(20px + env(safe-area-inset-right)) 20px calc(20px + env(safe-area-inset-left));text-align:center;}
 .seal{
   width:56px;height:56px;margin:0 auto 12px;border-radius:50%;
   background:var(--glass-bg-strong);backdrop-filter:blur(20px) saturate(180%);
@@ -64,19 +67,32 @@ input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none;margin:0;}
 .seal svg{width:30px;height:30px;}
 .stamp{font-family:var(--font-mono);font-size:10.5px;letter-spacing:2.5px;color:var(--gold);text-transform:uppercase;opacity:.85;}
 .case-no{color:var(--gold-strong);}
-.char-name-input{
-  display:block;width:100%;text-align:center;font-family:var(--font-display);
-  font-size:clamp(22px,7vw,30px);font-weight:800;color:var(--text-1);
-  background:transparent;border:none;border-bottom:1px solid transparent;margin-top:8px;padding:4px 0;
+/* View mode: plain text that wraps instead of getting cut by input boxes */
+.char-name{
+  font-family:var(--font-display);font-size:clamp(22px,7vw,30px);font-weight:800;color:var(--text-1);
+  margin-top:8px;padding:4px 0;line-height:1.2;overflow-wrap:anywhere;
 }
-.char-name-input:focus{outline:none;border-bottom:1px solid var(--gold);}
-.char-sub-row{display:flex;justify-content:center;align-items:center;flex-wrap:wrap;gap:4px;font-size:13px;color:var(--celestial);margin-top:2px;}
-.char-sub-row input{background:transparent;border:none;border-bottom:1px dashed transparent;color:inherit;font:inherit;text-align:center;}
-.char-sub-row input:focus{outline:none;border-bottom:1px dashed var(--celestial);}
-.sub-sep{color:var(--text-3);}
-#f-race{width:9ch;} #f-class{width:6ch;} #f-level{width:2.5ch;} #f-alignment{width:11ch;}
+.char-sub{font-size:13px;color:var(--celestial);margin-top:2px;line-height:1.5;overflow-wrap:anywhere;}
+.char-sub .sub-sep{color:var(--text-3);margin:0 5px;}
+.char-sub .sub-part{white-space:nowrap;}
+/* Edit mode: labeled full-width fields */
+.header-edit{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:14px auto 0;max-width:420px;text-align:left;}
+.header-edit[hidden]{display:none;}
+.he-field.he-wide{grid-column:1 / -1;}
+.he-field label{display:block;font-family:var(--font-mono);font-size:9px;letter-spacing:1px;color:var(--text-2);text-transform:uppercase;margin-bottom:3px;}
+.he-field input{
+  width:100%;background:rgba(255,255,255,0.06);border:1px solid var(--glass-border);border-radius:var(--radius-sm);
+  color:var(--text-1);font-family:var(--font-body);font-size:16px;padding:8px 10px;
+}
+.he-field input:focus{outline:none;border-color:var(--celestial);box-shadow:0 0 0 3px rgba(127,212,255,0.20);}
+.header-edit-btn{
+  margin-top:12px;padding:6px 14px;background:rgba(255,255,255,0.06);border:1px solid var(--glass-border);
+  border-radius:var(--radius-pill);color:var(--celestial);font-family:var(--font-mono);font-size:11px;
+  letter-spacing:1px;text-transform:uppercase;
+}
+.header-edit-btn[aria-pressed="true"]{background:rgba(127,212,255,0.18);border-color:rgba(127,212,255,0.55);}
 .save-status{
-  position:absolute;top:12px;right:16px;font-family:var(--font-mono);font-size:9.5px;letter-spacing:1px;
+  position:absolute;top:calc(12px + env(safe-area-inset-top));right:calc(16px + env(safe-area-inset-right));font-family:var(--font-mono);font-size:9.5px;letter-spacing:1px;
   color:var(--gold-strong);text-transform:uppercase;opacity:0;transition:opacity .5s;
 }
 .save-status.show{opacity:.85;}

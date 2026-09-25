@@ -2,7 +2,11 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0c0f1c">
+<meta name="color-scheme" content="dark">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>Caelian Vàel — Character Sheet</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -28,15 +32,18 @@
       </svg>
     </div>
     <div class="stamp">Character Sheet · Level <span class="case-no" id="levelNo">5</span></div>
-    <input class="char-name-input" id="f-name" type="text" spellcheck="false">
-    <div class="char-sub-row">
-      <input id="f-race" type="text">
-      <span class="sub-sep">·</span>
-      <input id="f-class" type="text">
-      <input id="f-level" type="number" min="1" max="20">
-      <span class="sub-sep">·</span>
-      <input id="f-alignment" type="text">
+    <div class="header-view" id="headerView">
+      <div class="char-name" id="v-name"></div>
+      <div class="char-sub" id="v-sub"></div>
     </div>
+    <div class="header-edit" id="headerEdit" hidden>
+      <div class="he-field he-wide"><label for="f-name">Name</label><input id="f-name" type="text" spellcheck="false"></div>
+      <div class="he-field"><label for="f-race">Race</label><input id="f-race" type="text"></div>
+      <div class="he-field"><label for="f-class">Class</label><input id="f-class" type="text"></div>
+      <div class="he-field"><label for="f-level">Level</label><input id="f-level" type="number" min="1" max="20" inputmode="numeric"></div>
+      <div class="he-field"><label for="f-alignment">Alignment</label><input id="f-alignment" type="text"></div>
+    </div>
+    <button class="header-edit-btn" id="headerEditBtn" type="button" aria-pressed="false" aria-controls="headerEdit">✎ Edit</button>
   </header>
 
   <main class="content">

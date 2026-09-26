@@ -67,8 +67,8 @@ window.CaseFile = window.CaseFile || {};
     ],
     initiative: { misc:0 },
     attacks: [
-      { name:"+1 Longspear", bonus:"+8", damage:"1d8+7", notes:"Reach 10 ft · Two-handed · Main melee weapon" },
-      { name:"Morningstar", bonus:"", damage:"", notes:"Backup weapon · useful vs foes inside longspear reach" }
+      { name:"+1 Longspear", bonus:"+8", damage:"1d8+7", notes:"Crit ×3 · Piercing · Reach 10 ft · Two-handed · Main melee weapon" },
+      { name:"Morningstar", bonus:"+7", damage:"1d8+4", notes:"Crit ×2 · Bludgeoning & piercing · One-handed · Backup vs foes inside longspear reach" }
     ],
     armor: "Full Plate",
     shield: "",
@@ -76,7 +76,7 @@ window.CaseFile = window.CaseFile || {};
       { name:"Power Attack", notes:"" },
       { name:"Extend Spell", notes:"" }
     ],
-    futureFeats: "Future progression planned toward Divine Metamagic and stronger melee cleric optimization.",
+    powerAttack: 0,
     domains: {
       balance: "Once per day, as a free action, add your Wisdom modifier to AC for 1 round per cleric level (currently +6 AC for 5 rounds). Reflects Caelian's pursuit of equilibrium — weighing extremes rather than favoring either side.",
       magic: "Can use certain Wizard spell-completion and spell-trigger items as a Wizard of half his Cleric level. Grants access to useful utility and anti-magic domain spells."

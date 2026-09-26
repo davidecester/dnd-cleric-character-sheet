@@ -207,6 +207,23 @@
         <button class="add-row-btn" id="addAttack">+ Add attack</button>
       </div>
 
+      <div class="card" id="combatFeatsCard" hidden>
+        <h2>Feat Bonuses</h2>
+        <div class="pa-block" id="paBlock" hidden>
+          <div class="pa-head">
+            <span class="pa-title">Power Attack</span>
+            <div class="pa-stepper">
+              <button type="button" id="paMinus" aria-label="Less Power Attack">−</button>
+              <span id="paValue" aria-live="polite">Off</span>
+              <button type="button" id="paPlus" aria-label="More Power Attack">+</button>
+            </div>
+          </div>
+          <div class="feat-summary" id="paSummary"></div>
+          <div id="paAttacks"></div>
+        </div>
+        <div id="combatFeats"></div>
+      </div>
+
       <div class="card">
         <h2>Armor &amp; Shield</h2>
         <div class="stat-row">
@@ -239,11 +256,16 @@
       </div>
 
       <div class="card">
-        <h2>Feats</h2>
-        <div id="featsList"></div>
-        <button class="add-row-btn" id="addFeat">+ Add feat</button>
-        <div class="hint" style="margin-top:10px;">Planned progression</div>
-        <textarea class="text-block" id="futureFeats" style="min-height:60px;"></textarea>
+        <div class="card-head">
+          <h2>Feats</h2>
+          <button class="section-edit-btn" id="featsEditBtn" type="button" aria-pressed="false" aria-controls="featsEdit">✎ Edit</button>
+        </div>
+        <div id="featsView"></div>
+        <div id="featsEdit" hidden>
+          <div class="hint">Type the feat name (e.g. "Weapon Focus (longspear)") to pick up its 3.5 rules. Notes show under the rules.</div>
+          <div id="featsList"></div>
+          <button class="add-row-btn" id="addFeat">+ Add feat</button>
+        </div>
       </div>
 
       <div class="card">
@@ -367,6 +389,7 @@
 
 <script src="js/storage.js"></script>
 <script src="js/data.js"></script>
+<script src="js/feats.js"></script>
 <script src="js/app.js"></script>
 </body>
 </html>

@@ -379,7 +379,6 @@
     bindField("backstory", function(){ return state.backstory; }, function(v){ state.backstory = v; });
     bindField("ideal", function(){ return state.ideal; }, function(v){ state.ideal = v; });
     bindField("sessionNotes", function(){ return state.sessionNotes; }, function(v){ state.sessionNotes = v; });
-    bindField("futureFeats", function(){ return state.futureFeats; }, function(v){ state.futureFeats = v; renderPlannedFeats(); });
     bindField("armor", function(){ return state.armor; }, function(v){ state.armor = v; });
     bindField("shield", function(){ return state.shield; }, function(v){ state.shield = v; });
     bindField("domainBalance", function(){ return state.domains.balance; }, function(v){ state.domains.balance = v; });
@@ -407,51 +406,49 @@
     { field:"name", placeholder:"Spell name", className:"col-name" }
   ];
 
-  function renderAttacks(){ renderList("attacksList", state.attacks, ATTACK_FIELDS); }
-  function renderFeats(){ renderList("featsList", state.feats, FEAT_FIELDS); renderFeatsView(); }
+  function renderAttacks(){ renderList("attacksList", state.attacks, ATTACK_FIELDS, renderCombatFeats); renderCombatFeats(); }
+  function renderFeats(){ renderList("featsList", state.feats, FEAT_FIELDS, renderCombatFeats); renderFeatsView(); }
 
   // Extra line computed from the current sheet, for feats whose numbers depend on it.
   function featLiveNote(name){
     if (name === "Power Attack") {
       var bab = Math.max(0, num(state.bab));
-      return "Now (BAB " + signed(bab) + "): up to −" + bab + " attack for +" + bab +
-        " damage, or +" + (bab * 2) + " with a two-handed weapon like the longspear.";
+      return "Now: up to −" + bab + " attack → +" + bab + " dmg (+" + (bab * 2) + " two-handed).";
     }
-    if (name === "Divine Metamagic") {
-      var turns = 3 + abilityMod("cha");
-      return "Turn attempts per day: " + turns + " (3 + Cha " + signed(abilityMod("cha")) + ", before Extra Turning).";
+    if (name === "Divine Metamagic" || name === "Divine Might" || name === "Divine Vigor") {
+      return "Turn attempts/day: " + (3 + abilityMod("cha")) + " (3 + Cha " + signed(abilityMod("cha")) + ").";
     }
     return "";
   }
 
-  function featEntry(title, rules, note){
+  function featEntry(title, hit, note){
     var el = document.createElement("div");
     el.className = "feat-entry";
-    var name = document.createElement("div");
-    name.className = "feat-name";
-    name.textContent = title;
-    el.appendChild(name);
-    if (rules) {
-      var meta = [rules.rules.type];
-      if (rules.rules.prereq) meta.push("Prereq: " + rules.rules.prereq);
-      if (rules.rules.source) meta.push(rules.rules.source);
-      var m = document.createElement("div");
-      m.className = "feat-meta"; m.textContent = meta.join(" · ");
-      el.appendChild(m);
-      var b = document.createElement("div");
-      b.className = "feat-benefit"; b.textContent = rules.rules.benefit;
-      el.appendChild(b);
-      var live = featLiveNote(rules.name);
-      if (live) {
-        var l = document.createElement("div");
-        l.className = "feat-live"; l.textContent = live;
-        el.appendChild(l);
-      }
+    var head = document.createElement("div");
+    head.className = "feat-name";
+    head.textContent = title;
+    if (hit) {
+      var tag = document.createElement("span");
+      tag.className = "feat-type";
+      tag.textContent = hit.rules.type + (hit.rules.source ? " · " + hit.rules.source : "");
+      head.appendChild(tag);
+    }
+    el.appendChild(head);
+    var sum = document.createElement("div");
+    if (hit) {
+      sum.className = "feat-summary";
+      sum.textContent = hit.rules.summary;
+      if (hit.rules.prereq) sum.title = "Prerequisites: " + hit.rules.prereq;
     } else if (!note) {
-      var u = document.createElement("div");
-      u.className = "feat-benefit feat-unknown";
-      u.textContent = "No rules summary on file — add what it does as a note in edit mode.";
-      el.appendChild(u);
+      sum.className = "feat-summary feat-unknown";
+      sum.textContent = "No summary on file — add one as a note in edit mode.";
+    }
+    if (sum.textContent) el.appendChild(sum);
+    var live = hit ? featLiveNote(hit.name) : "";
+    if (live) {
+      var l = document.createElement("div");
+      l.className = "feat-live"; l.textContent = live;
+      el.appendChild(l);
     }
     if (note) {
       var n = document.createElement("div");
@@ -471,20 +468,72 @@
     if (!view.firstChild) {
       view.innerHTML = '<div class="hint">No feats yet — tap ✎ Edit to add one.</div>';
     }
-    renderPlannedFeats();
+    renderCombatFeats();
   }
 
-  // Rules for known feats named in the planned-progression notes, except ones already taken.
-  function renderPlannedFeats(){
-    var wrap = document.getElementById("plannedFeats");
-    wrap.innerHTML = "";
-    var taken = state.feats.map(function(f){ var hit = CF.findFeat(f.name); return hit && hit.name; });
-    CF.featsMentioned(state.futureFeats).forEach(function(name){
-      if (taken.indexOf(name) !== -1) return;
-      var entry = featEntry(name, CF.findFeat(name), "");
-      entry.classList.add("planned");
-      wrap.appendChild(entry);
+  // ---------------- Combat tab: feats that change attacks ----------------
+  function paAmount(){ return Math.max(0, Math.min(num(state.powerAttack), Math.max(0, num(state.bab)))); }
+
+  // "+8" → 8, "1d8+7" → { dice:"1d8", mod:7 }; null when the text isn't in that shape.
+  function parseBonus(txt){ var m = String(txt || "").trim().match(/^([+-]?\d+)/); return m ? Number(m[1]) : null; }
+  function parseDamage(txt){
+    var m = String(txt || "").replace(/\s+/g, "").match(/^(\d*d\d+)([+-]\d+)?$/i);
+    return m ? { dice:m[1], mod:m[2] ? Number(m[2]) : 0 } : null;
+  }
+  function isTwoHanded(a){ return /two[- ]?hand/i.test((a.notes || "") + " " + (a.name || "")); }
+
+  function renderCombatFeats(){
+    var card = document.getElementById("combatFeatsCard");
+    var list = document.getElementById("combatFeats");
+    if (!card || !list) return;
+    list.innerHTML = "";
+    var hasPA = false;
+    state.feats.forEach(function(f){
+      var hit = CF.findFeat(f.name);
+      if (!hit || !hit.rules.combat) return;
+      if (hit.name === "Power Attack") { hasPA = true; return; } // has its own calculator
+      list.appendChild(featEntry(f.name, hit, ""));
     });
+    card.hidden = !list.firstChild && !hasPA;
+    var pa = document.getElementById("paBlock");
+    pa.hidden = !hasPA;
+    if (hasPA) renderPowerAttack();
+  }
+
+  function renderPowerAttack(){
+    var n = paAmount();
+    document.getElementById("paSummary").textContent = CF.FEAT_RULES["Power Attack"].summary;
+    document.getElementById("paValue").textContent = n ? "−" + n : "Off";
+    document.getElementById("paMinus").disabled = n <= 0;
+    document.getElementById("paPlus").disabled = n >= Math.max(0, num(state.bab));
+    var out = document.getElementById("paAttacks");
+    out.innerHTML = "";
+    state.attacks.forEach(function(a){
+      var atk = parseBonus(a.bonus), dmg = parseDamage(a.damage);
+      if (atk === null || !dmg) return;
+      var two = isTwoHanded(a);
+      var row = document.createElement("div");
+      row.className = "pa-row";
+      var name = document.createElement("span");
+      name.className = "pa-name";
+      name.textContent = (a.name || "Attack") + (two ? " (2H)" : "");
+      var val = document.createElement("span");
+      val.className = "pa-val";
+      var mod = dmg.mod + n * (two ? 2 : 1);
+      val.textContent = signed(atk - n) + " · " + dmg.dice + (mod ? signed(mod) : "");
+      row.appendChild(name); row.appendChild(val);
+      out.appendChild(row);
+    });
+    if (!out.firstChild) out.innerHTML = '<div class="hint">Give an attack a bonus like "+8" and damage like "1d8+7" to see it adjusted here.</div>';
+  }
+
+  function bindPowerAttack(){
+    function step(d){
+      state.powerAttack = Math.max(0, Math.min(paAmount() + d, Math.max(0, num(state.bab))));
+      renderPowerAttack(); scheduleSave();
+    }
+    document.getElementById("paMinus").addEventListener("click", function(){ step(-1); });
+    document.getElementById("paPlus").addEventListener("click", function(){ step(1); });
   }
 
   function bindFeatsEditToggle(){
@@ -636,8 +685,8 @@
   }
 
   function bindAddButtons(){
-    document.getElementById("addAttack").addEventListener("click", function(){ addAndReveal("attacksList", state.attacks, { name:"", bonus:"", damage:"", notes:"" }, ATTACK_FIELDS); });
-    document.getElementById("addFeat").addEventListener("click", function(){ addAndReveal("featsList", state.feats, { name:"", notes:"" }, FEAT_FIELDS); });
+    document.getElementById("addAttack").addEventListener("click", function(){ addAndReveal("attacksList", state.attacks, { name:"", bonus:"", damage:"", notes:"" }, ATTACK_FIELDS, renderCombatFeats); });
+    document.getElementById("addFeat").addEventListener("click", function(){ addAndReveal("featsList", state.feats, { name:"", notes:"" }, FEAT_FIELDS, renderCombatFeats); });
     document.getElementById("addRacial").addEventListener("click", function(){ addAndReveal("racialList", state.racialTraits, { text:"" }, RACIAL_FIELDS); });
     document.getElementById("addEquipment").addEventListener("click", function(){ addAndReveal("equipmentList", state.equipment, { name:"" }, EQUIPMENT_FIELDS); });
     document.getElementById("addMount").addEventListener("click", function(){ addAndReveal("mountList", state.mountGear, { name:"" }, EQUIPMENT_FIELDS); });
@@ -749,6 +798,7 @@
     safe(bindHeaderFields, "bindHeaderFields");
     safe(bindHeaderEditToggle, "bindHeaderEditToggle");
     safe(bindFeatsEditToggle, "bindFeatsEditToggle");
+    safe(bindPowerAttack, "bindPowerAttack");
     safe(bindAddButtons, "bindAddButtons");
     safe(bindReset, "bindReset");
     safe(bindTabs, "bindTabs");

@@ -10,7 +10,7 @@ Mobile-first D&D 3.5 cleric character sheet. Plain static site, no build step:
 - `css/styles.css` — all styles ("liquid glass" dark theme, design tokens on `:root`)
 - `js/storage.js` → `js/data.js` → `js/feats.js` → `js/app.js` — load in that order
   - `data.js` holds `DEFAULT_DATA` (the character's baseline stats, restored by "Restore original")
-  - `feats.js` holds `FEAT_RULES`, the 3.5 feat rules summaries shown on the Skills tab
+  - `feats.js` holds `FEAT_RULES`, short 3.5 feat summaries shown on the Skills and Combat tabs
   - `app.js` handles rendering, 3.5e rules math and autosave to local storage
 
 Open `index.html` directly in a browser to run it. The owner mainly uses it on iPhone Safari,

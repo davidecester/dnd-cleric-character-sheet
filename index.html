@@ -207,6 +207,23 @@
         <button class="add-row-btn" id="addAttack">+ Add attack</button>
       </div>
 
+      <div class="card" id="combatFeatsCard" hidden>
+        <h2>Feat Bonuses</h2>
+        <div class="pa-block" id="paBlock" hidden>
+          <div class="pa-head">
+            <span class="pa-title">Power Attack</span>
+            <div class="pa-stepper">
+              <button type="button" id="paMinus" aria-label="Less Power Attack">−</button>
+              <span id="paValue" aria-live="polite">Off</span>
+              <button type="button" id="paPlus" aria-label="More Power Attack">+</button>
+            </div>
+          </div>
+          <div class="feat-summary" id="paSummary"></div>
+          <div id="paAttacks"></div>
+        </div>
+        <div id="combatFeats"></div>
+      </div>
+
       <div class="card">
         <h2>Armor &amp; Shield</h2>
         <div class="stat-row">
@@ -249,9 +266,6 @@
           <div id="featsList"></div>
           <button class="add-row-btn" id="addFeat">+ Add feat</button>
         </div>
-        <div class="hint" style="margin-top:10px;">Planned progression</div>
-        <textarea class="text-block" id="futureFeats" style="min-height:60px;"></textarea>
-        <div id="plannedFeats"></div>
       </div>
 
       <div class="card">

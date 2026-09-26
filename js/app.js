@@ -48,8 +48,20 @@
           try { state = Object.assign(clone(DEFAULT_DATA), JSON.parse(res.value)); }
           catch(e){ state = clone(DEFAULT_DATA); }
         } else { state = clone(DEFAULT_DATA); }
+        fillBlankAttacks();
       })
       .catch(function(){ state = clone(DEFAULT_DATA); });
+  }
+
+  // Saved sheets from before an attack's stats were filled in (e.g. the Morningstar)
+  // pick up the default numbers, as long as the user hasn't typed any yet.
+  function fillBlankAttacks(){
+    DEFAULT_DATA.attacks.forEach(function(def){
+      state.attacks.forEach(function(a){
+        if (a.name !== def.name || String(a.bonus || "") !== "" || String(a.damage || "") !== "") return;
+        a.bonus = def.bonus; a.damage = def.damage; a.notes = def.notes;
+      });
+    });
   }
 
   // ---------------- Generic list renderer ----------------

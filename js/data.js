@@ -67,8 +67,8 @@ window.CaseFile = window.CaseFile || {};
     ],
     initiative: { misc:0 },
     attacks: [
-      { name:"+1 Longspear", bonus:"+8", damage:"1d8+7", notes:"Reach 10 ft · Two-handed · Main melee weapon" },
-      { name:"Morningstar", bonus:"", damage:"", notes:"Backup weapon · useful vs foes inside longspear reach" }
+      { name:"+1 Longspear", bonus:"+8", damage:"1d8+7", notes:"Crit ×3 · Piercing · Reach 10 ft · Two-handed · Main melee weapon" },
+      { name:"Morningstar", bonus:"+7", damage:"1d8+4", notes:"Crit ×2 · Bludgeoning & piercing · One-handed · Backup vs foes inside longspear reach" }
     ],
     armor: "Full Plate",
     shield: "",

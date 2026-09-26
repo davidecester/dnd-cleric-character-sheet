@@ -286,3 +286,5 @@ details.breakdown[open] summary::after{content:' ▴';}
 .skill-total{font-family:var(--font-mono);font-size:14px;font-weight:600;text-align:center;color:var(--celestial);}
 .skill-row.cls .skill-name .nm, .skill-row.cls .skill-name input{color:var(--gold-strong);}
 .skill-total.na{color:var(--text-3);}
+.skill-meta{flex-wrap:wrap;column-gap:4px;}
+.skill-meta .ab-mod{color:var(--celestial);opacity:.8;white-space:nowrap;}

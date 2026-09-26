@@ -194,9 +194,11 @@
 
   // ---------------- Skills ----------------
   var ABILS = ["str","dex","con","int","wis","cha"];
+  // Always computed so every skill shows a usable number. Trained-only skills
+  // with no ranks are flagged (dimmed in the UI) rather than hidden.
+  function skillLocked(s){ return !s.untrained && num(s.ranks) <= 0; }
   function skillTotal(s){
     var ranks = num(s.ranks);
-    if (!s.untrained && ranks <= 0) return null;
     var acp = Math.min(0, num(state.skillAcp)) * num(s.acp);
     return Math.floor(ranks) + abilityMod(s.ability) + num(s.misc) + acp;
   }
@@ -209,9 +211,12 @@
       spent += s.cls ? num(s.ranks) : num(s.ranks) * 2;
       var row = list.children[i];
       if (!row) return;
-      var t = skillTotal(s), out = row.querySelector(".skill-total");
-      out.textContent = t === null ? "—" : signed(t);
-      out.classList.toggle("na", t === null);
+      var locked = skillLocked(s), out = row.querySelector(".skill-total");
+      out.textContent = signed(skillTotal(s));
+      out.classList.toggle("na", locked);
+      out.title = locked ? "Trained only: needs at least 1 rank to use" : "";
+      var ab = row.querySelector(".ab-mod");
+      if (ab) ab.textContent = (ab.classList.contains("ab-mod-only") ? "" : s.ability.toUpperCase() + " ") + signed(abilityMod(s.ability));
       row.querySelector(".rk").classList.toggle("over", num(s.ranks) > (s.cls ? maxC : maxX));
       row.classList.toggle("cls", !!s.cls);
     });
@@ -248,14 +253,18 @@
         ABILS.forEach(function(a){ var o = document.createElement("option"); o.value = a; o.textContent = a.toUpperCase(); if (a === s.ability) o.selected = true; sel.appendChild(o); });
         sel.addEventListener("change", function(){ s.ability = sel.value; updateSkillTotals(); scheduleSave(); });
         meta.appendChild(sel);
+        var abm = document.createElement("span"); abm.className = "ab-mod ab-mod-only";
+        meta.appendChild(abm);
         var rm = document.createElement("button"); rm.className = "rm"; rm.textContent = "remove";
         rm.addEventListener("click", function(){ state.skills.splice(idx, 1); renderSkills(); scheduleSave(); });
         meta.appendChild(rm);
       } else {
-        var tags = [s.ability.toUpperCase()];
+        var ab = document.createElement("span"); ab.className = "ab-mod";
+        meta.appendChild(ab);
+        var tags = [];
         if (s.acp === 2) tags.push("ACP×2"); else if (s.acp) tags.push("ACP");
         if (!s.untrained) tags.push("trained");
-        meta.textContent = tags.join(" · ");
+        if (tags.length) meta.appendChild(document.createTextNode(" · " + tags.join(" · ")));
       }
       nameWrap.appendChild(meta);
 

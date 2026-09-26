@@ -239,11 +239,19 @@
       </div>
 
       <div class="card">
-        <h2>Feats</h2>
-        <div id="featsList"></div>
-        <button class="add-row-btn" id="addFeat">+ Add feat</button>
+        <div class="card-head">
+          <h2>Feats</h2>
+          <button class="section-edit-btn" id="featsEditBtn" type="button" aria-pressed="false" aria-controls="featsEdit">✎ Edit</button>
+        </div>
+        <div id="featsView"></div>
+        <div id="featsEdit" hidden>
+          <div class="hint">Type the feat name (e.g. "Weapon Focus (longspear)") to pick up its 3.5 rules. Notes show under the rules.</div>
+          <div id="featsList"></div>
+          <button class="add-row-btn" id="addFeat">+ Add feat</button>
+        </div>
         <div class="hint" style="margin-top:10px;">Planned progression</div>
         <textarea class="text-block" id="futureFeats" style="min-height:60px;"></textarea>
+        <div id="plannedFeats"></div>
       </div>
 
       <div class="card">
@@ -367,6 +375,7 @@
 
 <script src="js/storage.js"></script>
 <script src="js/data.js"></script>
+<script src="js/feats.js"></script>
 <script src="js/app.js"></script>
 </body>
 </html>

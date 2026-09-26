@@ -1,6 +1,6 @@
 /* =========================================================
    App logic — rendering, calculations (3.5e rules), events
-   Load order: storage.js → data.js → app.js
+   Load order: storage.js → data.js → feats.js → app.js
    ========================================================= */
 (function(){
   "use strict";
@@ -151,6 +151,7 @@
 
     updateSkillTotals();
     updateBalanceUI();
+    renderFeatsView();
   }
 
   // ---------------- Balance domain power ----------------
@@ -378,7 +379,7 @@
     bindField("backstory", function(){ return state.backstory; }, function(v){ state.backstory = v; });
     bindField("ideal", function(){ return state.ideal; }, function(v){ state.ideal = v; });
     bindField("sessionNotes", function(){ return state.sessionNotes; }, function(v){ state.sessionNotes = v; });
-    bindField("futureFeats", function(){ return state.futureFeats; }, function(v){ state.futureFeats = v; });
+    bindField("futureFeats", function(){ return state.futureFeats; }, function(v){ state.futureFeats = v; renderPlannedFeats(); });
     bindField("armor", function(){ return state.armor; }, function(v){ state.armor = v; });
     bindField("shield", function(){ return state.shield; }, function(v){ state.shield = v; });
     bindField("domainBalance", function(){ return state.domains.balance; }, function(v){ state.domains.balance = v; });
@@ -407,7 +408,98 @@
   ];
 
   function renderAttacks(){ renderList("attacksList", state.attacks, ATTACK_FIELDS); }
-  function renderFeats(){ renderList("featsList", state.feats, FEAT_FIELDS); }
+  function renderFeats(){ renderList("featsList", state.feats, FEAT_FIELDS); renderFeatsView(); }
+
+  // Extra line computed from the current sheet, for feats whose numbers depend on it.
+  function featLiveNote(name){
+    if (name === "Power Attack") {
+      var bab = Math.max(0, num(state.bab));
+      return "Now (BAB " + signed(bab) + "): up to −" + bab + " attack for +" + bab +
+        " damage, or +" + (bab * 2) + " with a two-handed weapon like the longspear.";
+    }
+    if (name === "Divine Metamagic") {
+      var turns = 3 + abilityMod("cha");
+      return "Turn attempts per day: " + turns + " (3 + Cha " + signed(abilityMod("cha")) + ", before Extra Turning).";
+    }
+    return "";
+  }
+
+  function featEntry(title, rules, note){
+    var el = document.createElement("div");
+    el.className = "feat-entry";
+    var name = document.createElement("div");
+    name.className = "feat-name";
+    name.textContent = title;
+    el.appendChild(name);
+    if (rules) {
+      var meta = [rules.rules.type];
+      if (rules.rules.prereq) meta.push("Prereq: " + rules.rules.prereq);
+      if (rules.rules.source) meta.push(rules.rules.source);
+      var m = document.createElement("div");
+      m.className = "feat-meta"; m.textContent = meta.join(" · ");
+      el.appendChild(m);
+      var b = document.createElement("div");
+      b.className = "feat-benefit"; b.textContent = rules.rules.benefit;
+      el.appendChild(b);
+      var live = featLiveNote(rules.name);
+      if (live) {
+        var l = document.createElement("div");
+        l.className = "feat-live"; l.textContent = live;
+        el.appendChild(l);
+      }
+    } else if (!note) {
+      var u = document.createElement("div");
+      u.className = "feat-benefit feat-unknown";
+      u.textContent = "No rules summary on file — add what it does as a note in edit mode.";
+      el.appendChild(u);
+    }
+    if (note) {
+      var n = document.createElement("div");
+      n.className = "feat-note"; n.textContent = note;
+      el.appendChild(n);
+    }
+    return el;
+  }
+
+  function renderFeatsView(){
+    var view = document.getElementById("featsView");
+    view.innerHTML = "";
+    state.feats.forEach(function(f){
+      if (!String(f.name || "").trim() && !String(f.notes || "").trim()) return;
+      view.appendChild(featEntry(f.name || "Unnamed feat", CF.findFeat(f.name), f.notes));
+    });
+    if (!view.firstChild) {
+      view.innerHTML = '<div class="hint">No feats yet — tap ✎ Edit to add one.</div>';
+    }
+    renderPlannedFeats();
+  }
+
+  // Rules for known feats named in the planned-progression notes, except ones already taken.
+  function renderPlannedFeats(){
+    var wrap = document.getElementById("plannedFeats");
+    wrap.innerHTML = "";
+    var taken = state.feats.map(function(f){ var hit = CF.findFeat(f.name); return hit && hit.name; });
+    CF.featsMentioned(state.futureFeats).forEach(function(name){
+      if (taken.indexOf(name) !== -1) return;
+      var entry = featEntry(name, CF.findFeat(name), "");
+      entry.classList.add("planned");
+      wrap.appendChild(entry);
+    });
+  }
+
+  function bindFeatsEditToggle(){
+    var btn = document.getElementById("featsEditBtn");
+    var view = document.getElementById("featsView");
+    var edit = document.getElementById("featsEdit");
+    btn.addEventListener("click", function(){
+      var editing = edit.hidden;
+      edit.hidden = !editing;
+      view.hidden = editing;
+      btn.setAttribute("aria-pressed", String(editing));
+      btn.textContent = editing ? "✓ Done" : "✎ Edit";
+      if (!editing) renderFeatsView();
+    });
+  }
   function renderRacial(){ renderList("racialList", state.racialTraits, RACIAL_FIELDS); }
   function renderEquipment(){ renderList("equipmentList", state.equipment, EQUIPMENT_FIELDS); }
   function renderMountGear(){ renderList("mountList", state.mountGear, EQUIPMENT_FIELDS); }
@@ -656,6 +748,7 @@
     renderAll();
     safe(bindHeaderFields, "bindHeaderFields");
     safe(bindHeaderEditToggle, "bindHeaderEditToggle");
+    safe(bindFeatsEditToggle, "bindFeatsEditToggle");
     safe(bindAddButtons, "bindAddButtons");
     safe(bindReset, "bindReset");
     safe(bindTabs, "bindTabs");

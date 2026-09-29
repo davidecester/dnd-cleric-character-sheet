@@ -253,10 +253,58 @@
   // Always computed so every skill shows a usable number. Trained-only skills
   // with no ranks are flagged (dimmed in the UI) rather than hidden.
   function skillLocked(s){ return !s.untrained && num(s.ranks) <= 0; }
+
+  // 3.5 skill synergies (PHB table 4-5): 5+ ranks in the source skill give +2 on the target.
+  // Entries with "when" only apply in that situation, so they are noted, not added to the total.
+  var SYNERGIES = [
+    { from:"Bluff", to:"Diplomacy" }, { from:"Bluff", to:"Intimidate" }, { from:"Bluff", to:"Sleight of Hand" },
+    { from:"Bluff", to:"Disguise", when:"acting in character" },
+    { from:"Craft", to:"Appraise", when:"items related to your Craft" },
+    { from:"Decipher Script", to:"Use Magic Device", when:"scrolls" },
+    { from:"Escape Artist", to:"Use Rope", when:"binding someone" },
+    { from:"Handle Animal", to:"Ride" },
+    { from:"Jump", to:"Tumble" },
+    { from:"Knowledge (arcana)", to:"Spellcraft" },
+    { from:"Knowledge (architecture and engineering)", to:"Search", when:"secret doors and compartments" },
+    { from:"Knowledge (dungeoneering)", to:"Survival", when:"underground" },
+    { from:"Knowledge (geography)", to:"Survival", when:"avoiding getting lost or hazards" },
+    { from:"Knowledge (local)", to:"Gather Information" },
+    { from:"Knowledge (nature)", to:"Survival", when:"above ground in natural environments" },
+    { from:"Knowledge (nobility and royalty)", to:"Diplomacy" },
+    { from:"Knowledge (religion)", to:"Turn undead", when:"turning checks" },
+    { from:"Knowledge (the planes)", to:"Survival", when:"on other planes" },
+    { from:"Search", to:"Survival", when:"following tracks" },
+    { from:"Sense Motive", to:"Diplomacy" },
+    { from:"Spellcraft", to:"Use Magic Device", when:"scrolls" },
+    { from:"Survival", to:"Knowledge (nature)" },
+    { from:"Tumble", to:"Balance" }, { from:"Tumble", to:"Jump" },
+    { from:"Use Magic Device", to:"Spellcraft", when:"deciphering scrolls" },
+    { from:"Use Rope", to:"Climb", when:"climbing a rope" },
+    { from:"Use Rope", to:"Escape Artist", when:"escaping rope bonds" }
+  ];
+  function skillKey(name){
+    var n = String(name || "").toLowerCase().trim();
+    return /^craft\b/.test(n) ? "craft" : n;
+  }
+  // Active synergies for a skill (as target, or as source for non-skill targets like turning).
+  function skillSynergies(s){
+    var key = skillKey(s.name), out = [];
+    SYNERGIES.forEach(function(syn){
+      var hit = syn.to.toLowerCase() === key || (syn.to === "Turn undead" && skillKey(syn.from) === key);
+      if (!hit) return;
+      var fromKey = skillKey(syn.from);
+      var active = state.skills.some(function(src){ return skillKey(src.name) === fromKey && num(src.ranks) >= 5; });
+      if (active) out.push(syn);
+    });
+    return out;
+  }
+  function synergyBonus(s){
+    return skillSynergies(s).filter(function(syn){ return !syn.when; }).length * 2;
+  }
   function skillTotal(s){
     var ranks = num(s.ranks);
     var acp = Math.min(0, num(state.skillAcp)) * num(s.acp);
-    return Math.floor(ranks) + abilityMod(s.ability) + num(s.racial) + num(s.misc) + acp;
+    return Math.floor(ranks) + abilityMod(s.ability) + num(s.racial) + synergyBonus(s) + num(s.misc) + acp;
   }
   function updateSkillTotals(){
     var list = document.getElementById("skillsList");
@@ -274,6 +322,13 @@
       var ab = row.querySelector(".ab-mod");
       if (ab) ab.textContent = (ab.classList.contains("ab-mod-only") ? "" : s.ability.toUpperCase() + " ") + signed(abilityMod(s.ability));
       row.querySelector(".rk").classList.toggle("over", num(s.ranks) > (s.cls ? maxC : maxX));
+      var info = row.querySelector(".skill-info");
+      if (info) {
+        var notes = skillNotes(s);
+        info._notes = notes;
+        info.hidden = !notes.length;
+        info.classList.toggle("boost", synergyBonus(s) > 0);
+      }
       row.classList.toggle("cls", !!s.cls);
     });
     var budget = Math.max(1, 2 + abilityMod("int")) * (lvl + 3);
@@ -291,6 +346,51 @@
       var s = state.skills.filter(function(sk){ return sk.name === pair[0]; })[0];
       if (out) out.textContent = s ? signed(skillTotal(s)) : "—";
     });
+  }
+  // Notes behind the (i) button on each skill row: armor penalty, trained only,
+  // racial bonus and synergies. Kept out of the row itself so rows stay short.
+  function skillNotes(s){
+    var notes = [];
+    if (s.acp === 2) notes.push("Armor check penalty applies twice");
+    else if (s.acp) notes.push("Armor check penalty applies");
+    if (!s.untrained) notes.push("Trained only: needs at least 1 rank to use");
+    if (num(s.racial)) notes.push("Racial " + signed(num(s.racial)) + " (included)");
+    skillSynergies(s).forEach(function(x){
+      if (x.to === "Turn undead") notes.push("Synergy: gives +2 on turning checks");
+      else if (x.when) notes.push("Synergy +2 from " + x.from + " when " + x.when + " (situational, not included)");
+      else notes.push("Synergy +2 from " + x.from + " (included)");
+    });
+    return notes;
+  }
+  var INFO_ICON = '<svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="7" fill="none" stroke="currentColor" stroke-width="1.3"/><circle cx="8" cy="4.9" r="1" fill="currentColor"/><rect x="7.25" y="6.9" width="1.5" height="4.8" rx=".75" fill="currentColor"/></svg>';
+  var skillTip = null, skillTipFor = null;
+  function hideSkillTip(){
+    if (skillTip) skillTip.hidden = true;
+    skillTipFor = null;
+  }
+  function toggleSkillTip(btn, title){
+    if (skillTipFor === btn) { hideSkillTip(); return; }
+    if (!skillTip) {
+      skillTip = document.createElement("div");
+      skillTip.className = "skill-tip"; skillTip.setAttribute("role", "tooltip");
+      document.body.appendChild(skillTip);
+      document.addEventListener("click", function(e){ if (skillTip && !skillTip.contains(e.target)) hideSkillTip(); });
+      window.addEventListener("scroll", hideSkillTip, { passive:true });
+      window.addEventListener("resize", hideSkillTip);
+      document.addEventListener("keydown", function(e){ if (e.key === "Escape") hideSkillTip(); });
+    }
+    skillTip.innerHTML = "";
+    var h = document.createElement("div"); h.className = "skill-tip-title"; h.textContent = title;
+    var ul = document.createElement("ul");
+    (btn._notes || []).forEach(function(n){ var li = document.createElement("li"); li.textContent = n; ul.appendChild(li); });
+    skillTip.appendChild(h); skillTip.appendChild(ul);
+    skillTip.hidden = false;
+    var r = btn.getBoundingClientRect(), w = skillTip.offsetWidth, ht = skillTip.offsetHeight;
+    var left = Math.max(12, Math.min(r.left - 12, window.innerWidth - w - 12));
+    var top = r.bottom + 6;
+    if (top + ht > window.innerHeight - 12) top = Math.max(12, r.top - ht - 6);
+    skillTip.style.left = left + "px"; skillTip.style.top = top + "px";
+    skillTipFor = btn;
   }
   function renderSkills(){
     var list = document.getElementById("skillsList");
@@ -327,12 +427,12 @@
       } else {
         var ab = document.createElement("span"); ab.className = "ab-mod";
         meta.appendChild(ab);
-        var tags = [];
-        if (s.acp === 2) tags.push("ACP×2"); else if (s.acp) tags.push("ACP");
-        if (!s.untrained) tags.push("trained");
-        if (num(s.racial)) tags.push("racial " + signed(num(s.racial)));
-        if (tags.length) meta.appendChild(document.createTextNode(" · " + tags.join(" · ")));
       }
+      var info = document.createElement("button");
+      info.type = "button"; info.className = "skill-info"; info.innerHTML = INFO_ICON; info.hidden = true;
+      info.setAttribute("aria-label", s.name + " notes");
+      info.addEventListener("click", function(e){ e.stopPropagation(); toggleSkillTip(info, s.name); });
+      meta.appendChild(info);
       nameWrap.appendChild(meta);
 
       var rk = document.createElement("input");
@@ -351,7 +451,27 @@
     });
     updateSkillTotals();
   }
+  // The Skills how-to hint shows one short line; "Show more" unfolds the rest, and the choice is remembered on this device.
+  var NOTES_KEY = "caelian-skills-notes-open";
+  function bindSkillsNotes(){
+    var btn = document.getElementById("skillsNotesBtn"), notes = document.getElementById("skillsNotes");
+    if (!btn || !notes) return;
+    function set(open){
+      notes.hidden = !open;
+      btn.setAttribute("aria-expanded", String(open));
+      btn.textContent = open ? "Show less" : "Show more";
+    }
+    var open = false;
+    try { open = localStorage.getItem(NOTES_KEY) === "1"; } catch(e){}
+    set(open);
+    btn.addEventListener("click", function(){
+      var next = notes.hidden;
+      set(next);
+      try { localStorage.setItem(NOTES_KEY, next ? "1" : "0"); } catch(e){}
+    });
+  }
   function bindSkills(){
+    bindSkillsNotes();
     bindField("skill-acp", function(){ return state.skillAcp; }, function(v){ state.skillAcp = v; updateSkillTotals(); }, true);
     document.getElementById("addSkill").addEventListener("click", function(){
       state.skills.push({ name:"New skill", ability:"int", untrained:true, acp:0, cls:false, ranks:0, misc:0, editable:true, custom:true });

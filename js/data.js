@@ -48,7 +48,7 @@ window.CaseFile = window.CaseFile || {};
       { name:"Knowledge (history)", ability:"int", untrained:false, acp:0, cls:true, ranks:0, misc:0, editable:true },
       { name:"Knowledge (religion)", ability:"int", untrained:false, acp:0, cls:true, ranks:0, misc:0, editable:true },
       { name:"Knowledge (the planes)", ability:"int", untrained:false, acp:0, cls:true, ranks:0, misc:0, editable:true },
-      { name:"Listen", ability:"wis", untrained:true, acp:0, cls:false, ranks:0, misc:0, editable:false },
+      { name:"Listen", ability:"wis", untrained:true, acp:0, cls:false, ranks:0, misc:0, racial:2, editable:false },
       { name:"Move Silently", ability:"dex", untrained:true, acp:1, cls:false, ranks:0, misc:0, editable:false },
       { name:"Open Lock", ability:"dex", untrained:false, acp:0, cls:false, ranks:0, misc:0, editable:false },
       { name:"Perform ( )", ability:"cha", untrained:true, acp:0, cls:false, ranks:0, misc:0, editable:true },
@@ -58,7 +58,7 @@ window.CaseFile = window.CaseFile || {};
       { name:"Sense Motive", ability:"wis", untrained:true, acp:0, cls:false, ranks:0, misc:0, editable:false },
       { name:"Sleight of Hand", ability:"dex", untrained:false, acp:1, cls:false, ranks:0, misc:0, editable:false },
       { name:"Spellcraft", ability:"int", untrained:false, acp:0, cls:true, ranks:0, misc:0, editable:false },
-      { name:"Spot", ability:"wis", untrained:true, acp:0, cls:false, ranks:0, misc:0, editable:false },
+      { name:"Spot", ability:"wis", untrained:true, acp:0, cls:false, ranks:0, misc:0, racial:2, editable:false },
       { name:"Survival", ability:"wis", untrained:true, acp:0, cls:false, ranks:0, misc:0, editable:false },
       { name:"Swim", ability:"str", untrained:true, acp:2, cls:false, ranks:0, misc:0, editable:false },
       { name:"Tumble", ability:"dex", untrained:false, acp:1, cls:false, ranks:0, misc:0, editable:false },
@@ -83,8 +83,11 @@ window.CaseFile = window.CaseFile || {};
     },
     racialTraits: [
       { text:"Celestial heritage" },
-      { text:"Racial Light ability" },
-      { text:"Light does not normally need to be prepared as a Cleric spell" }
+      { text:"Daylight 1/day (spell-like ability)" },
+      { text:"Daylight does not need to be prepared as a Cleric spell — use the racial ability" },
+      { text:"Darkvision 60 ft." },
+      { text:"Resistance to acid 5, cold 5 and electricity 5" },
+      { text:"+2 racial bonus on Listen and Spot (already added on the Skills tab)" }
     ],
     spellLevels: [
       { level:0, dc:16, total:0, remaining:0, spells:[] },

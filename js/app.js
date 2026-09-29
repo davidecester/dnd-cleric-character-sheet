@@ -49,8 +49,31 @@
           catch(e){ state = clone(DEFAULT_DATA); }
         } else { state = clone(DEFAULT_DATA); }
         fillBlankAttacks();
+        fixRacialTraits();
       })
       .catch(function(){ state = clone(DEFAULT_DATA); });
+  }
+
+  // Earlier defaults listed the racial spell-like ability as Light; it is Daylight.
+  // Only the untouched old wording is replaced, so the user's own edits stay.
+  var OLD_RACIAL = {
+    "Racial Light ability": "Daylight 1/day (spell-like ability)",
+    "Light does not normally need to be prepared as a Cleric spell": "Daylight does not need to be prepared as a Cleric spell — use the racial ability"
+  };
+  function fixRacialTraits(){
+    state.racialTraits = state.racialTraits || [];
+    state.racialTraits.forEach(function(t){
+      if (OLD_RACIAL.hasOwnProperty(t.text)) t.text = OLD_RACIAL[t.text];
+    });
+    // Add aasimar traits that older saved sheets are missing (matched by keyword).
+    var have = state.racialTraits.map(function(t){ return String(t.text || "").toLowerCase(); }).join("\n");
+    [["darkvision", 3], ["resistance", 4], ["listen", 5]].forEach(function(pair){
+      if (have.indexOf(pair[0]) === -1) state.racialTraits.push(clone(DEFAULT_DATA.racialTraits[pair[1]]));
+    });
+    // Racial +2 on Listen and Spot, unless it was already typed into Misc.
+    (state.skills || []).forEach(function(sk){
+      if ((sk.name === "Listen" || sk.name === "Spot") && sk.racial === undefined) sk.racial = num(sk.misc) >= 2 ? 0 : 2;
+    });
   }
 
   // Saved sheets from before an attack's stats were filled in (e.g. the Morningstar)
@@ -213,7 +236,7 @@
   function skillTotal(s){
     var ranks = num(s.ranks);
     var acp = Math.min(0, num(state.skillAcp)) * num(s.acp);
-    return Math.floor(ranks) + abilityMod(s.ability) + num(s.misc) + acp;
+    return Math.floor(ranks) + abilityMod(s.ability) + num(s.racial) + num(s.misc) + acp;
   }
   function updateSkillTotals(){
     var list = document.getElementById("skillsList");
@@ -277,6 +300,7 @@
         var tags = [];
         if (s.acp === 2) tags.push("ACP×2"); else if (s.acp) tags.push("ACP");
         if (!s.untrained) tags.push("trained");
+        if (num(s.racial)) tags.push("racial " + signed(num(s.racial)));
         if (tags.length) meta.appendChild(document.createTextNode(" · " + tags.join(" · ")));
       }
       nameWrap.appendChild(meta);

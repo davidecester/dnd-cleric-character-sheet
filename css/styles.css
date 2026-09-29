@@ -351,6 +351,8 @@ details.breakdown[open] summary::after{content:' ▴';}
 .skill-name .nm{font-size:13px;color:var(--text-1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .skill-meta{font-family:var(--font-mono);font-size:9.5px;letter-spacing:.5px;color:var(--text-3);margin-top:2px;display:flex;gap:6px;align-items:center;}
 .skill-meta select{background:transparent;border:1px solid var(--glass-border);border-radius:6px;color:var(--text-2);font-family:var(--font-mono);font-size:9.5px;padding:1px 2px;}
+.skill-row .syn{font-size:10.5px;line-height:1.35;color:var(--celestial);margin-top:2px;}
+.skill-row .syn[hidden]{display:none;}
 .skill-meta .rm{background:none;border:none;color:var(--rose);font-size:10px;padding:0;}
 .skill-total{font-family:var(--font-mono);font-size:14px;font-weight:600;text-align:center;color:var(--celestial);}
 .skill-row.cls .skill-name .nm, .skill-row.cls .skill-name input{color:var(--gold-strong);}

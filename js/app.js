@@ -253,10 +253,58 @@
   // Always computed so every skill shows a usable number. Trained-only skills
   // with no ranks are flagged (dimmed in the UI) rather than hidden.
   function skillLocked(s){ return !s.untrained && num(s.ranks) <= 0; }
+
+  // 3.5 skill synergies (PHB table 4-5): 5+ ranks in the source skill give +2 on the target.
+  // Entries with "when" only apply in that situation, so they are noted, not added to the total.
+  var SYNERGIES = [
+    { from:"Bluff", to:"Diplomacy" }, { from:"Bluff", to:"Intimidate" }, { from:"Bluff", to:"Sleight of Hand" },
+    { from:"Bluff", to:"Disguise", when:"acting in character" },
+    { from:"Craft", to:"Appraise", when:"items related to your Craft" },
+    { from:"Decipher Script", to:"Use Magic Device", when:"scrolls" },
+    { from:"Escape Artist", to:"Use Rope", when:"binding someone" },
+    { from:"Handle Animal", to:"Ride" },
+    { from:"Jump", to:"Tumble" },
+    { from:"Knowledge (arcana)", to:"Spellcraft" },
+    { from:"Knowledge (architecture and engineering)", to:"Search", when:"secret doors and compartments" },
+    { from:"Knowledge (dungeoneering)", to:"Survival", when:"underground" },
+    { from:"Knowledge (geography)", to:"Survival", when:"avoiding getting lost or hazards" },
+    { from:"Knowledge (local)", to:"Gather Information" },
+    { from:"Knowledge (nature)", to:"Survival", when:"above ground in natural environments" },
+    { from:"Knowledge (nobility and royalty)", to:"Diplomacy" },
+    { from:"Knowledge (religion)", to:"Turn undead", when:"turning checks" },
+    { from:"Knowledge (the planes)", to:"Survival", when:"on other planes" },
+    { from:"Search", to:"Survival", when:"following tracks" },
+    { from:"Sense Motive", to:"Diplomacy" },
+    { from:"Spellcraft", to:"Use Magic Device", when:"scrolls" },
+    { from:"Survival", to:"Knowledge (nature)" },
+    { from:"Tumble", to:"Balance" }, { from:"Tumble", to:"Jump" },
+    { from:"Use Magic Device", to:"Spellcraft", when:"deciphering scrolls" },
+    { from:"Use Rope", to:"Climb", when:"climbing a rope" },
+    { from:"Use Rope", to:"Escape Artist", when:"escaping rope bonds" }
+  ];
+  function skillKey(name){
+    var n = String(name || "").toLowerCase().trim();
+    return /^craft\b/.test(n) ? "craft" : n;
+  }
+  // Active synergies for a skill (as target, or as source for non-skill targets like turning).
+  function skillSynergies(s){
+    var key = skillKey(s.name), out = [];
+    SYNERGIES.forEach(function(syn){
+      var hit = syn.to.toLowerCase() === key || (syn.to === "Turn undead" && skillKey(syn.from) === key);
+      if (!hit) return;
+      var fromKey = skillKey(syn.from);
+      var active = state.skills.some(function(src){ return skillKey(src.name) === fromKey && num(src.ranks) >= 5; });
+      if (active) out.push(syn);
+    });
+    return out;
+  }
+  function synergyBonus(s){
+    return skillSynergies(s).filter(function(syn){ return !syn.when; }).length * 2;
+  }
   function skillTotal(s){
     var ranks = num(s.ranks);
     var acp = Math.min(0, num(state.skillAcp)) * num(s.acp);
-    return Math.floor(ranks) + abilityMod(s.ability) + num(s.racial) + num(s.misc) + acp;
+    return Math.floor(ranks) + abilityMod(s.ability) + num(s.racial) + synergyBonus(s) + num(s.misc) + acp;
   }
   function updateSkillTotals(){
     var list = document.getElementById("skillsList");
@@ -274,6 +322,14 @@
       var ab = row.querySelector(".ab-mod");
       if (ab) ab.textContent = (ab.classList.contains("ab-mod-only") ? "" : s.ability.toUpperCase() + " ") + signed(abilityMod(s.ability));
       row.querySelector(".rk").classList.toggle("over", num(s.ranks) > (s.cls ? maxC : maxX));
+      var syn = row.querySelector(".syn");
+      if (syn) {
+        syn.textContent = skillSynergies(s).map(function(x){
+          if (x.to === "Turn undead") return "gives +2 on turning checks";
+          return "+2 from " + x.from + (x.when ? " when " + x.when : "");
+        }).join(" · ");
+        syn.hidden = !syn.textContent;
+      }
       row.classList.toggle("cls", !!s.cls);
     });
     var budget = Math.max(1, 2 + abilityMod("int")) * (lvl + 3);
@@ -334,6 +390,8 @@
         if (tags.length) meta.appendChild(document.createTextNode(" · " + tags.join(" · ")));
       }
       nameWrap.appendChild(meta);
+      var syn = document.createElement("div"); syn.className = "syn"; syn.hidden = true;
+      nameWrap.appendChild(syn);
 
       var rk = document.createElement("input");
       rk.type = "number"; rk.step = "0.5"; rk.min = "0"; rk.className = "rk"; rk.value = s.ranks;

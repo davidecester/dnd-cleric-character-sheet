@@ -451,7 +451,7 @@
     });
     updateSkillTotals();
   }
-  // The Skills how-to hint is folded away by default; the choice is remembered on this device.
+  // The Skills how-to hint shows one short line; "Show more" unfolds the rest, and the choice is remembered on this device.
   var NOTES_KEY = "caelian-skills-notes-open";
   function bindSkillsNotes(){
     var btn = document.getElementById("skillsNotesBtn"), notes = document.getElementById("skillsNotes");
@@ -459,7 +459,7 @@
     function set(open){
       notes.hidden = !open;
       btn.setAttribute("aria-expanded", String(open));
-      btn.textContent = open ? "Hide notes" : "Show notes";
+      btn.textContent = open ? "Show less" : "Show more";
     }
     var open = false;
     try { open = localStorage.getItem(NOTES_KEY) === "1"; } catch(e){}

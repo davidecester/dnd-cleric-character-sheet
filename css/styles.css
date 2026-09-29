@@ -139,6 +139,38 @@ input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none;margin:0;}
 .feat-live{font-size:12.5px;line-height:1.4;color:var(--celestial);margin-top:4px;}
 .feat-note{font-size:12.5px;line-height:1.4;color:var(--text-1);margin-top:6px;padding-left:8px;border-left:2px solid var(--gold);white-space:pre-wrap;}
 
+/* Attacks view (Combat tab) */
+.attack-entry{padding:10px 12px;margin-bottom:8px;border-radius:12px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);}
+.attack-top{display:flex;justify-content:space-between;align-items:baseline;gap:4px 12px;flex-wrap:wrap;}
+.attack-name{font-weight:700;color:var(--text-1);font-size:15px;overflow-wrap:anywhere;}
+.attack-nums{font-family:var(--font-mono);font-size:15px;color:var(--gold-strong);white-space:nowrap;}
+.attack-notes{font-size:12.5px;line-height:1.4;color:var(--text-2);margin-top:4px;}
+/* Column labels above the attack edit rows */
+.list-head{display:flex;gap:6px;margin-bottom:4px;font-family:var(--font-mono);font-size:9px;letter-spacing:1px;color:var(--text-3);text-transform:uppercase;}
+.list-head span{padding-left:4px;}
+.list-head .col-name{flex:1.4;}
+.list-head .col-mid{flex:1;}
+.list-head .col-small{flex:0 0 54px;}
+.list-head .del-gap{flex:0 0 30px;padding:0;}
+
+/* Phone: each attack edits as a small stacked form — name + delete, then atk/dmg, then notes */
+@media (max-width:767px){
+  .attack-head{display:none;}
+  #attacksList .list-row{flex-wrap:wrap;padding:8px;margin-bottom:8px;border-radius:12px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);}
+  #attacksList .list-row .col-name{flex:1 1 calc(100% - 36px);order:0;min-width:0;}
+  #attacksList .list-row .row-del{order:1;}
+  #attacksList .list-row .col-small{flex:1 1 0;order:2;min-width:0;}
+  #attacksList .list-row .col-mid{flex:1 1 100%;order:3;}
+}
+
+/* Special abilities view */
+.trait-list{list-style:none;margin:0;padding:0;}
+.trait-list li{position:relative;padding:7px 0 7px 18px;font-size:14px;line-height:1.4;color:var(--text-1);border-top:1px solid rgba(255,255,255,0.06);}
+.trait-list li:first-child{border-top:none;}
+.trait-list li::before{content:"✦";position:absolute;left:0;top:8px;font-size:10px;color:var(--gold);}
+.trait-list li.hint{padding-left:0;border:none;}
+.trait-list li.hint::before{display:none;}
+
 /* Power Attack calculator on the Combat tab */
 .pa-block{padding:10px 12px;margin-bottom:10px;border-radius:12px;background:rgba(127,212,255,0.07);border:1px solid rgba(127,212,255,0.3);}
 .pa-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:6px;}
@@ -335,12 +367,12 @@ details.breakdown[open] summary::after{content:' ▴';}
   /* Combat: attack rows get the full width so their fields aren't squeezed */
   #panel-combat.active{column-count:auto;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);column-gap:18px;align-items:start;}
   #panel-combat > .card:first-child{grid-column:1 / -1;}
-  #panel-combat .list-row .col-small{flex-basis:76px;}
+  #panel-combat .list-row .col-small, #panel-combat .list-head .col-small{flex-basis:76px;}
   /* Magic: domains and spells side by side */
   #panel-magic.active{column-count:auto;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);column-gap:18px;align-items:start;}
   #domainBalance, #domainMagic{min-height:130px;}
-  #panel-combat .list-row .col-name{flex:2;}
-  #panel-combat .list-row .col-mid{flex:3;}
+  #panel-combat .list-row .col-name, #panel-combat .list-head .col-name{flex:2;}
+  #panel-combat .list-row .col-mid, #panel-combat .list-head .col-mid{flex:3;}
   /* Skills: the long skill list on the left, feats and abilities stacked on the right */
   #panel-skills.active{column-count:auto;display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);grid-template-rows:auto 1fr;column-gap:18px;align-items:start;}
   #panel-skills > .card:first-child{grid-row:1 / span 2;}

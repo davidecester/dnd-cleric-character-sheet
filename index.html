@@ -202,9 +202,16 @@
     <!-- COMBAT -->
     <section class="panel" id="panel-combat">
       <div class="card">
-        <h2>Attacks</h2>
-        <div id="attacksList"></div>
-        <button class="add-row-btn" id="addAttack">+ Add attack</button>
+        <div class="card-head">
+          <h2>Attacks</h2>
+          <button class="section-edit-btn" id="attacksEditBtn" type="button" aria-pressed="false" aria-controls="attacksEdit">✎ Edit</button>
+        </div>
+        <div id="attacksView"></div>
+        <div id="attacksEdit" hidden>
+          <div class="list-head attack-head"><span class="col-name">Weapon</span><span class="col-small">Atk</span><span class="col-small">Dmg</span><span class="col-mid">Notes</span><span class="del-gap"></span></div>
+          <div id="attacksList"></div>
+          <button class="add-row-btn" id="addAttack">+ Add attack</button>
+        </div>
       </div>
 
       <div class="card" id="combatFeatsCard" hidden>
@@ -269,9 +276,15 @@
       </div>
 
       <div class="card">
-        <h2>Special Abilities — Lesser Aasimar</h2>
-        <div id="racialList"></div>
-        <button class="add-row-btn" id="addRacial">+ Add trait</button>
+        <div class="card-head">
+          <h2>Special Abilities — Lesser Aasimar</h2>
+          <button class="section-edit-btn" id="racialEditBtn" type="button" aria-pressed="false" aria-controls="racialEdit">✎ Edit</button>
+        </div>
+        <ul class="trait-list" id="racialView"></ul>
+        <div id="racialEdit" hidden>
+          <div id="racialList"></div>
+          <button class="add-row-btn" id="addRacial">+ Add trait</button>
+        </div>
       </div>
     </section>
 

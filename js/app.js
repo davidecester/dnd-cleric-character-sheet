@@ -418,7 +418,34 @@
     { field:"name", placeholder:"Spell name", className:"col-name" }
   ];
 
-  function renderAttacks(){ renderList("attacksList", state.attacks, ATTACK_FIELDS, renderCombatFeats); renderCombatFeats(); }
+  function onAttacksChange(){ renderCombatFeats(); renderAttacksView(); }
+  function renderAttacks(){ renderList("attacksList", state.attacks, ATTACK_FIELDS, onAttacksChange); onAttacksChange(); }
+
+  function renderAttacksView(){
+    var view = document.getElementById("attacksView");
+    view.innerHTML = "";
+    state.attacks.forEach(function(a){
+      if (!String(a.name || "").trim() && !a.bonus && !a.damage) return;
+      var el = document.createElement("div");
+      el.className = "attack-entry";
+      var top = document.createElement("div");
+      top.className = "attack-top";
+      var name = document.createElement("span");
+      name.className = "attack-name"; name.textContent = a.name || "Attack";
+      var nums = document.createElement("span");
+      nums.className = "attack-nums";
+      nums.textContent = [a.bonus, a.damage].filter(function(x){ return String(x || "").trim(); }).join(" · ") || "—";
+      top.appendChild(name); top.appendChild(nums);
+      el.appendChild(top);
+      if (String(a.notes || "").trim()) {
+        var notes = document.createElement("div");
+        notes.className = "attack-notes"; notes.textContent = a.notes;
+        el.appendChild(notes);
+      }
+      view.appendChild(el);
+    });
+    if (!view.firstChild) view.innerHTML = '<div class="hint">No attacks yet — tap ✎ Edit to add one.</div>';
+  }
   function renderFeats(){ renderList("featsList", state.feats, FEAT_FIELDS, renderCombatFeats); renderFeatsView(); }
 
   // Extra line computed from the current sheet, for feats whose numbers depend on it.
@@ -548,20 +575,39 @@
     document.getElementById("paPlus").addEventListener("click", function(){ step(1); });
   }
 
-  function bindFeatsEditToggle(){
-    var btn = document.getElementById("featsEditBtn");
-    var view = document.getElementById("featsView");
-    var edit = document.getElementById("featsEdit");
+  // ✎ Edit / ✓ Done toggle for a card: "<key>EditBtn" swaps "<key>View" and "<key>Edit";
+  // the view is re-rendered on Done.
+  function bindSectionToggle(key, renderView){
+    var btn = document.getElementById(key + "EditBtn");
+    var view = document.getElementById(key + "View");
+    var edit = document.getElementById(key + "Edit");
     btn.addEventListener("click", function(){
       var editing = edit.hidden;
       edit.hidden = !editing;
       view.hidden = editing;
       btn.setAttribute("aria-pressed", String(editing));
       btn.textContent = editing ? "✓ Done" : "✎ Edit";
-      if (!editing) renderFeatsView();
+      if (!editing) renderView();
     });
   }
-  function renderRacial(){ renderList("racialList", state.racialTraits, RACIAL_FIELDS); }
+  function bindSectionToggles(){
+    bindSectionToggle("feats", renderFeatsView);
+    bindSectionToggle("attacks", renderAttacksView);
+    bindSectionToggle("racial", renderRacialView);
+  }
+
+  function renderRacial(){ renderList("racialList", state.racialTraits, RACIAL_FIELDS); renderRacialView(); }
+  function renderRacialView(){
+    var view = document.getElementById("racialView");
+    view.innerHTML = "";
+    state.racialTraits.forEach(function(t){
+      if (!String(t.text || "").trim()) return;
+      var li = document.createElement("li");
+      li.textContent = t.text;
+      view.appendChild(li);
+    });
+    if (!view.firstChild) view.innerHTML = '<li class="hint">No traits yet — tap ✎ Edit to add one.</li>';
+  }
   function renderEquipment(){ renderList("equipmentList", state.equipment, EQUIPMENT_FIELDS); }
   function renderMountGear(){ renderList("mountList", state.mountGear, EQUIPMENT_FIELDS); }
 
@@ -697,7 +743,7 @@
   }
 
   function bindAddButtons(){
-    document.getElementById("addAttack").addEventListener("click", function(){ addAndReveal("attacksList", state.attacks, { name:"", bonus:"", damage:"", notes:"" }, ATTACK_FIELDS, renderCombatFeats); });
+    document.getElementById("addAttack").addEventListener("click", function(){ addAndReveal("attacksList", state.attacks, { name:"", bonus:"", damage:"", notes:"" }, ATTACK_FIELDS, onAttacksChange); });
     document.getElementById("addFeat").addEventListener("click", function(){ addAndReveal("featsList", state.feats, { name:"", notes:"" }, FEAT_FIELDS, renderCombatFeats); });
     document.getElementById("addRacial").addEventListener("click", function(){ addAndReveal("racialList", state.racialTraits, { text:"" }, RACIAL_FIELDS); });
     document.getElementById("addEquipment").addEventListener("click", function(){ addAndReveal("equipmentList", state.equipment, { name:"" }, EQUIPMENT_FIELDS); });
@@ -809,7 +855,7 @@
     renderAll();
     safe(bindHeaderFields, "bindHeaderFields");
     safe(bindHeaderEditToggle, "bindHeaderEditToggle");
-    safe(bindFeatsEditToggle, "bindFeatsEditToggle");
+    safe(bindSectionToggles, "bindSectionToggles");
     safe(bindPowerAttack, "bindPowerAttack");
     safe(bindAddButtons, "bindAddButtons");
     safe(bindReset, "bindReset");

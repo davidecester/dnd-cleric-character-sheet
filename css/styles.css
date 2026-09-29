@@ -320,3 +320,42 @@ details.breakdown[open] summary::after{content:' ▴';}
 .skill-total.na{color:var(--text-3);}
 .skill-meta{flex-wrap:wrap;column-gap:4px;}
 .skill-meta .ab-mod{color:var(--celestial);opacity:.8;white-space:nowrap;}
+
+#domainBalance, #domainMagic{min-height:70px;}
+
+/* ---------- Tablet & desktop ----------
+   Phones keep the single column above. From tablet width the cards of each tab
+   flow into columns (top to bottom, then the next column), so the sheet uses
+   the extra width instead of stretching every card. */
+@media (min-width:768px){
+  .content{max-width:1000px;padding:8px 24px 16px;}
+  .panel.active{column-count:2;column-gap:18px;}
+  .card{break-inside:avoid;-webkit-column-break-inside:avoid;display:inline-block;width:100%;box-sizing:border-box;margin-bottom:18px;}
+  .card[hidden]{display:none;}
+  /* Combat: attack rows get the full width so their fields aren't squeezed */
+  #panel-combat.active{column-count:auto;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);column-gap:18px;align-items:start;}
+  #panel-combat > .card:first-child{grid-column:1 / -1;}
+  #panel-combat .list-row .col-small{flex-basis:76px;}
+  /* Magic: domains and spells side by side */
+  #panel-magic.active{column-count:auto;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);column-gap:18px;align-items:start;}
+  #domainBalance, #domainMagic{min-height:130px;}
+  #panel-combat .list-row .col-name{flex:2;}
+  #panel-combat .list-row .col-mid{flex:3;}
+  /* Skills: the long skill list on the left, feats and abilities stacked on the right */
+  #panel-skills.active{column-count:auto;display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);grid-template-rows:auto 1fr;column-gap:18px;align-items:start;}
+  #panel-skills > .card:first-child{grid-row:1 / span 2;}
+  #panel-skills > .card:not(:first-child){grid-column:2;}
+  .tab-bar{max-width:620px;bottom:18px;}
+  .tab-btn{font-size:11px;letter-spacing:.8px;padding:12px 4px;}
+  body{padding-bottom:112px;}
+}
+@media (min-width:1280px){
+  .content{max-width:1320px;}
+  .panel.active{column-count:3;}
+}
+/* Mouse / trackpad: hover feedback and pointer cursors */
+@media (hover:hover) and (pointer:fine){
+  button, summary, .banner-wrap{cursor:pointer;}
+  .tab-btn:hover:not(.active){color:var(--text-1);background:rgba(255,255,255,0.07);}
+  .header-edit-btn:hover, .section-edit-btn:hover, .add-row-btn:hover{border-color:rgba(127,212,255,0.55);}
+}

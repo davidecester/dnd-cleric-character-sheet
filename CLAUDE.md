@@ -16,6 +16,8 @@ Mobile-first D&D 3.5 cleric character sheet. Plain static site, no build step:
 Open `index.html` directly in a browser to run it. The owner mainly uses it on iPhone Safari,
 so check changes at phone width (~360px) and keep Safari quirks in mind (safe-area insets,
 overscroll background).
+Tablet (≥768px, 2 columns) and desktop (≥1280px, 3 columns) layouts live in the media queries
+at the end of `styles.css`; check those widths too when adding or reordering cards.
 
 ## Workflow
 
@@ -28,6 +30,7 @@ overscroll background).
 
 ## Conventions
 
+- Distances are metric (3.5 convention: 5 ft = 1.5 m, so 30 ft = 9 m, 60 ft = 18 m). Don't add feet.
 - Match the existing style: vanilla JS in an IIFE, ES5-style (`var`, `function`), no frameworks.
 - Text that the user reads in view mode should wrap, not be clipped by fixed-width inputs.
   The header uses a view/edit toggle (`✎ Edit` / `✓ Done`) for this; reuse that pattern for

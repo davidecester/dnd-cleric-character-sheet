@@ -22,7 +22,7 @@ window.CaseFile = window.CaseFile || {};
       will: { base:4, magic:1, misc:0, temp:0 }
     },
     grapple: { size:0, misc:0 },
-    speed: 20,
+    speed: 6,
     balance: { active:false, rounds:0, used:0 },
     skillAcp: -6,
     skills: [
@@ -48,7 +48,7 @@ window.CaseFile = window.CaseFile || {};
       { name:"Knowledge (history)", ability:"int", untrained:false, acp:0, cls:true, ranks:0, misc:0, editable:true },
       { name:"Knowledge (religion)", ability:"int", untrained:false, acp:0, cls:true, ranks:0, misc:0, editable:true },
       { name:"Knowledge (the planes)", ability:"int", untrained:false, acp:0, cls:true, ranks:0, misc:0, editable:true },
-      { name:"Listen", ability:"wis", untrained:true, acp:0, cls:false, ranks:0, misc:0, editable:false },
+      { name:"Listen", ability:"wis", untrained:true, acp:0, cls:false, ranks:0, misc:0, racial:2, editable:false },
       { name:"Move Silently", ability:"dex", untrained:true, acp:1, cls:false, ranks:0, misc:0, editable:false },
       { name:"Open Lock", ability:"dex", untrained:false, acp:0, cls:false, ranks:0, misc:0, editable:false },
       { name:"Perform ( )", ability:"cha", untrained:true, acp:0, cls:false, ranks:0, misc:0, editable:true },
@@ -58,7 +58,7 @@ window.CaseFile = window.CaseFile || {};
       { name:"Sense Motive", ability:"wis", untrained:true, acp:0, cls:false, ranks:0, misc:0, editable:false },
       { name:"Sleight of Hand", ability:"dex", untrained:false, acp:1, cls:false, ranks:0, misc:0, editable:false },
       { name:"Spellcraft", ability:"int", untrained:false, acp:0, cls:true, ranks:0, misc:0, editable:false },
-      { name:"Spot", ability:"wis", untrained:true, acp:0, cls:false, ranks:0, misc:0, editable:false },
+      { name:"Spot", ability:"wis", untrained:true, acp:0, cls:false, ranks:0, misc:0, racial:2, editable:false },
       { name:"Survival", ability:"wis", untrained:true, acp:0, cls:false, ranks:0, misc:0, editable:false },
       { name:"Swim", ability:"str", untrained:true, acp:2, cls:false, ranks:0, misc:0, editable:false },
       { name:"Tumble", ability:"dex", untrained:false, acp:1, cls:false, ranks:0, misc:0, editable:false },
@@ -67,7 +67,7 @@ window.CaseFile = window.CaseFile || {};
     ],
     initiative: { misc:0 },
     attacks: [
-      { name:"+1 Longspear", bonus:"+8", damage:"1d8+7", notes:"Crit ×3 · Piercing · Reach 10 ft · Two-handed · Main melee weapon" },
+      { name:"+1 Longspear", bonus:"+8", damage:"1d8+7", notes:"Crit ×3 · Piercing · Reach 3 m · Two-handed · Main melee weapon" },
       { name:"Morningstar", bonus:"+7", damage:"1d8+4", notes:"Crit ×2 · Bludgeoning & piercing · One-handed · Backup vs foes inside longspear reach" }
     ],
     armor: "Full Plate",
@@ -77,14 +77,20 @@ window.CaseFile = window.CaseFile || {};
       { name:"Extend Spell", notes:"" }
     ],
     powerAttack: 0,
+    resistances: { acid:5, cold:5, electricity:5, fire:0, sonic:0 },
+    darkvision: 18,
+    units: "m",
     domains: {
       balance: "Once per day, as a free action, add your Wisdom modifier to AC for 1 round per cleric level (currently +6 AC for 5 rounds). Reflects Caelian's pursuit of equilibrium — weighing extremes rather than favoring either side.",
       magic: "Can use certain Wizard spell-completion and spell-trigger items as a Wizard of half his Cleric level. Grants access to useful utility and anti-magic domain spells."
     },
     racialTraits: [
       { text:"Celestial heritage" },
-      { text:"Racial Light ability" },
-      { text:"Light does not normally need to be prepared as a Cleric spell" }
+      { text:"Daylight 1/day (spell-like ability)" },
+      { text:"Daylight does not need to be prepared as a Cleric spell — use the racial ability" },
+      { text:"Darkvision 18 m (see Senses on the Skills tab)" },
+      { text:"Resistance to acid 5, cold 5 and electricity 5 (shown under Vitality)" },
+      { text:"+2 racial bonus on Listen and Spot (already added on the Skills tab)" }
     ],
     spellLevels: [
       { level:0, dc:16, total:0, remaining:0, spells:[] },

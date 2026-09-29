@@ -70,7 +70,7 @@ window.CaseFile = window.CaseFile || {};
     "Divine Might": { type:"Divine", prereq:"Power Attack, turn undead", source:"Complete Warrior", combat:true,
       summary:"Free action, 1 turn attempt: + Cha bonus to weapon damage for 1 round." },
     "Divine Vigor": { type:"Divine", prereq:"Turn undead", source:"Complete Warrior", combat:true,
-      summary:"Standard action, 1 turn attempt: +10 ft. speed, +2 temp hp/level for Cha mod minutes." }
+      summary:"Standard action, 1 turn attempt: +3 m speed, +2 temp hp/level for Cha mod minutes." }
   };
 
   // Case-insensitive lookup. "Weapon Focus (longspear)" falls back to "Weapon Focus".

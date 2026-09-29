@@ -44,13 +44,56 @@
     return Promise.resolve()
       .then(function(){ return storage.get(STORAGE_KEY); })
       .then(function(res){
+        var saved = null;
         if (res && res.value) {
-          try { state = Object.assign(clone(DEFAULT_DATA), JSON.parse(res.value)); }
-          catch(e){ state = clone(DEFAULT_DATA); }
+          try { saved = JSON.parse(res.value); state = Object.assign(clone(DEFAULT_DATA), saved); }
+          catch(e){ saved = null; state = clone(DEFAULT_DATA); }
         } else { state = clone(DEFAULT_DATA); }
         fillBlankAttacks();
+        fixRacialTraits();
+        if (saved) toMetric(saved);
       })
       .catch(function(){ state = clone(DEFAULT_DATA); });
+  }
+
+  // Earlier defaults listed the racial spell-like ability as Light; it is Daylight.
+  // Only the untouched old wording is replaced, so the user's own edits stay.
+  var OLD_RACIAL = {
+    "Racial Light ability": "Daylight 1/day (spell-like ability)",
+    "Light does not normally need to be prepared as a Cleric spell": "Daylight does not need to be prepared as a Cleric spell — use the racial ability",
+    "Darkvision 60 ft.": "Darkvision 18 m (see Senses on the Skills tab)",
+    "Resistance to acid 5, cold 5 and electricity 5": "Resistance to acid 5, cold 5 and electricity 5 (shown under Vitality)"
+  };
+  function fixRacialTraits(){
+    state.racialTraits = state.racialTraits || [];
+    state.racialTraits.forEach(function(t){
+      if (OLD_RACIAL.hasOwnProperty(t.text)) t.text = OLD_RACIAL[t.text];
+    });
+    // Add aasimar traits that older saved sheets are missing (matched by keyword).
+    var have = state.racialTraits.map(function(t){ return String(t.text || "").toLowerCase(); }).join("\n");
+    [["darkvision", 3], ["resistance", 4], ["listen", 5]].forEach(function(pair){
+      if (have.indexOf(pair[0]) === -1) state.racialTraits.push(clone(DEFAULT_DATA.racialTraits[pair[1]]));
+    });
+    // Racial +2 on Listen and Spot, unless it was already typed into Misc.
+    (state.skills || []).forEach(function(sk){
+      if ((sk.name === "Listen" || sk.name === "Spot") && sk.racial === undefined) sk.racial = num(sk.misc) >= 2 ? 0 : 2;
+    });
+  }
+
+  // The sheet uses metres (3.5 metric convention: 5 ft = 1.5 m). Saved sheets from
+  // before the switch still hold feet, so convert them once.
+  function ftToM(ft){ return Math.round(num(ft) / 5 * 1.5 * 2) / 2; }
+  function ftTextToM(text){
+    return String(text || "").replace(/(\d+(?:\.\d+)?)\s*(?:ft\.?|feet|foot)(?![a-z])/gi, function(_, n){ return ftToM(n) + " m"; });
+  }
+  // Only values that came from the saved sheet are converted; defaults are already metric.
+  function toMetric(saved){
+    if (saved.units === "m") return;
+    if (saved.speed !== "" && saved.speed !== undefined) state.speed = ftToM(saved.speed);
+    if (saved.darkvision !== "" && saved.darkvision !== undefined) state.darkvision = ftToM(saved.darkvision);
+    (state.attacks || []).forEach(function(a){ a.notes = ftTextToM(a.notes); });
+    (state.racialTraits || []).forEach(function(t){ t.text = ftTextToM(t.text); });
+    state.units = "m";
   }
 
   // Saved sheets from before an attack's stats were filled in (e.g. the Morningstar)
@@ -213,7 +256,7 @@
   function skillTotal(s){
     var ranks = num(s.ranks);
     var acp = Math.min(0, num(state.skillAcp)) * num(s.acp);
-    return Math.floor(ranks) + abilityMod(s.ability) + num(s.misc) + acp;
+    return Math.floor(ranks) + abilityMod(s.ability) + num(s.racial) + num(s.misc) + acp;
   }
   function updateSkillTotals(){
     var list = document.getElementById("skillsList");
@@ -238,6 +281,16 @@
     pts.textContent = spent + "/" + budget;
     pts.style.color = spent > budget ? "var(--rose)" : "";
     document.getElementById("skillMax").textContent = maxC + " / " + maxX;
+    updateSenses();
+  }
+
+  // Senses card: Listen and Spot totals mirror the skill list.
+  function updateSenses(){
+    [["Listen", "senseListen"], ["Spot", "senseSpot"]].forEach(function(pair){
+      var out = document.getElementById(pair[1]);
+      var s = state.skills.filter(function(sk){ return sk.name === pair[0]; })[0];
+      if (out) out.textContent = s ? signed(skillTotal(s)) : "—";
+    });
   }
   function renderSkills(){
     var list = document.getElementById("skillsList");
@@ -277,6 +330,7 @@
         var tags = [];
         if (s.acp === 2) tags.push("ACP×2"); else if (s.acp) tags.push("ACP");
         if (!s.untrained) tags.push("trained");
+        if (num(s.racial)) tags.push("racial " + signed(num(s.racial)));
         if (tags.length) meta.appendChild(document.createTextNode(" · " + tags.join(" · ")));
       }
       nameWrap.appendChild(meta);
@@ -381,6 +435,11 @@
     bindField("grapple-size", function(){ return state.grapple.size; }, function(v){ state.grapple.size = v; recomputeDerived(); }, true);
     bindField("grapple-misc", function(){ return state.grapple.misc; }, function(v){ state.grapple.misc = v; recomputeDerived(); }, true);
     bindField("speed", function(){ return state.speed; }, function(v){ state.speed = v; }, true);
+    state.resistances = Object.assign(clone(DEFAULT_DATA.resistances), state.resistances || {});
+    Object.keys(state.resistances).forEach(function(k){
+      bindField("res-" + k, function(){ return state.resistances[k]; }, function(v){ state.resistances[k] = v; }, true);
+    });
+    bindField("darkvision", function(){ return state.darkvision; }, function(v){ state.darkvision = v; }, true);
     bindField("init-misc", function(){ return state.initiative.misc; }, function(v){ state.initiative.misc = v; recomputeDerived(); }, true);
 
     recomputeDerived();
@@ -418,7 +477,34 @@
     { field:"name", placeholder:"Spell name", className:"col-name" }
   ];
 
-  function renderAttacks(){ renderList("attacksList", state.attacks, ATTACK_FIELDS, renderCombatFeats); renderCombatFeats(); }
+  function onAttacksChange(){ renderCombatFeats(); renderAttacksView(); }
+  function renderAttacks(){ renderList("attacksList", state.attacks, ATTACK_FIELDS, onAttacksChange); onAttacksChange(); }
+
+  function renderAttacksView(){
+    var view = document.getElementById("attacksView");
+    view.innerHTML = "";
+    state.attacks.forEach(function(a){
+      if (!String(a.name || "").trim() && !a.bonus && !a.damage) return;
+      var el = document.createElement("div");
+      el.className = "attack-entry";
+      var top = document.createElement("div");
+      top.className = "attack-top";
+      var name = document.createElement("span");
+      name.className = "attack-name"; name.textContent = a.name || "Attack";
+      var nums = document.createElement("span");
+      nums.className = "attack-nums";
+      nums.textContent = [a.bonus, a.damage].filter(function(x){ return String(x || "").trim(); }).join(" · ") || "—";
+      top.appendChild(name); top.appendChild(nums);
+      el.appendChild(top);
+      if (String(a.notes || "").trim()) {
+        var notes = document.createElement("div");
+        notes.className = "attack-notes"; notes.textContent = a.notes;
+        el.appendChild(notes);
+      }
+      view.appendChild(el);
+    });
+    if (!view.firstChild) view.innerHTML = '<div class="hint">No attacks yet — tap ✎ Edit to add one.</div>';
+  }
   function renderFeats(){ renderList("featsList", state.feats, FEAT_FIELDS, renderCombatFeats); renderFeatsView(); }
 
   // Extra line computed from the current sheet, for feats whose numbers depend on it.
@@ -548,20 +634,39 @@
     document.getElementById("paPlus").addEventListener("click", function(){ step(1); });
   }
 
-  function bindFeatsEditToggle(){
-    var btn = document.getElementById("featsEditBtn");
-    var view = document.getElementById("featsView");
-    var edit = document.getElementById("featsEdit");
+  // ✎ Edit / ✓ Done toggle for a card: "<key>EditBtn" swaps "<key>View" and "<key>Edit";
+  // the view is re-rendered on Done.
+  function bindSectionToggle(key, renderView){
+    var btn = document.getElementById(key + "EditBtn");
+    var view = document.getElementById(key + "View");
+    var edit = document.getElementById(key + "Edit");
     btn.addEventListener("click", function(){
       var editing = edit.hidden;
       edit.hidden = !editing;
       view.hidden = editing;
       btn.setAttribute("aria-pressed", String(editing));
       btn.textContent = editing ? "✓ Done" : "✎ Edit";
-      if (!editing) renderFeatsView();
+      if (!editing) renderView();
     });
   }
-  function renderRacial(){ renderList("racialList", state.racialTraits, RACIAL_FIELDS); }
+  function bindSectionToggles(){
+    bindSectionToggle("feats", renderFeatsView);
+    bindSectionToggle("attacks", renderAttacksView);
+    bindSectionToggle("racial", renderRacialView);
+  }
+
+  function renderRacial(){ renderList("racialList", state.racialTraits, RACIAL_FIELDS); renderRacialView(); }
+  function renderRacialView(){
+    var view = document.getElementById("racialView");
+    view.innerHTML = "";
+    state.racialTraits.forEach(function(t){
+      if (!String(t.text || "").trim()) return;
+      var li = document.createElement("li");
+      li.textContent = t.text;
+      view.appendChild(li);
+    });
+    if (!view.firstChild) view.innerHTML = '<li class="hint">No traits yet — tap ✎ Edit to add one.</li>';
+  }
   function renderEquipment(){ renderList("equipmentList", state.equipment, EQUIPMENT_FIELDS); }
   function renderMountGear(){ renderList("mountList", state.mountGear, EQUIPMENT_FIELDS); }
 
@@ -697,7 +802,7 @@
   }
 
   function bindAddButtons(){
-    document.getElementById("addAttack").addEventListener("click", function(){ addAndReveal("attacksList", state.attacks, { name:"", bonus:"", damage:"", notes:"" }, ATTACK_FIELDS, renderCombatFeats); });
+    document.getElementById("addAttack").addEventListener("click", function(){ addAndReveal("attacksList", state.attacks, { name:"", bonus:"", damage:"", notes:"" }, ATTACK_FIELDS, onAttacksChange); });
     document.getElementById("addFeat").addEventListener("click", function(){ addAndReveal("featsList", state.feats, { name:"", notes:"" }, FEAT_FIELDS, renderCombatFeats); });
     document.getElementById("addRacial").addEventListener("click", function(){ addAndReveal("racialList", state.racialTraits, { text:"" }, RACIAL_FIELDS); });
     document.getElementById("addEquipment").addEventListener("click", function(){ addAndReveal("equipmentList", state.equipment, { name:"" }, EQUIPMENT_FIELDS); });
@@ -809,7 +914,7 @@
     renderAll();
     safe(bindHeaderFields, "bindHeaderFields");
     safe(bindHeaderEditToggle, "bindHeaderEditToggle");
-    safe(bindFeatsEditToggle, "bindFeatsEditToggle");
+    safe(bindSectionToggles, "bindSectionToggles");
     safe(bindPowerAttack, "bindPowerAttack");
     safe(bindAddButtons, "bindAddButtons");
     safe(bindReset, "bindReset");

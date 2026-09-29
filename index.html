@@ -72,6 +72,17 @@
             <button data-hp="5">+5</button>
           </div>
         </div>
+        <div class="resist-block">
+          <div class="resist-title">Energy resistance</div>
+          <div class="stat-row">
+            <div class="stat-box"><label>Acid</label><input id="res-acid" type="number" inputmode="numeric"></div>
+            <div class="stat-box"><label>Cold</label><input id="res-cold" type="number" inputmode="numeric"></div>
+            <div class="stat-box"><label>Elec.</label><input id="res-electricity" type="number" inputmode="numeric"></div>
+            <div class="stat-box"><label>Fire</label><input id="res-fire" type="number" inputmode="numeric"></div>
+            <div class="stat-box"><label>Sonic</label><input id="res-sonic" type="number" inputmode="numeric"></div>
+          </div>
+          <div class="hint">Subtract from each hit of that energy type (e.g. cold 5: a 12-point cold hit deals 7). Aasimar racial; works like damage reduction but only against energy.</div>
+        </div>
       </div>
 
       <div class="card">
@@ -183,7 +194,7 @@
         <h2>Initiative &amp; Speed</h2>
         <div class="stat-row">
           <div class="stat-box"><label>Initiative</label><div class="computed-value" id="out-init">+0</div></div>
-          <div class="stat-box"><label>Speed (ft)</label><input id="speed" type="number"></div>
+          <div class="stat-box"><label>Speed (m)</label><input id="speed" type="number" inputmode="decimal" step="1.5"></div>
         </div>
         <details class="breakdown">
           <summary>Edit breakdown</summary>
@@ -202,9 +213,16 @@
     <!-- COMBAT -->
     <section class="panel" id="panel-combat">
       <div class="card">
-        <h2>Attacks</h2>
-        <div id="attacksList"></div>
-        <button class="add-row-btn" id="addAttack">+ Add attack</button>
+        <div class="card-head">
+          <h2>Attacks</h2>
+          <button class="section-edit-btn" id="attacksEditBtn" type="button" aria-pressed="false" aria-controls="attacksEdit">✎ Edit</button>
+        </div>
+        <div id="attacksView"></div>
+        <div id="attacksEdit" hidden>
+          <div class="list-head attack-head"><span class="col-name">Weapon</span><span class="col-small">Atk</span><span class="col-small">Dmg</span><span class="col-mid">Notes</span><span class="del-gap"></span></div>
+          <div id="attacksList"></div>
+          <button class="add-row-btn" id="addAttack">+ Add attack</button>
+        </div>
       </div>
 
       <div class="card" id="combatFeatsCard" hidden>
@@ -256,6 +274,16 @@
       </div>
 
       <div class="card">
+        <h2>Senses</h2>
+        <div class="stat-row">
+          <div class="stat-box"><label>Darkvision (m)</label><input id="darkvision" type="number" inputmode="decimal" step="1.5"></div>
+          <div class="stat-box"><label>Listen</label><div class="computed-value" id="senseListen">+0</div></div>
+          <div class="stat-box"><label>Spot</label><div class="computed-value" id="senseSpot">+0</div></div>
+        </div>
+        <div class="hint">Darkvision: see in total darkness out to that range, in black and white only. Listen and Spot include the aasimar +2.</div>
+      </div>
+
+      <div class="card">
         <div class="card-head">
           <h2>Feats</h2>
           <button class="section-edit-btn" id="featsEditBtn" type="button" aria-pressed="false" aria-controls="featsEdit">✎ Edit</button>
@@ -269,9 +297,15 @@
       </div>
 
       <div class="card">
-        <h2>Special Abilities — Lesser Aasimar</h2>
-        <div id="racialList"></div>
-        <button class="add-row-btn" id="addRacial">+ Add trait</button>
+        <div class="card-head">
+          <h2>Special Abilities — Lesser Aasimar</h2>
+          <button class="section-edit-btn" id="racialEditBtn" type="button" aria-pressed="false" aria-controls="racialEdit">✎ Edit</button>
+        </div>
+        <ul class="trait-list" id="racialView"></ul>
+        <div id="racialEdit" hidden>
+          <div id="racialList"></div>
+          <button class="add-row-btn" id="addRacial">+ Add trait</button>
+        </div>
       </div>
     </section>
 
@@ -281,11 +315,11 @@
         <h2>Domains</h2>
         <div class="domain-block">
           <span class="domain-name">Balance</span>
-          <textarea class="text-block" id="domainBalance" style="min-height:70px;"></textarea>
+          <textarea class="text-block" id="domainBalance"></textarea>
         </div>
         <div class="domain-block">
           <span class="domain-name">Magic</span>
-          <textarea class="text-block" id="domainMagic" style="min-height:70px;"></textarea>
+          <textarea class="text-block" id="domainMagic"></textarea>
         </div>
       </div>
 

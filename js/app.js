@@ -362,6 +362,7 @@
     });
     return notes;
   }
+  var INFO_ICON = '<svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="7" fill="none" stroke="currentColor" stroke-width="1.3"/><circle cx="8" cy="4.9" r="1" fill="currentColor"/><rect x="7.25" y="6.9" width="1.5" height="4.8" rx=".75" fill="currentColor"/></svg>';
   var skillTip = null, skillTipFor = null;
   function hideSkillTip(){
     if (skillTip) skillTip.hidden = true;
@@ -428,7 +429,7 @@
         meta.appendChild(ab);
       }
       var info = document.createElement("button");
-      info.type = "button"; info.className = "skill-info"; info.textContent = "i"; info.hidden = true;
+      info.type = "button"; info.className = "skill-info"; info.innerHTML = INFO_ICON; info.hidden = true;
       info.setAttribute("aria-label", s.name + " notes");
       info.addEventListener("click", function(e){ e.stopPropagation(); toggleSkillTip(info, s.name); });
       meta.appendChild(info);

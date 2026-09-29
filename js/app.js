@@ -44,12 +44,14 @@
     return Promise.resolve()
       .then(function(){ return storage.get(STORAGE_KEY); })
       .then(function(res){
+        var saved = null;
         if (res && res.value) {
-          try { state = Object.assign(clone(DEFAULT_DATA), JSON.parse(res.value)); }
-          catch(e){ state = clone(DEFAULT_DATA); }
+          try { saved = JSON.parse(res.value); state = Object.assign(clone(DEFAULT_DATA), saved); }
+          catch(e){ saved = null; state = clone(DEFAULT_DATA); }
         } else { state = clone(DEFAULT_DATA); }
         fillBlankAttacks();
         fixRacialTraits();
+        if (saved) toMetric(saved);
       })
       .catch(function(){ state = clone(DEFAULT_DATA); });
   }
@@ -59,7 +61,7 @@
   var OLD_RACIAL = {
     "Racial Light ability": "Daylight 1/day (spell-like ability)",
     "Light does not normally need to be prepared as a Cleric spell": "Daylight does not need to be prepared as a Cleric spell — use the racial ability",
-    "Darkvision 60 ft.": "Darkvision 60 ft. (see Senses on the Skills tab)",
+    "Darkvision 60 ft.": "Darkvision 18 m (see Senses on the Skills tab)",
     "Resistance to acid 5, cold 5 and electricity 5": "Resistance to acid 5, cold 5 and electricity 5 (shown under Vitality)"
   };
   function fixRacialTraits(){
@@ -76,6 +78,22 @@
     (state.skills || []).forEach(function(sk){
       if ((sk.name === "Listen" || sk.name === "Spot") && sk.racial === undefined) sk.racial = num(sk.misc) >= 2 ? 0 : 2;
     });
+  }
+
+  // The sheet uses metres (3.5 metric convention: 5 ft = 1.5 m). Saved sheets from
+  // before the switch still hold feet, so convert them once.
+  function ftToM(ft){ return Math.round(num(ft) / 5 * 1.5 * 2) / 2; }
+  function ftTextToM(text){
+    return String(text || "").replace(/(\d+(?:\.\d+)?)\s*(?:ft\.?|feet|foot)(?![a-z])/gi, function(_, n){ return ftToM(n) + " m"; });
+  }
+  // Only values that came from the saved sheet are converted; defaults are already metric.
+  function toMetric(saved){
+    if (saved.units === "m") return;
+    if (saved.speed !== "" && saved.speed !== undefined) state.speed = ftToM(saved.speed);
+    if (saved.darkvision !== "" && saved.darkvision !== undefined) state.darkvision = ftToM(saved.darkvision);
+    (state.attacks || []).forEach(function(a){ a.notes = ftTextToM(a.notes); });
+    (state.racialTraits || []).forEach(function(t){ t.text = ftTextToM(t.text); });
+    state.units = "m";
   }
 
   // Saved sheets from before an attack's stats were filled in (e.g. the Morningstar)

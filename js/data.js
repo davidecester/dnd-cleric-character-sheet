@@ -22,7 +22,7 @@ window.CaseFile = window.CaseFile || {};
       will: { base:4, magic:1, misc:0, temp:0 }
     },
     grapple: { size:0, misc:0 },
-    speed: 20,
+    speed: 6,
     balance: { active:false, rounds:0, used:0 },
     skillAcp: -6,
     skills: [
@@ -67,7 +67,7 @@ window.CaseFile = window.CaseFile || {};
     ],
     initiative: { misc:0 },
     attacks: [
-      { name:"+1 Longspear", bonus:"+8", damage:"1d8+7", notes:"Crit ×3 · Piercing · Reach 10 ft · Two-handed · Main melee weapon" },
+      { name:"+1 Longspear", bonus:"+8", damage:"1d8+7", notes:"Crit ×3 · Piercing · Reach 3 m · Two-handed · Main melee weapon" },
       { name:"Morningstar", bonus:"+7", damage:"1d8+4", notes:"Crit ×2 · Bludgeoning & piercing · One-handed · Backup vs foes inside longspear reach" }
     ],
     armor: "Full Plate",
@@ -78,7 +78,8 @@ window.CaseFile = window.CaseFile || {};
     ],
     powerAttack: 0,
     resistances: { acid:5, cold:5, electricity:5, fire:0, sonic:0 },
-    darkvision: 60,
+    darkvision: 18,
+    units: "m",
     domains: {
       balance: "Once per day, as a free action, add your Wisdom modifier to AC for 1 round per cleric level (currently +6 AC for 5 rounds). Reflects Caelian's pursuit of equilibrium — weighing extremes rather than favoring either side.",
       magic: "Can use certain Wizard spell-completion and spell-trigger items as a Wizard of half his Cleric level. Grants access to useful utility and anti-magic domain spells."
@@ -87,7 +88,7 @@ window.CaseFile = window.CaseFile || {};
       { text:"Celestial heritage" },
       { text:"Daylight 1/day (spell-like ability)" },
       { text:"Daylight does not need to be prepared as a Cleric spell — use the racial ability" },
-      { text:"Darkvision 60 ft. (see Senses on the Skills tab)" },
+      { text:"Darkvision 18 m (see Senses on the Skills tab)" },
       { text:"Resistance to acid 5, cold 5 and electricity 5 (shown under Vitality)" },
       { text:"+2 racial bonus on Listen and Spot (already added on the Skills tab)" }
     ],

@@ -30,6 +30,7 @@ at the end of `styles.css`; check those widths too when adding or reordering car
 
 ## Conventions
 
+- Distances are metric (3.5 convention: 5 ft = 1.5 m, so 30 ft = 9 m, 60 ft = 18 m). Don't add feet.
 - Match the existing style: vanilla JS in an IIFE, ES5-style (`var`, `function`), no frameworks.
 - Text that the user reads in view mode should wrap, not be clipped by fixed-width inputs.
   The header uses a view/edit toggle (`✎ Edit` / `✓ Done`) for this; reuse that pattern for

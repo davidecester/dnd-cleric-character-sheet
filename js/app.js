@@ -451,7 +451,27 @@
     });
     updateSkillTotals();
   }
+  // The Skills how-to hint is folded away by default; the choice is remembered on this device.
+  var NOTES_KEY = "caelian-skills-notes-open";
+  function bindSkillsNotes(){
+    var btn = document.getElementById("skillsNotesBtn"), notes = document.getElementById("skillsNotes");
+    if (!btn || !notes) return;
+    function set(open){
+      notes.hidden = !open;
+      btn.setAttribute("aria-expanded", String(open));
+      btn.textContent = open ? "Hide notes" : "Show notes";
+    }
+    var open = false;
+    try { open = localStorage.getItem(NOTES_KEY) === "1"; } catch(e){}
+    set(open);
+    btn.addEventListener("click", function(){
+      var next = notes.hidden;
+      set(next);
+      try { localStorage.setItem(NOTES_KEY, next ? "1" : "0"); } catch(e){}
+    });
+  }
   function bindSkills(){
+    bindSkillsNotes();
     bindField("skill-acp", function(){ return state.skillAcp; }, function(v){ state.skillAcp = v; updateSkillTotals(); }, true);
     document.getElementById("addSkill").addEventListener("click", function(){
       state.skills.push({ name:"New skill", ability:"int", untrained:true, acp:0, cls:false, ranks:0, misc:0, editable:true, custom:true });

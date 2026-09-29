@@ -96,7 +96,7 @@ input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none;margin:0;}
   border-radius:var(--radius-pill);color:var(--celestial);font-family:var(--font-mono);font-size:10px;
   letter-spacing:1px;text-transform:uppercase;flex:none;
 }
-.section-edit-btn[aria-pressed="true"]{background:rgba(127,212,255,0.18);border-color:rgba(127,212,255,0.55);}
+.section-edit-btn[aria-pressed="true"],.section-edit-btn[aria-expanded="true"]{background:rgba(127,212,255,0.18);border-color:rgba(127,212,255,0.55);}
 .save-status{
   position:absolute;top:calc(12px + env(safe-area-inset-top));right:calc(16px + env(safe-area-inset-right));font-family:var(--font-mono);font-size:9.5px;letter-spacing:1px;
   color:var(--gold-strong);text-transform:uppercase;opacity:0;transition:opacity .5s;

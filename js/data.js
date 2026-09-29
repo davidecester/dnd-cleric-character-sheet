@@ -77,6 +77,8 @@ window.CaseFile = window.CaseFile || {};
       { name:"Extend Spell", notes:"" }
     ],
     powerAttack: 0,
+    resistances: { acid:5, cold:5, electricity:5, fire:0, sonic:0 },
+    darkvision: 60,
     domains: {
       balance: "Once per day, as a free action, add your Wisdom modifier to AC for 1 round per cleric level (currently +6 AC for 5 rounds). Reflects Caelian's pursuit of equilibrium — weighing extremes rather than favoring either side.",
       magic: "Can use certain Wizard spell-completion and spell-trigger items as a Wizard of half his Cleric level. Grants access to useful utility and anti-magic domain spells."
@@ -85,8 +87,8 @@ window.CaseFile = window.CaseFile || {};
       { text:"Celestial heritage" },
       { text:"Daylight 1/day (spell-like ability)" },
       { text:"Daylight does not need to be prepared as a Cleric spell — use the racial ability" },
-      { text:"Darkvision 60 ft." },
-      { text:"Resistance to acid 5, cold 5 and electricity 5" },
+      { text:"Darkvision 60 ft. (see Senses on the Skills tab)" },
+      { text:"Resistance to acid 5, cold 5 and electricity 5 (shown under Vitality)" },
       { text:"+2 racial bonus on Listen and Spot (already added on the Skills tab)" }
     ],
     spellLevels: [

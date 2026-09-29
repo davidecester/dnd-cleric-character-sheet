@@ -58,7 +58,9 @@
   // Only the untouched old wording is replaced, so the user's own edits stay.
   var OLD_RACIAL = {
     "Racial Light ability": "Daylight 1/day (spell-like ability)",
-    "Light does not normally need to be prepared as a Cleric spell": "Daylight does not need to be prepared as a Cleric spell — use the racial ability"
+    "Light does not normally need to be prepared as a Cleric spell": "Daylight does not need to be prepared as a Cleric spell — use the racial ability",
+    "Darkvision 60 ft.": "Darkvision 60 ft. (see Senses on the Skills tab)",
+    "Resistance to acid 5, cold 5 and electricity 5": "Resistance to acid 5, cold 5 and electricity 5 (shown under Vitality)"
   };
   function fixRacialTraits(){
     state.racialTraits = state.racialTraits || [];
@@ -261,6 +263,16 @@
     pts.textContent = spent + "/" + budget;
     pts.style.color = spent > budget ? "var(--rose)" : "";
     document.getElementById("skillMax").textContent = maxC + " / " + maxX;
+    updateSenses();
+  }
+
+  // Senses card: Listen and Spot totals mirror the skill list.
+  function updateSenses(){
+    [["Listen", "senseListen"], ["Spot", "senseSpot"]].forEach(function(pair){
+      var out = document.getElementById(pair[1]);
+      var s = state.skills.filter(function(sk){ return sk.name === pair[0]; })[0];
+      if (out) out.textContent = s ? signed(skillTotal(s)) : "—";
+    });
   }
   function renderSkills(){
     var list = document.getElementById("skillsList");
@@ -405,6 +417,11 @@
     bindField("grapple-size", function(){ return state.grapple.size; }, function(v){ state.grapple.size = v; recomputeDerived(); }, true);
     bindField("grapple-misc", function(){ return state.grapple.misc; }, function(v){ state.grapple.misc = v; recomputeDerived(); }, true);
     bindField("speed", function(){ return state.speed; }, function(v){ state.speed = v; }, true);
+    state.resistances = Object.assign(clone(DEFAULT_DATA.resistances), state.resistances || {});
+    Object.keys(state.resistances).forEach(function(k){
+      bindField("res-" + k, function(){ return state.resistances[k]; }, function(v){ state.resistances[k] = v; }, true);
+    });
+    bindField("darkvision", function(){ return state.darkvision; }, function(v){ state.darkvision = v; }, true);
     bindField("init-misc", function(){ return state.initiative.misc; }, function(v){ state.initiative.misc = v; recomputeDerived(); }, true);
 
     recomputeDerived();

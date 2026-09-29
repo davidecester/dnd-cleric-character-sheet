@@ -72,6 +72,17 @@
             <button data-hp="5">+5</button>
           </div>
         </div>
+        <div class="resist-block">
+          <div class="resist-title">Energy resistance</div>
+          <div class="stat-row">
+            <div class="stat-box"><label>Acid</label><input id="res-acid" type="number" inputmode="numeric"></div>
+            <div class="stat-box"><label>Cold</label><input id="res-cold" type="number" inputmode="numeric"></div>
+            <div class="stat-box"><label>Elec.</label><input id="res-electricity" type="number" inputmode="numeric"></div>
+            <div class="stat-box"><label>Fire</label><input id="res-fire" type="number" inputmode="numeric"></div>
+            <div class="stat-box"><label>Sonic</label><input id="res-sonic" type="number" inputmode="numeric"></div>
+          </div>
+          <div class="hint">Subtract from each hit of that energy type (e.g. cold 5: a 12-point cold hit deals 7). Aasimar racial; works like damage reduction but only against energy.</div>
+        </div>
       </div>
 
       <div class="card">
@@ -260,6 +271,16 @@
         <div class="skill-head"><span></span><span>Skill</span><span>Ranks</span><span>Misc</span><span>Total</span></div>
         <div id="skillsList"></div>
         <button class="add-row-btn" id="addSkill">+ Add skill</button>
+      </div>
+
+      <div class="card">
+        <h2>Senses</h2>
+        <div class="stat-row">
+          <div class="stat-box"><label>Darkvision (ft)</label><input id="darkvision" type="number" inputmode="numeric"></div>
+          <div class="stat-box"><label>Listen</label><div class="computed-value" id="senseListen">+0</div></div>
+          <div class="stat-box"><label>Spot</label><div class="computed-value" id="senseSpot">+0</div></div>
+        </div>
+        <div class="hint">Darkvision: see in total darkness out to that range, in black and white only. Listen and Spot include the aasimar +2.</div>
       </div>
 
       <div class="card">

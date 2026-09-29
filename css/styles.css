@@ -216,6 +216,11 @@ input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none;margin:0;}
 .hp-max{color:var(--text-2) !important;font-size:15px !important;width:42px !important;text-align:left !important;font-weight:400 !important;}
 .hp-bar-track{height:6px;background:rgba(0,0,0,0.3);border-radius:3px;overflow:hidden;margin-bottom:10px;}
 .hp-bar-fill{height:100%;background:linear-gradient(90deg,var(--rose),var(--gold-strong));transition:width .3s;}
+.resist-block{margin-top:2px;}
+.resist-title{font-family:var(--font-mono);font-size:10px;letter-spacing:1.5px;color:var(--text-2);text-transform:uppercase;margin:0 0 8px 2px;}
+.resist-block .stat-row{flex-wrap:nowrap;gap:6px;}
+.resist-block .stat-box{min-width:0;}
+.resist-block .hint{margin:0;}
 .hp-steppers{display:flex;gap:6px;}
 .hp-steppers button{flex:1;background:rgba(255,255,255,0.06);border:1px solid var(--glass-border);color:var(--text-1);border-radius:var(--radius-pill);padding:9px 0;font-family:var(--font-mono);font-size:13px;}
 .hp-steppers button:active{background:var(--gold);color:#1a1408;border-color:var(--gold);}
@@ -374,8 +379,8 @@ details.breakdown[open] summary::after{content:' ▴';}
   #panel-combat .list-row .col-name, #panel-combat .list-head .col-name{flex:2;}
   #panel-combat .list-row .col-mid, #panel-combat .list-head .col-mid{flex:3;}
   /* Skills: the long skill list on the left, feats and abilities stacked on the right */
-  #panel-skills.active{column-count:auto;display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);grid-template-rows:auto 1fr;column-gap:18px;align-items:start;}
-  #panel-skills > .card:first-child{grid-row:1 / span 2;}
+  #panel-skills.active{column-count:auto;display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);grid-template-rows:auto auto 1fr;column-gap:18px;align-items:start;}
+  #panel-skills > .card:first-child{grid-row:1 / span 3;}
   #panel-skills > .card:not(:first-child){grid-column:2;}
   .tab-bar{max-width:620px;bottom:18px;}
   .tab-btn{font-size:11px;letter-spacing:.8px;padding:12px 4px;}

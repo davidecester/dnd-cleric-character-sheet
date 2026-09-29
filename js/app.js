@@ -322,13 +322,12 @@
       var ab = row.querySelector(".ab-mod");
       if (ab) ab.textContent = (ab.classList.contains("ab-mod-only") ? "" : s.ability.toUpperCase() + " ") + signed(abilityMod(s.ability));
       row.querySelector(".rk").classList.toggle("over", num(s.ranks) > (s.cls ? maxC : maxX));
-      var syn = row.querySelector(".syn");
-      if (syn) {
-        syn.textContent = skillSynergies(s).map(function(x){
-          if (x.to === "Turn undead") return "gives +2 on turning checks";
-          return "+2 from " + x.from + (x.when ? " when " + x.when : "");
-        }).join(" · ");
-        syn.hidden = !syn.textContent;
+      var info = row.querySelector(".skill-info");
+      if (info) {
+        var notes = skillNotes(s);
+        info._notes = notes;
+        info.hidden = !notes.length;
+        info.classList.toggle("boost", synergyBonus(s) > 0);
       }
       row.classList.toggle("cls", !!s.cls);
     });
@@ -347,6 +346,50 @@
       var s = state.skills.filter(function(sk){ return sk.name === pair[0]; })[0];
       if (out) out.textContent = s ? signed(skillTotal(s)) : "—";
     });
+  }
+  // Notes behind the (i) button on each skill row: armor penalty, trained only,
+  // racial bonus and synergies. Kept out of the row itself so rows stay short.
+  function skillNotes(s){
+    var notes = [];
+    if (s.acp === 2) notes.push("Armor check penalty applies twice");
+    else if (s.acp) notes.push("Armor check penalty applies");
+    if (!s.untrained) notes.push("Trained only: needs at least 1 rank to use");
+    if (num(s.racial)) notes.push("Racial " + signed(num(s.racial)) + " (included)");
+    skillSynergies(s).forEach(function(x){
+      if (x.to === "Turn undead") notes.push("Synergy: gives +2 on turning checks");
+      else if (x.when) notes.push("Synergy +2 from " + x.from + " when " + x.when + " (situational, not included)");
+      else notes.push("Synergy +2 from " + x.from + " (included)");
+    });
+    return notes;
+  }
+  var skillTip = null, skillTipFor = null;
+  function hideSkillTip(){
+    if (skillTip) skillTip.hidden = true;
+    skillTipFor = null;
+  }
+  function toggleSkillTip(btn, title){
+    if (skillTipFor === btn) { hideSkillTip(); return; }
+    if (!skillTip) {
+      skillTip = document.createElement("div");
+      skillTip.className = "skill-tip"; skillTip.setAttribute("role", "tooltip");
+      document.body.appendChild(skillTip);
+      document.addEventListener("click", function(e){ if (skillTip && !skillTip.contains(e.target)) hideSkillTip(); });
+      window.addEventListener("scroll", hideSkillTip, { passive:true });
+      window.addEventListener("resize", hideSkillTip);
+      document.addEventListener("keydown", function(e){ if (e.key === "Escape") hideSkillTip(); });
+    }
+    skillTip.innerHTML = "";
+    var h = document.createElement("div"); h.className = "skill-tip-title"; h.textContent = title;
+    var ul = document.createElement("ul");
+    (btn._notes || []).forEach(function(n){ var li = document.createElement("li"); li.textContent = n; ul.appendChild(li); });
+    skillTip.appendChild(h); skillTip.appendChild(ul);
+    skillTip.hidden = false;
+    var r = btn.getBoundingClientRect(), w = skillTip.offsetWidth, ht = skillTip.offsetHeight;
+    var left = Math.max(12, Math.min(r.left - 12, window.innerWidth - w - 12));
+    var top = r.bottom + 6;
+    if (top + ht > window.innerHeight - 12) top = Math.max(12, r.top - ht - 6);
+    skillTip.style.left = left + "px"; skillTip.style.top = top + "px";
+    skillTipFor = btn;
   }
   function renderSkills(){
     var list = document.getElementById("skillsList");
@@ -383,15 +426,13 @@
       } else {
         var ab = document.createElement("span"); ab.className = "ab-mod";
         meta.appendChild(ab);
-        var tags = [];
-        if (s.acp === 2) tags.push("ACP×2"); else if (s.acp) tags.push("ACP");
-        if (!s.untrained) tags.push("trained");
-        if (num(s.racial)) tags.push("racial " + signed(num(s.racial)));
-        if (tags.length) meta.appendChild(document.createTextNode(" · " + tags.join(" · ")));
       }
+      var info = document.createElement("button");
+      info.type = "button"; info.className = "skill-info"; info.textContent = "i"; info.hidden = true;
+      info.setAttribute("aria-label", s.name + " notes");
+      info.addEventListener("click", function(e){ e.stopPropagation(); toggleSkillTip(info, s.name); });
+      meta.appendChild(info);
       nameWrap.appendChild(meta);
-      var syn = document.createElement("div"); syn.className = "syn"; syn.hidden = true;
-      nameWrap.appendChild(syn);
 
       var rk = document.createElement("input");
       rk.type = "number"; rk.step = "0.5"; rk.min = "0"; rk.className = "rk"; rk.value = s.ranks;

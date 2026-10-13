@@ -61,7 +61,7 @@ window.CaseFile = window.CaseFile || {};
     "Still Spell": { type:"Metamagic", summary:"No somatic component · slot +1 level." },
     "Widen Spell": { type:"Metamagic", summary:"Double area · slot +3 levels." },
     "Persistent Spell": { type:"Metamagic", prereq:"Extend Spell", source:"Complete Arcane",
-      summary:"Fixed/personal-range spell lasts 24 hours · slot +6 levels." },
+      summary:"A spell with personal or fixed range (e.g. Divine Favor, Righteous Might) lasts 24 hours · slot +6 levels." },
     // ---------- Divine ----------
     "Extra Turning": { type:"General", prereq:"Turn undead", summary:"+4 turn/rebuke attempts per day." },
     "Improved Turning": { type:"General", prereq:"Turn undead", summary:"Turn undead as one level higher." },

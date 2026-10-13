@@ -677,7 +677,10 @@
     el.className = "feat-entry";
     var head = document.createElement("div");
     head.className = "feat-name";
-    head.textContent = title;
+    var nameEl = document.createElement("span");
+    nameEl.className = "feat-title";
+    nameEl.textContent = title;
+    head.appendChild(nameEl);
     if (hit) {
       var tag = document.createElement("span");
       tag.className = "feat-type";

@@ -10,16 +10,16 @@ window.CaseFile = window.CaseFile || {};
     name: "Caelian Vàel",
     race: "Lesser Aasimar",
     className: "Cleric",
-    level: 5,
+    level: 6,
     alignment: "Neutral Good",
     abilities: { str:18, dex:10, con:16, int:10, wis:23, cha:14 },
-    hp: { current:51, max:51 },
-    bab: 3,
+    hp: { current:61, max:61 },
+    bab: 4,
     ac: { armor:8, shield:0, dex:0, size:0, natural:0, deflection:0, misc:0 },
     saves: {
-      fort: { base:4, magic:1, misc:0, temp:0 },
-      ref:  { base:1, magic:1, misc:0, temp:0 },
-      will: { base:4, magic:1, misc:0, temp:0 }
+      fort: { base:5, magic:1, misc:0, temp:0 },
+      ref:  { base:2, magic:1, misc:0, temp:0 },
+      will: { base:5, magic:1, misc:0, temp:0 }
     },
     grapple: { size:0, misc:0 },
     speed: 6,
@@ -40,7 +40,7 @@ window.CaseFile = window.CaseFile || {};
       { name:"Forgery", ability:"int", untrained:true, acp:0, cls:false, ranks:0, misc:0, editable:false },
       { name:"Gather Information", ability:"cha", untrained:true, acp:0, cls:false, ranks:0, misc:0, editable:false },
       { name:"Handle Animal", ability:"cha", untrained:false, acp:0, cls:false, ranks:0, misc:0, editable:false },
-      { name:"Heal", ability:"wis", untrained:true, acp:0, cls:true, ranks:0, misc:0, editable:false },
+      { name:"Heal", ability:"wis", untrained:true, acp:0, cls:true, ranks:0, misc:2, editable:false },
       { name:"Hide", ability:"dex", untrained:true, acp:1, cls:false, ranks:0, misc:0, editable:false },
       { name:"Intimidate", ability:"cha", untrained:true, acp:0, cls:false, ranks:0, misc:0, editable:false },
       { name:"Jump", ability:"str", untrained:true, acp:1, cls:false, ranks:0, misc:0, editable:false },
@@ -67,21 +67,22 @@ window.CaseFile = window.CaseFile || {};
     ],
     initiative: { misc:0 },
     attacks: [
-      { name:"+1 Longspear", bonus:"+8", damage:"1d8+7", notes:"Crit ×3 · Piercing · Reach 3 m · Two-handed · Main melee weapon" },
-      { name:"Morningstar", bonus:"+7", damage:"1d8+4", notes:"Crit ×2 · Bludgeoning & piercing · One-handed · Backup vs foes inside longspear reach" }
+      { name:"+1 Longspear", bonus:"+9", damage:"1d8+7", notes:"Crit ×3 · Piercing · Reach 3 m · Two-handed · Main melee weapon" },
+      { name:"Morningstar", bonus:"+8", damage:"1d8+4", notes:"Crit ×2 · Bludgeoning & piercing · One-handed · Backup vs foes inside longspear reach" }
     ],
     armor: "Full Plate",
     shield: "",
     feats: [
       { name:"Power Attack", notes:"" },
-      { name:"Extend Spell", notes:"" }
+      { name:"Extend Spell", notes:"" },
+      { name:"Persistent Spell", notes:"" }
     ],
     powerAttack: 0,
     resistances: { acid:5, cold:5, electricity:5, fire:0, sonic:0 },
     darkvision: 18,
     units: "m",
     domains: {
-      balance: "Once per day, as a free action, add your Wisdom modifier to AC for 1 round per cleric level (currently +6 AC for 5 rounds). Reflects Caelian's pursuit of equilibrium — weighing extremes rather than favoring either side.",
+      balance: "Once per day, as a free action, add your Wisdom modifier to AC for 1 round per cleric level (currently +6 AC for 6 rounds). Reflects Caelian's pursuit of equilibrium — weighing extremes rather than favoring either side.",
       magic: "Can use certain Wizard spell-completion and spell-trigger items as a Wizard of half his Cleric level. Grants access to useful utility and anti-magic domain spells."
     },
     racialTraits: [
@@ -101,7 +102,7 @@ window.CaseFile = window.CaseFile || {};
     equipment: [
       { name:"+1 Longspear" }, { name:"Morningstar" }, { name:"Full Plate" },
       { name:"Periapt of Wisdom +2" }, { name:"Cloak of Resistance +1" },
-      { name:"Silver holy symbol" }, { name:"Spell component pouch" }, { name:"Standard adventuring equipment" }
+      { name:"Silver holy symbol" }, { name:"Healer's kit (+2 Heal, in Misc)" }, { name:"Spell component pouch" }, { name:"Standard adventuring equipment" }
     ],
     mountGear: [
       { name:"Light Horse" }, { name:"Riding Saddle" }, { name:"Bit and Bridle" }, { name:"40 days trail rations" }

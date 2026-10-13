@@ -54,6 +54,7 @@
         fixRacialTraits();
         if (saved) toMetric(saved);
         if (saved && levelUpTo6(saved)) levelledUp = true;
+        if (saved && setLevel6Ranks(saved)) levelledUp = true;
       })
       .catch(function(){ state = clone(DEFAULT_DATA); });
   }
@@ -126,6 +127,18 @@
       if ((num(l.level) === 2 || num(l.level) === 3) && num(l.total) > 0) { l.total = num(l.total) + 1; l.remaining = num(l.remaining) + 1; }
     });
     if (state.domains && state.domains.balance) state.domains.balance = state.domains.balance.replace("for 5 rounds", "for 6 rounds");
+    return true;
+  }
+
+  // Skill ranks at level 6 as the user listed them (18 points: cleric 2 + Int 0, ×4 at 1st).
+  // Set once, after which the sheet's own edits win.
+  var LEVEL6_RANKS = { "Concentration":9, "Knowledge (religion)":8, "Diplomacy":1 };
+  function setLevel6Ranks(saved){
+    if (num(saved.ranksRev) >= 1) return false;
+    (state.skills || []).forEach(function(sk){
+      if (LEVEL6_RANKS.hasOwnProperty(sk.name)) sk.ranks = LEVEL6_RANKS[sk.name];
+    });
+    state.ranksRev = 1;
     return true;
   }
 
@@ -556,6 +569,14 @@
     var cur = num(state.hp.current), max = num(state.hp.max) || 1;
     var pct = Math.max(0, Math.min(100, (cur / max) * 100));
     document.getElementById("hpBarFill").style.width = pct + "%";
+    fitHpInput("hp-current"); fitHpInput("hp-max");
+  }
+  // Size the hit point fields to their digits (2 to 4, or a minus sign), so 3-digit hp fits
+  // and Safari, which crops text at the field's edge, has room for the last digit.
+  function fitHpInput(id){
+    var el = document.getElementById(id);
+    var chars = Math.max(2, Math.min(5, String(el.value).length));
+    el.style.width = "calc(" + (chars + 0.4) + "ch + 12px)";
   }
 
   function renderCoreStats(){

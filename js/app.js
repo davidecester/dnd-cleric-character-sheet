@@ -40,6 +40,7 @@
       })
       .catch(function(err){ console.error("Save failed:", err); statusEl.textContent = "Save failed"; });
   }
+  var levelledUp = false;
   function loadState(){
     return Promise.resolve()
       .then(function(){ return storage.get(STORAGE_KEY); })
@@ -52,6 +53,7 @@
         fillBlankAttacks();
         fixRacialTraits();
         if (saved) toMetric(saved);
+        if (saved && levelUpTo6(saved)) levelledUp = true;
       })
       .catch(function(){ state = clone(DEFAULT_DATA); });
   }
@@ -94,6 +96,37 @@
     (state.attacks || []).forEach(function(a){ a.notes = ftTextToM(a.notes); });
     (state.racialTraits || []).forEach(function(t){ t.text = ftTextToM(t.text); });
     state.units = "m";
+  }
+
+  // Level 6 (cleric 6): applied once to a sheet saved at level 5. Everything is added on
+  // top of the saved values, so the user's own edits (skill ranks above all) are kept.
+  // Cleric 6: BAB +1, all base saves +1, hp 7 (d8 roll) + 3 Con, feat Persistent Spell,
+  // 2 skill points (1 Concentration, 1 Diplomacy), one more 2nd- and 3rd-level slot.
+  function levelUpTo6(saved){
+    if (num(saved.level) !== 5) return false;
+    var hpGain = 7 + abilityMod("con");
+    state.level = 6;
+    state.bab = num(state.bab) + 1;
+    ["fort","ref","will"].forEach(function(k){ state.saves[k].base = num(state.saves[k].base) + 1; });
+    state.hp.max = num(state.hp.max) + hpGain;
+    state.hp.current = num(state.hp.current) + hpGain;
+    (state.attacks || []).forEach(function(a){
+      var b = String(a.bonus || "").trim();
+      if (/^[+-]?\d+$/.test(b)) { var n = Number(b) + 1; a.bonus = (n >= 0 ? "+" : "") + n; }
+    });
+    var hasFeat = (state.feats || []).some(function(f){ return String(f.name || "").toLowerCase() === "persistent spell"; });
+    if (!hasFeat) state.feats.push({ name:"Persistent Spell", notes:"" });
+    (state.skills || []).forEach(function(sk){
+      if (sk.name === "Concentration" || sk.name === "Diplomacy") sk.ranks = num(sk.ranks) + 1;
+      if (sk.name === "Heal") sk.misc = num(sk.misc) + 2;
+    });
+    var gear = (state.equipment || []).map(function(e){ return String(e.name || "").toLowerCase(); }).join("\n");
+    if (gear.indexOf("healer") === -1) state.equipment.push({ name:"Healer's kit (+2 Heal, in Misc)" });
+    (state.spellLevels || []).forEach(function(l){
+      if ((num(l.level) === 2 || num(l.level) === 3) && num(l.total) > 0) { l.total = num(l.total) + 1; l.remaining = num(l.remaining) + 1; }
+    });
+    if (state.domains && state.domains.balance) state.domains.balance = state.domains.balance.replace("for 5 rounds", "for 6 rounds");
+    return true;
   }
 
   // Saved sheets from before an attack's stats were filled in (e.g. the Morningstar)
@@ -644,7 +677,10 @@
     el.className = "feat-entry";
     var head = document.createElement("div");
     head.className = "feat-name";
-    head.textContent = title;
+    var nameEl = document.createElement("span");
+    nameEl.className = "feat-title";
+    nameEl.textContent = title;
+    head.appendChild(nameEl);
     if (hit) {
       var tag = document.createElement("span");
       tag.className = "feat-type";
@@ -1043,6 +1079,7 @@
     safe(bindSkills, "bindSkills");
     safe(recomputeDerived, "recomputeDerived");
     safe(initImagePickers, "initImagePickers");
+    if (levelledUp) scheduleSave();
   });
 
 })();

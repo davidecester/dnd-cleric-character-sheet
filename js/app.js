@@ -556,6 +556,14 @@
     var cur = num(state.hp.current), max = num(state.hp.max) || 1;
     var pct = Math.max(0, Math.min(100, (cur / max) * 100));
     document.getElementById("hpBarFill").style.width = pct + "%";
+    fitHpInput("hp-current"); fitHpInput("hp-max");
+  }
+  // Size the hit point fields to their digits (2 to 4, or a minus sign), so 3-digit hp fits
+  // and Safari, which crops text at the field's edge, has room for the last digit.
+  function fitHpInput(id){
+    var el = document.getElementById(id);
+    var chars = Math.max(2, Math.min(5, String(el.value).length));
+    el.style.width = "calc(" + (chars + 0.4) + "ch + 12px)";
   }
 
   function renderCoreStats(){

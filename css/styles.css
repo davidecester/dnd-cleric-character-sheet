@@ -93,9 +93,6 @@ input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none;margin:0;}
 .header-edit-btn, .section-edit-btn{display:inline-flex;align-items:center;gap:6px;}
 .btn-icon{width:14px;height:14px;flex:none;}
 .section-edit-btn .btn-icon{width:12px;height:12px;}
-.img-edit-btn{display:inline-flex;align-items:center;justify-content:center;padding:0;}
-.img-edit-btn .btn-icon{width:16px;height:16px;}
-.img-edit-btn.small .btn-icon{width:13px;height:13px;}
 .header-edit-btn[aria-pressed="true"]{background:rgba(127,212,255,0.18);border-color:rgba(127,212,255,0.55);}
 .section-edit-btn{
   padding:4px 11px;background:rgba(255,255,255,0.06);border:1px solid var(--glass-border);
@@ -324,12 +321,10 @@ details.breakdown[open] summary::after{content:' ▴';}
 .banner-img{width:100%;height:100%;object-fit:cover;display:none;}
 .banner-placeholder{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;color:var(--text-2);font-size:12.5px;text-align:center;padding:0 20px;}
 .banner-placeholder .plus{font-size:26px;color:var(--gold-strong);}
-.img-edit-btn{position:absolute;top:10px;right:10px;width:34px;height:34px;border-radius:50%;background:var(--glass-bg-strong);backdrop-filter:blur(20px) saturate(180%);-webkit-backdrop-filter:blur(20px) saturate(180%);border:1px solid var(--glass-border);color:var(--text-1);font-size:14px;box-shadow:0 4px 12px rgba(0,0,0,.35);}
 .portrait-row{display:flex;align-items:flex-end;gap:12px;padding:0 16px;margin-top:-38px;position:relative;}
 .portrait-circle{position:relative;width:76px;height:76px;border-radius:50%;overflow:hidden;background:var(--glass-bg-strong);border:3px solid #0c0f1c;box-shadow:0 6px 16px rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;flex:0 0 auto;cursor:pointer;}
 .portrait-img{width:100%;height:100%;object-fit:cover;display:none;}
 .portrait-placeholder{color:var(--text-2);font-size:26px;}
-.img-edit-btn.small{position:absolute;bottom:-2px;right:-2px;width:24px;height:24px;font-size:11px;}
 .portrait-caption{padding-bottom:6px;}
 .char-title{font-family:var(--font-display);font-size:17px;font-weight:800;color:var(--text-1);line-height:1.2;}
 .char-subtitle{font-family:var(--font-body);font-size:12px;color:var(--celestial);margin-top:2px;}
@@ -453,3 +448,22 @@ details.breakdown[open] summary::after{content:' ▴';}
 .plus .btn-icon, .portrait-placeholder .btn-icon{width:1em;height:1em;stroke-width:1.4;}
 .add-row-btn{display:flex;align-items:center;justify-content:center;gap:6px;}
 .add-row-btn .btn-icon{width:13px;height:13px;}
+.banner-placeholder .banner-sub{font-size:11.5px;color:var(--text-3);}
+.portrait-placeholder{color:var(--gold-strong);}
+/* Image lightbox (Story tab) */
+.lightbox{position:fixed;inset:0;z-index:100;display:flex;align-items:center;justify-content:center;padding:calc(16px + env(safe-area-inset-top)) 16px calc(16px + env(safe-area-inset-bottom));background:rgba(5,7,15,0.78);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);}
+.lightbox[hidden]{display:none;}
+.lightbox-panel{width:100%;max-width:560px;max-height:100%;display:flex;flex-direction:column;gap:12px;}
+.lightbox-head{display:flex;align-items:center;justify-content:space-between;}
+.lightbox-title{font-family:var(--font-mono);font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--gold-strong);}
+.lightbox-close{width:36px;height:36px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;background:rgba(255,255,255,0.08);border:1px solid var(--glass-border);color:var(--text-1);}
+.lightbox-close .btn-icon{width:14px;height:14px;}
+.lightbox-img{display:block;width:100%;min-height:0;flex:1 1 auto;max-height:65vh;object-fit:contain;border-radius:var(--radius-md);background:rgba(0,0,0,0.3);}
+.lightbox-actions{display:flex;gap:10px;}
+.lightbox-actions .power-btn{flex:1;display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:11px 0;}
+.power-btn.danger{color:var(--rose);border-color:rgba(229,154,154,0.45);background:rgba(229,154,154,0.1);}
+body.lightbox-open{overflow:hidden;}
+/* Labels next to icons: capitals (no descenders) sit above the box centre, so nudge them to the icon's centre line. */
+.section-edit-btn span{transform:translateY(.14em);}
+.header-edit-btn span{transform:translateY(.05em);}
+.add-row-btn span{transform:translateY(.08em);}

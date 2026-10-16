@@ -31,7 +31,8 @@
     levelUp: svgIcon('<path d="M3.5 8.5L8 4l4.5 4.5"/><path d="M3.5 12.5L8 8l4.5 4.5"/>'),
     remove: svgIcon('<path d="M4.5 4.5l7 7M11.5 4.5l-7 7"/>'),
     plus: svgIcon('<path d="M8 3.5v9M3.5 8h9"/>'),
-    minus: svgIcon('<path d="M3.5 8h9"/>')
+    minus: svgIcon('<path d="M3.5 8h9"/>'),
+    trash: svgIcon('<path d="M3 4.5h10M6.5 4.5V3h3v1.5M4.5 4.5l.6 8.5h5.8l.6-8.5"/>')
   };
   // Label an Edit/Done toggle; the header's toggle also opens the build, so it says so.
   function paintToggle(btn, editing, idleLabel, idleIcon){
@@ -1424,26 +1425,39 @@
   }
 
   // ---------------- Story images (stored separately from character data — large binary blobs) ----------------
+  // Empty: tapping the spot opens the photo picker. With an image: tapping opens it in the
+  // lightbox, where it can be changed or removed.
+  var lightboxTarget = null;
   function setupImagePicker(opts){
     var fileInput = document.getElementById(opts.fileInputId);
     var imgEl = document.getElementById(opts.imgId);
     var placeholderEl = document.getElementById(opts.placeholderId);
     var triggerEl = document.getElementById(opts.triggerId);
-    var editBtn = opts.editBtnId ? document.getElementById(opts.editBtnId) : null;
+    var picker = { title: opts.title, hasImage: false, img: imgEl };
 
     function showImage(dataUrl){
       imgEl.src = dataUrl;
       imgEl.style.display = "block";
       placeholderEl.style.display = "none";
+      picker.hasImage = true;
     }
     function showPlaceholder(){
+      imgEl.removeAttribute("src");
       imgEl.style.display = "none";
       placeholderEl.style.display = "flex";
+      picker.hasImage = false;
     }
+    picker.pick = function(){ fileInput.value = ""; fileInput.click(); };
+    picker.remove = function(){
+      showPlaceholder();
+      Promise.resolve()
+        .then(function(){ return storage.set(opts.storageKey, ""); })
+        .catch(function(err){ console.error("Image remove failed:", err); });
+    };
 
-    function openPicker(e){ if (e) e.stopPropagation(); fileInput.click(); }
-    triggerEl.addEventListener("click", openPicker);
-    if (editBtn) editBtn.addEventListener("click", openPicker);
+    function open(){ if (picker.hasImage) openLightbox(picker); else picker.pick(); }
+    triggerEl.addEventListener("click", open);
+    triggerEl.addEventListener("keydown", function(e){ if (e.key === "Enter" || e.key === " ") { e.preventDefault(); open(); } });
 
     fileInput.addEventListener("change", function(){
       var file = fileInput.files[0];
@@ -1460,6 +1474,7 @@
           ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
           var dataUrl = canvas.toDataURL("image/jpeg", opts.quality);
           showImage(dataUrl);
+          if (lightboxTarget === picker) document.getElementById("lightboxImg").src = dataUrl;
           Promise.resolve()
             .then(function(){ return storage.set(opts.storageKey, dataUrl); })
             .catch(function(err){ console.error("Image save failed:", err); });
@@ -1475,16 +1490,48 @@
       .catch(function(){ showPlaceholder(); });
   }
 
+  function openLightbox(picker){
+    lightboxTarget = picker;
+    var box = document.getElementById("lightbox");
+    document.getElementById("lightboxTitle").textContent = picker.title;
+    document.getElementById("lightboxImg").src = picker.img.src;
+    box.hidden = false;
+    document.body.classList.add("lightbox-open");
+    document.getElementById("lightboxClose").focus();
+  }
+  function closeLightbox(){
+    var box = document.getElementById("lightbox");
+    if (box.hidden) return;
+    box.hidden = true;
+    document.body.classList.remove("lightbox-open");
+    lightboxTarget = null;
+  }
+  function bindLightbox(){
+    var box = document.getElementById("lightbox");
+    document.getElementById("lightboxClose").innerHTML = ICONS.remove;
+    document.getElementById("lightboxChange").innerHTML = ICONS.edit + "<span>Change</span>";
+    document.getElementById("lightboxRemove").innerHTML = ICONS.trash + "<span>Remove</span>";
+    document.getElementById("lightboxClose").addEventListener("click", closeLightbox);
+    box.addEventListener("click", function(e){ if (e.target === box) closeLightbox(); });
+    document.addEventListener("keydown", function(e){ if (e.key === "Escape") closeLightbox(); });
+    document.getElementById("lightboxChange").addEventListener("click", function(){ if (lightboxTarget) lightboxTarget.pick(); });
+    document.getElementById("lightboxRemove").addEventListener("click", function(){
+      if (!lightboxTarget) return;
+      if (!window.confirm("Remove this image?")) return;
+      lightboxTarget.remove();
+      closeLightbox();
+    });
+  }
+
   function initImagePickers(){
+    bindLightbox();
     setupImagePicker({
-      fileInputId:"bgFileInput", imgId:"bgImage", placeholderId:"bgPlaceholder",
-      triggerId:"bgTrigger", editBtnId:"bgEditBtn",
-      storageKey:BG_IMAGE_KEY, maxDim:1600, quality:0.82
+      title:"Background", fileInputId:"bgFileInput", imgId:"bgImage", placeholderId:"bgPlaceholder",
+      triggerId:"bgTrigger", storageKey:BG_IMAGE_KEY, maxDim:1600, quality:0.82
     });
     setupImagePicker({
-      fileInputId:"portraitFileInput", imgId:"portraitImage", placeholderId:"portraitPlaceholder",
-      triggerId:"portraitTrigger", editBtnId:"portraitEditBtn",
-      storageKey:PORTRAIT_IMAGE_KEY, maxDim:900, quality:0.85
+      title:"Portrait", fileInputId:"portraitFileInput", imgId:"portraitImage", placeholderId:"portraitPlaceholder",
+      triggerId:"portraitTrigger", storageKey:PORTRAIT_IMAGE_KEY, maxDim:900, quality:0.85
     });
   }
 

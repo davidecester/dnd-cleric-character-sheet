@@ -393,19 +393,18 @@
     <!-- STORY -->
     <section class="panel" id="panel-story">
       <div class="card story-card">
-        <div class="banner-wrap" id="bgTrigger">
+        <div class="banner-wrap" id="bgTrigger" role="button" tabindex="0" aria-label="Background image">
           <img class="banner-img" id="bgImage" alt="">
           <div class="banner-placeholder" id="bgPlaceholder">
             <span class="plus"><svg class="btn-icon" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3.5v9M3.5 8h9"/></svg></span>
             <span>Tap to add a background image</span>
+            <span class="banner-sub">Tap the circle for a portrait</span>
           </div>
-          <button class="img-edit-btn" id="bgEditBtn" aria-label="Change background"><svg class="btn-icon" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M10.8 2.7l2.5 2.5-7.6 7.6-3.2.7.7-3.2z"/><path d="M9.3 4.2l2.5 2.5"/></svg></button>
         </div>
         <div class="portrait-row">
-          <div class="portrait-circle" id="portraitTrigger">
+          <div class="portrait-circle" id="portraitTrigger" role="button" tabindex="0" aria-label="Portrait">
             <img class="portrait-img" id="portraitImage" alt="">
             <div class="portrait-placeholder" id="portraitPlaceholder"><svg class="btn-icon" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3.5v9M3.5 8h9"/></svg></div>
-            <button class="img-edit-btn small" id="portraitEditBtn" aria-label="Change portrait"><svg class="btn-icon" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M10.8 2.7l2.5 2.5-7.6 7.6-3.2.7.7-3.2z"/><path d="M9.3 4.2l2.5 2.5"/></svg></button>
           </div>
         </div>
         <div class="portrait-caption-pad">
@@ -469,6 +468,20 @@
     <button class="tab-btn" data-tab="gear">Gear</button>
     <button class="tab-btn" data-tab="story">Story</button>
   </nav>
+
+<div class="lightbox" id="lightbox" hidden role="dialog" aria-modal="true" aria-labelledby="lightboxTitle">
+  <div class="lightbox-panel">
+    <div class="lightbox-head">
+      <span class="lightbox-title" id="lightboxTitle">Image</span>
+      <button type="button" class="lightbox-close" id="lightboxClose" aria-label="Close"></button>
+    </div>
+    <img class="lightbox-img" id="lightboxImg" alt="">
+    <div class="lightbox-actions">
+      <button type="button" class="power-btn primary" id="lightboxChange"></button>
+      <button type="button" class="power-btn danger" id="lightboxRemove"></button>
+    </div>
+  </div>
+</div>
 
 <script src="js/storage.js"></script>
 <script src="js/data.js"></script>

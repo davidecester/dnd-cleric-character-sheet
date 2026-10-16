@@ -14,7 +14,7 @@ Mobile-first D&D 3.5 cleric character sheet. Plain static site, no build step:
   - `classes.js` holds `CLASSES`, the 3.5 class tables (BAB, saves, hit die, skill points, spells per day);
     prestige classes go there in the same shape
   - `app.js` handles rendering, 3.5e rules math and autosave to local storage
-  - The Character Build (header ✎ Edit) holds class levels, ability base/racial/items/increases and hp rolls;
+  - The Character Build (header "Edit & level up") holds class levels, ability base/racial/items/increases and hp rolls;
     `computeBuild()` derives level, abilities, BAB, saves, max hp, attacks and spells per day from them
 
 Open `index.html` directly in a browser to run it. The owner mainly uses it on iPhone Safari,
@@ -37,5 +37,5 @@ at the end of `styles.css`; check those widths too when adding or reordering car
 - Distances are metric (3.5 convention: 5 ft = 1.5 m, so 30 ft = 9 m, 60 ft = 18 m). Don't add feet.
 - Match the existing style: vanilla JS in an IIFE, ES5-style (`var`, `function`), no frameworks.
 - Text that the user reads in view mode should wrap, not be clipped by fixed-width inputs.
-  The header uses a view/edit toggle (`✎ Edit` / `✓ Done`) for this; reuse that pattern for
+  The header uses a view/edit toggle (Edit / Done, SVG icons from `ICONS` via `paintToggle()`); reuse that pattern for
   other sections that need editing.

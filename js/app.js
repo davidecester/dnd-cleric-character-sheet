@@ -21,6 +21,23 @@
   function abilityMod(key){ return Math.floor((num(state.abilities[key]) - 10) / 2); }
   function safe(fn, label){ try { fn(); } catch(e){ console.error("Error in " + label + ":", e); } }
 
+  // Button icons (inline SVG, drawn in the button's text colour).
+  function svgIcon(paths){
+    return '<svg class="btn-icon" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">' + paths + '</svg>';
+  }
+  var ICONS = {
+    edit: svgIcon('<path d="M10.8 2.7l2.5 2.5-7.6 7.6-3.2.7.7-3.2z"/><path d="M9.3 4.2l2.5 2.5"/>'),
+    done: svgIcon('<path d="M3.2 8.6l3.1 3.1 6.5-6.9"/>'),
+    levelUp: svgIcon('<path d="M3.5 8.5L8 4l4.5 4.5"/><path d="M3.5 12.5L8 8l4.5 4.5"/>'),
+    remove: svgIcon('<path d="M4.5 4.5l7 7M11.5 4.5l-7 7"/>'),
+    plus: svgIcon('<path d="M8 3.5v9M3.5 8h9"/>'),
+    minus: svgIcon('<path d="M3.5 8h9"/>')
+  };
+  // Label an Edit/Done toggle; the header's toggle also opens the build, so it says so.
+  function paintToggle(btn, editing, idleLabel, idleIcon){
+    btn.innerHTML = (editing ? ICONS.done : (idleIcon || ICONS.edit)) + "<span>" + (editing ? "Done" : (idleLabel || "Edit")) + "</span>";
+  }
+
   // ---------------- Storage ----------------
   function scheduleSave(){
     clearTimeout(saveTimer);
@@ -326,7 +343,7 @@
         row.appendChild(input);
       });
       var del = document.createElement("button");
-      del.className = "row-del"; del.setAttribute("aria-label", "Remove"); del.textContent = "✕";
+      del.className = "row-del"; del.setAttribute("aria-label", "Remove"); del.innerHTML = ICONS.remove;
       del.addEventListener("click", function(){
         data.splice(idx, 1);
         renderList(containerId, data, fields, onChange);
@@ -715,7 +732,7 @@
       var input = document.createElement("input");
       input.type = "number"; input.value = state.abilities[key];
       input.readOnly = true; input.tabIndex = -1;
-      input.title = "Set under ✎ Edit → Character Build";
+      input.title = "Set under Edit & level up → Character Build";
       var mod = document.createElement("div");
       mod.className = "ability-mod"; mod.textContent = signed(Math.floor((state.abilities[key]-10)/2));
       cell.appendChild(lbl); cell.appendChild(input); cell.appendChild(mod);
@@ -740,7 +757,7 @@
   function renderCoreStats(){
     bindField("hp-current", function(){ return state.hp.current; }, function(v){ state.hp.current = v; updateHpBar(); }, true);
     var hpMax = document.getElementById("hp-max");
-    hpMax.value = state.hp.max; hpMax.readOnly = true; hpMax.title = "Max hp: set the rolls under ✎ Edit → Character Build";
+    hpMax.value = state.hp.max; hpMax.readOnly = true; hpMax.title = "Max hp: set the rolls under Edit & level up → Character Build";
     updateHpBar();
     document.querySelectorAll("[data-hp]").forEach(function(btn){
       btn.addEventListener("click", function(){
@@ -840,7 +857,7 @@
       }
       view.appendChild(el);
     });
-    if (!view.firstChild) view.innerHTML = '<div class="hint">No attacks yet — tap ✎ Edit to add one.</div>';
+    if (!view.firstChild) view.innerHTML = '<div class="hint">No attacks yet — tap Edit to add one.</div>';
   }
   function onFeatsChange(){ renderCombatFeats(); if (featCount("Toughness") !== lastToughness) rebuild(); }
   var lastToughness = -1;
@@ -906,7 +923,7 @@
       view.appendChild(featEntry(f.name || "Unnamed feat", CF.findFeat(f.name), f.notes));
     });
     if (!view.firstChild) {
-      view.innerHTML = '<div class="hint">No feats yet — tap ✎ Edit to add one.</div>';
+      view.innerHTML = '<div class="hint">No feats yet — tap Edit to add one.</div>';
     }
     renderCombatFeats();
   }
@@ -976,10 +993,11 @@
     document.getElementById("paPlus").addEventListener("click", function(){ step(1); });
   }
 
-  // ✎ Edit / ✓ Done toggle for a card: "<key>EditBtn" swaps "<key>View" and "<key>Edit";
+  // Edit / Done toggle for a card: "<key>EditBtn" swaps "<key>View" and "<key>Edit";
   // the view is re-rendered on Done.
   function bindSectionToggle(key, renderView){
     var btn = document.getElementById(key + "EditBtn");
+    paintToggle(btn, false);
     var view = document.getElementById(key + "View");
     var edit = document.getElementById(key + "Edit");
     btn.addEventListener("click", function(){
@@ -987,11 +1005,11 @@
       edit.hidden = !editing;
       view.hidden = editing;
       btn.setAttribute("aria-pressed", String(editing));
-      btn.textContent = editing ? "✓ Done" : "✎ Edit";
+      paintToggle(btn, editing);
       if (!editing) renderView();
     });
   }
-  // ---------------- Character Build card (shown with the header's ✎ Edit) ----------------
+  // ---------------- Character Build card (shown with the header's Edit & level up) ----------------
   // Refresh everything that comes from the build after a change.
   function rebuild(){
     computeBuild(true);
@@ -1036,7 +1054,8 @@
       var row = el("div", "build-class");
       row.appendChild(el("span", "build-class-name", c.name));
       var step = el("div", "pa-stepper");
-      var minus = el("button", "", "−"), val = el("span", "", String(num(c.level))), plus = el("button", "", "+");
+      var minus = el("button"), val = el("span", "", String(num(c.level))), plus = el("button");
+      minus.innerHTML = ICONS.minus; plus.innerHTML = ICONS.plus;
       minus.type = plus.type = "button";
       minus.setAttribute("aria-label", "One " + c.name + " level less");
       plus.setAttribute("aria-label", "One " + c.name + " level more");
@@ -1136,7 +1155,7 @@
 
   // ---------------- Long text (domains, story) ----------------
   // In view mode a long text shows as plain wrapped text, cut to a few lines with
-  // Show more; the card's ✎ Edit swaps in the textarea, grown to fit the whole text.
+  // Show more; the card's Edit swaps in the textarea, grown to fit the whole text.
   function growTextarea(ta){ ta.style.height = "auto"; ta.style.height = (ta.scrollHeight + 2) + "px"; }
   function setupLongText(ta){
     var view = document.createElement("div");
@@ -1153,7 +1172,7 @@
     }
     function render(){
       var text = String(ta.value || "").trim();
-      view.textContent = text || "Nothing written yet — tap ✎ Edit.";
+      view.textContent = text || "Nothing written yet — tap Edit.";
       view.classList.toggle("empty", !text);
       view.classList.toggle("clamped", !open);
       view.style.webkitLineClamp = open ? "" : String(lines);
@@ -1177,10 +1196,11 @@
     document.querySelectorAll("textarea.text-block").forEach(setupLongText);
     document.querySelectorAll(".text-edit-btn").forEach(function(btn){
       var card = btn.closest(".card");
+      paintToggle(btn, false);
       btn.addEventListener("click", function(){
         var editing = btn.getAttribute("aria-pressed") !== "true";
         btn.setAttribute("aria-pressed", String(editing));
-        btn.textContent = editing ? "✓ Done" : "✎ Edit";
+        paintToggle(btn, editing);
         card.querySelectorAll("textarea.text-block").forEach(function(ta){ ta._setEditing(editing); });
       });
     });
@@ -1202,7 +1222,7 @@
       li.textContent = t.text;
       view.appendChild(li);
     });
-    if (!view.firstChild) view.innerHTML = '<li class="hint">No traits yet — tap ✎ Edit to add one.</li>';
+    if (!view.firstChild) view.innerHTML = '<li class="hint">No traits yet — tap Edit to add one.</li>';
   }
   function renderEquipment(){ renderList("equipmentList", state.equipment, EQUIPMENT_FIELDS); }
   function renderMountGear(){ renderList("mountList", state.mountGear, EQUIPMENT_FIELDS); }
@@ -1259,7 +1279,7 @@
       head.appendChild(bdField("Left", "remaining"));
 
       var delLevel = document.createElement("button");
-      delLevel.className = "row-del small"; delLevel.setAttribute("aria-label","Remove level"); delLevel.textContent = "✕";
+      delLevel.className = "row-del small"; delLevel.setAttribute("aria-label","Remove level"); delLevel.innerHTML = ICONS.remove;
       delLevel.addEventListener("click", function(){
         state.spellLevels.splice(idx, 1);
         renderSpellLevels(); scheduleSave();
@@ -1280,7 +1300,7 @@
 
       var addSpellBtn = document.createElement("button");
       addSpellBtn.className = "add-row-btn small";
-      addSpellBtn.textContent = "+ Add spell";
+      addSpellBtn.innerHTML = ICONS.plus + "<span>Add spell</span>";
       addSpellBtn.addEventListener("click", function(){
         addAndReveal(spellsListId, lvl.spells, { name:"", cast:false }, LEVEL_SPELL_FIELDS);
       });
@@ -1325,6 +1345,7 @@
 
   function bindHeaderEditToggle(){
     var btn = document.getElementById("headerEditBtn");
+    paintToggle(btn, false, "Edit & level up", ICONS.levelUp);
     var view = document.getElementById("headerView");
     var edit = document.getElementById("headerEdit");
     btn.addEventListener("click", function(){
@@ -1332,7 +1353,7 @@
       edit.hidden = !editing;
       view.hidden = editing;
       btn.setAttribute("aria-pressed", String(editing));
-      btn.textContent = editing ? "✓ Done" : "✎ Edit";
+      paintToggle(btn, editing, "Edit & level up", ICONS.levelUp);
       var build = document.getElementById("buildCard");
       build.hidden = !editing;
       if (editing) {
@@ -1356,6 +1377,7 @@
   }
 
   function bindAddButtons(){
+    document.querySelectorAll(".add-row-btn").forEach(function(b){ if (!b.querySelector("svg")) b.insertAdjacentHTML("afterbegin", ICONS.plus); });
     document.getElementById("addAttack").addEventListener("click", function(){ addAndReveal("attacksList", state.attacks, { name:"", dice:"", enh:0, bonus:"", damage:"", notes:"" }, ATTACK_FIELDS, onAttacksChange); });
     document.getElementById("addFeat").addEventListener("click", function(){ addAndReveal("featsList", state.feats, { name:"", notes:"" }, FEAT_FIELDS, onFeatsChange); });
     document.getElementById("addRacial").addEventListener("click", function(){ addAndReveal("racialList", state.racialTraits, { text:"" }, RACIAL_FIELDS); });

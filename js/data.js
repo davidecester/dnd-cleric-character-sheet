@@ -13,7 +13,7 @@ window.CaseFile = window.CaseFile || {};
     level: 6,
     alignment: "Neutral Good",
     // Class levels and ability build: the sheet works out level-based numbers from these
-    // (base attack, saves, max hp, spells per day, skill points). Edit them under ✎ Edit.
+    // (base attack, saves, max hp, spells per day, skill points). Edit them under Edit & level up.
     classes: [ { name:"Cleric", level:6 } ],
     abilityBase:   { str:18, dex:10, con:16, int:10, wis:18, cha:12 },
     abilityRacial: { str:0, dex:0, con:0, int:0, wis:2, cha:2 },

@@ -27,6 +27,23 @@ window.CaseFile = window.CaseFile || {};
     }
   };
 
+  // Domains Caelian may choose (two at a time). "deity" = his deity's domains; "ascension" =
+  // domains of his own divine concept (the god-shards storyline). Granted powers and domain
+  // spells get filled in as the rules text is confirmed.
+  // Table ruling: alignment domains are allowed whatever the cleric's alignment, so Law is
+  // open to Caelian (Neutral Good) even though the PHB limits it to lawful clerics.
+  var DOMAIN_OPTIONS = [
+    { name:"Nature",      group:"deity",     source:"Forgotten Realms (shaman domain)" },
+    { name:"Magic",       group:"deity",     source:"Player's Handbook" },
+    { name:"Balance",     group:"deity",     source:"Spell Compendium p. 271" },
+    { name:"Earth",       group:"deity",     source:"Player's Handbook / Forgotten Realms" },
+    { name:"Law",         group:"ascension", source:"Player's Handbook", alignment:"lawful" },
+    { name:"Good",        group:"ascension", source:"Player's Handbook", alignment:"good" },
+    { name:"Protection",  group:"ascension", source:"Player's Handbook" },
+    { name:"Inquisition", group:"ascension", source:"Complete Divine / Spell Compendium" }
+  ];
+  var IGNORE_DOMAIN_ALIGNMENT = true;
+
   // Base attack: good = level, medium = ¾ level, poor = ½ level.
   function classBab(prog, lvl){
     if (prog === "good") return lvl;
@@ -45,6 +62,8 @@ window.CaseFile = window.CaseFile || {};
   function isAbilityLevel(lvl){ return lvl % 4 === 0; }
 
   window.CaseFile.CLASSES = CLASSES;
+  window.CaseFile.DOMAIN_OPTIONS = DOMAIN_OPTIONS;
+  window.CaseFile.IGNORE_DOMAIN_ALIGNMENT = IGNORE_DOMAIN_ALIGNMENT;
   window.CaseFile.classBab = classBab;
   window.CaseFile.classSave = classSave;
   window.CaseFile.bonusSpells = bonusSpells;

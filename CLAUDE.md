@@ -34,6 +34,11 @@ at the end of `styles.css`; check those widths too when adding or reordering car
 
 ## Conventions
 
+- Table rulings that override the books:
+  - Alignment domains are allowed whatever the cleric's alignment (Law is open to Caelian, Neutral Good).
+    `IGNORE_DOMAIN_ALIGNMENT` in `classes.js`; don't block or warn on it.
+  - Allowed domains are in `DOMAIN_OPTIONS` in `classes.js` (deity: Nature, Magic, Balance, Earth;
+    ascension concept: Law, Good, Protection, Inquisition).
 - Rules follow D&D 3.5 official sources. Books allowed at the owner's table (use only these for feats,
   spells, prestige classes and rules data):
   - Core: Player's Handbook, Dungeon Master's Guide

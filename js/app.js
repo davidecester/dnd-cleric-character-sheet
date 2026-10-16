@@ -324,13 +324,12 @@
     return true;
   }
 
-  // Story texts from Caelian's profile document: filled in once, only where the box is still empty.
+  // Story texts from Caelian's latest profile (the owner's most up-to-date version): written over
+  // the old texts once. Later edits are kept.
   function fillStory(saved){
-    if (num(saved.storyRev) >= 1) return false;
-    ["appearance", "backstory", "ideal"].forEach(function(k){
-      if (!String(state[k] || "").trim()) state[k] = DEFAULT_DATA[k];
-    });
-    state.storyRev = 1;
+    if (num(saved.storyRev) >= 2) return false;
+    ["appearance", "backstory", "ideal"].forEach(function(k){ state[k] = DEFAULT_DATA[k]; });
+    state.storyRev = 2;
     return true;
   }
 

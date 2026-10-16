@@ -1247,6 +1247,15 @@
     };
     render();
   }
+  function bindLawNote(){
+    var btn = document.getElementById("lawNoteBtn"), more = document.getElementById("lawNoteMore");
+    if (!btn) return;
+    btn.addEventListener("click", function(){
+      more.hidden = !more.hidden;
+      btn.setAttribute("aria-expanded", String(!more.hidden));
+      btn.textContent = more.hidden ? "Show more" : "Show less";
+    });
+  }
   function bindLongTexts(){
     document.querySelectorAll("textarea.text-block").forEach(setupLongText);
     document.querySelectorAll(".text-edit-btn").forEach(function(btn){
@@ -1599,6 +1608,7 @@
     safe(bindReset, "bindReset");
     safe(bindTabs, "bindTabs");
     safe(bindLongTexts, "bindLongTexts");
+    safe(bindLawNote, "bindLawNote");
     safe(renderBuild, "renderBuild");
     safe(bindBalance, "bindBalance");
     safe(bindSkills, "bindSkills");

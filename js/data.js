@@ -106,6 +106,8 @@ window.CaseFile = window.CaseFile || {};
     units: "m",
     ranksRev: 1,
     domainChoice: ["Balance", "Magic"],
+    turning: { log:[] },
+    domainTurning: {},
     domains: {
       balance: "Reflects Caelian's pursuit of equilibrium — weighing extremes rather than favoring either side.",
       magic: "Useful utility and anti-magic domain spells."

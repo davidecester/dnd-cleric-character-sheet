@@ -36,6 +36,7 @@ window.CaseFile = window.CaseFile || {};
     // Nature comes from Oriental Adventures (shaman domain, as listed on realmshelps.net). Not on the book
     // list, but the owner allows this domain by table ruling.
     { name:"Nature", group:"deity", source:"Oriental Adventures (shaman domain), allowed by table ruling",
+      turning:{ title:"Rebuke animals · plants", desc:"Rebuke or command normal animals or plant creatures, as an evil cleric rebukes undead." },
       power:"Rebuke or command normal animals or plant creatures as an evil cleric rebukes or commands undead. 3 + Charisma modifier times per day.",
       spells:[
         ["Trance", "Meditate to learn about nearby spirits."],
@@ -75,6 +76,7 @@ window.CaseFile = window.CaseFile || {};
         ["Weighed in the Balance", "Harms or heals creatures within 9 m of you."]
       ] },
     { name:"Earth", group:"deity", source:"Player's Handbook",
+      turning:{ title:"Turn air · rebuke earth", desc:"Turn or destroy air creatures; rebuke, command or bolster earth creatures." },
       power:"Turn or destroy air creatures as a good cleric turns undead; rebuke, command or bolster earth creatures as an evil cleric rebukes undead. 3 + Charisma modifier times per day (supernatural).",
       spells:[
         ["Magic Stone", "Three stones become +1 projectiles, 1d6+1 damage."],

@@ -363,6 +363,25 @@
           <div class="stat-box"><label>Damage</label><div class="computed-value" id="turnDamage">2d6+8</div></div>
         </div>
         <div class="hint">Turning level <span id="turnLevel">6</span>. The check sets the strongest undead you can turn (up to 4 HD above or below your turning level); damage is the total HD turned. Knowledge (religion) 5+ ranks adds +2 to the check.</div>
+        <div class="power-block" id="turnBlock">
+          <div class="power-head">
+            <div>
+              <div class="power-title">Turn attempts today</div>
+              <div class="power-desc" id="turnLog">None used yet.</div>
+            </div>
+            <div class="power-uses" id="turnLeft">5/5 left</div>
+          </div>
+          <div class="power-actions">
+            <button class="power-btn primary" id="turnUse">Turn undead</button>
+            <button class="power-btn" id="turnUndo">Undo</button>
+          </div>
+          <div class="power-actions dm-actions" id="turnMetamagic"></div>
+          <div class="power-desc" id="turnMetaNote" hidden></div>
+        </div>
+        <div id="domainTurnList"></div>
+        <div class="power-actions turn-reset">
+          <button class="power-btn ghost" id="turnReset">New day</button>
+        </div>
       </div>
 
       <div class="card">

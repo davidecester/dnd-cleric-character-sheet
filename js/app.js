@@ -440,12 +440,16 @@
   // ---------------- Turn undead ----------------
   // 3 + Cha attempts a day (+4 per Extra Turning); turning check 1d20 + Cha (+2 with 5 ranks of
   // Knowledge (religion)); turning damage 2d6 + turning level + Cha.
+  // Extra Turning adds 4 uses to each turning ability (undead and any domain one, PHB).
   function turnAttempts(){ return Math.max(0, 3 + abilityMod("cha") + 4 * featCount("Extra Turning")); }
+  function turningLevel(){
+    return buildClasses().filter(function(c){ return CF.CLASSES[c.name].turnsUndead; })
+      .reduce(function(sum, c){ return sum + num(c.level); }, 0) + featCount("Improved Turning");
+  }
   function updateTurnUndead(){
     var out = document.getElementById("turnAttempts");
     if (!out) return;
-    var lvl = buildClasses().filter(function(c){ return CF.CLASSES[c.name].turnsUndead; })
-      .reduce(function(sum, c){ return sum + num(c.level); }, 0) + featCount("Improved Turning");
+    var lvl = turningLevel();
     var cha = abilityMod("cha");
     var kr = (state.skills || []).filter(function(s){ return s.name === "Knowledge (religion)"; })[0];
     var syn = kr && num(kr.ranks) >= 5 ? 2 : 0;
@@ -453,6 +457,113 @@
     document.getElementById("turnCheck").textContent = "1d20" + signed(cha + syn);
     document.getElementById("turnDamage").textContent = "2d6" + signed(lvl + cha);
     document.getElementById("turnLevel").textContent = lvl;
+    updateTurnTracker();
+    renderDomainTurning();
+  }
+
+  // Turn attempts used today: a log of uses, each costing 1 (turn undead) or 1 + the metamagic
+  // feat's slot increase (Divine Metamagic, Complete Divine). Undo takes back the last one.
+  function turnLog(){
+    state.turning = state.turning || { log:[] };
+    state.turning.log = state.turning.log || [];
+    return state.turning.log;
+  }
+  function turnUsed(){ return turnLog().reduce(function(sum, u){ return sum + num(u.cost); }, 0); }
+  // Divine Metamagic is taken once per metamagic feat, e.g. "Divine Metamagic (Persistent Spell)".
+  // Without a named feat it covers every metamagic feat the character has.
+  function divineMetamagicOptions(){
+    var names = [];
+    (state.feats || []).forEach(function(f){
+      var n = String(f.name || "").trim();
+      if (!/^divine metamagic\b/i.test(n)) return;
+      var inner = (n.match(/\(([^)]+)\)/) || [])[1];
+      if (inner) {
+        var hit = CF.findFeat(inner) || CF.findFeat(inner + " Spell");
+        if (hit && hit.rules.levels) names.push(hit.name);
+      } else {
+        (state.feats || []).forEach(function(g){
+          var h = CF.findFeat(g.name);
+          if (h && h.rules.levels) names.push(h.name);
+        });
+      }
+    });
+    return names.filter(function(n, i){ return names.indexOf(n) === i; }).map(function(n){
+      return { name:n, cost:1 + CF.FEAT_RULES[n].levels };
+    });
+  }
+  function updateTurnTracker(){
+    var leftEl = document.getElementById("turnLeft");
+    if (!leftEl) return;
+    var max = turnAttempts(), used = turnUsed(), left = Math.max(0, max - used);
+    leftEl.textContent = left + "/" + max + " left";
+    var counts = {}, order = [];
+    turnLog().forEach(function(u){ if (!counts[u.what]) { counts[u.what] = 0; order.push(u.what); } counts[u.what]++; });
+    document.getElementById("turnLog").textContent = order.length
+      ? "Used: " + order.map(function(w){ return w + (counts[w] > 1 ? " ×" + counts[w] : ""); }).join(" · ")
+      : "None used yet.";
+    document.getElementById("turnUse").disabled = left < 1;
+    document.getElementById("turnUndo").disabled = !turnLog().length;
+    var box = document.getElementById("turnMetamagic"), note = document.getElementById("turnMetaNote");
+    box.innerHTML = "";
+    var opts = divineMetamagicOptions(), short = [];
+    opts.forEach(function(o){
+      var b = el("button", "power-btn", o.name.replace(/ Spell$/, "") + " · " + o.cost);
+      b.type = "button";
+      b.setAttribute("aria-label", "Divine Metamagic: " + o.name + ", costs " + o.cost + " turn attempts");
+      b.disabled = left < o.cost;
+      b.addEventListener("click", function(){ spendTurn(o.name + " (" + o.cost + ")", o.cost); });
+      box.appendChild(b);
+      if (o.cost > max) short.push(o.name + " needs " + o.cost);
+    });
+    note.hidden = !opts.length;
+    note.textContent = opts.length ? "Divine Metamagic: spend 1 + the feat's level cost in turn attempts, cast in the normal slot." +
+      (short.length ? " " + short.join(", ") + " — more than your " + max + " per day." : "") : "";
+  }
+  function spendTurn(what, cost){
+    if (turnAttempts() - turnUsed() < cost) return;
+    turnLog().push({ what:what, cost:cost });
+    updateTurnTracker(); scheduleSave();
+  }
+
+  // Domain turning powers (Earth, Nature): their own uses per day, 3 + Cha (+4 per Extra Turning),
+  // turning level = cleric level. Only shown while that domain is chosen.
+  function renderDomainTurning(){
+    var box = document.getElementById("domainTurnList");
+    if (!box) return;
+    box.innerHTML = "";
+    state.domainTurning = state.domainTurning || {};
+    var max = turnAttempts(), cha = abilityMod("cha"), lvl = turningLevel();
+    chosenDomains().filter(function(d){ return d.turning; }).forEach(function(d){
+      var key = domainKey(d.name), used = num(state.domainTurning[key]), left = Math.max(0, max - used);
+      var block = el("div", "power-block");
+      var head = el("div", "power-head"), txt = el("div");
+      txt.appendChild(el("div", "power-title", d.name + " Domain · " + d.turning.title));
+      txt.appendChild(el("div", "power-desc", d.turning.desc));
+      head.appendChild(txt);
+      head.appendChild(el("div", "power-uses", left + "/" + max + " left"));
+      block.appendChild(head);
+      var stats = el("div", "turn-stats");
+      stats.innerHTML = "<span>Check <b>1d20" + signed(cha) + "</b></span><span>Damage <b>2d6" + signed(lvl + cha) + "</b></span><span>Level <b>" + lvl + "</b></span>";
+      block.appendChild(stats);
+      var acts = el("div", "power-actions");
+      acts.style.marginTop = "10px";
+      var use = el("button", "power-btn primary", "Use"), undo = el("button", "power-btn", "Undo");
+      use.type = undo.type = "button";
+      use.disabled = left < 1; undo.disabled = used < 1;
+      use.addEventListener("click", function(){ state.domainTurning[key] = used + 1; renderDomainTurning(); scheduleSave(); });
+      undo.addEventListener("click", function(){ state.domainTurning[key] = Math.max(0, used - 1); renderDomainTurning(); scheduleSave(); });
+      acts.appendChild(use); acts.appendChild(undo);
+      block.appendChild(acts);
+      box.appendChild(block);
+    });
+  }
+  function bindTurning(){
+    document.getElementById("turnUse").addEventListener("click", function(){ spendTurn("Turn undead", 1); });
+    document.getElementById("turnUndo").addEventListener("click", function(){ turnLog().pop(); updateTurnTracker(); scheduleSave(); });
+    document.getElementById("turnReset").addEventListener("click", function(){
+      state.turning = { log:[] }; state.domainTurning = {};
+      updateTurnTracker(); renderDomainTurning(); scheduleSave();
+    });
   }
 
   // ---------------- Domains ----------------
@@ -1775,6 +1886,7 @@
     safe(bindLongTexts, "bindLongTexts");
     safe(renderBuild, "renderBuild");
     safe(bindBalance, "bindBalance");
+    safe(bindTurning, "bindTurning");
     safe(bindSkills, "bindSkills");
     safe(recomputeDerived, "recomputeDerived");
     safe(initImagePickers, "initImagePickers");

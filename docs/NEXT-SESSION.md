@@ -25,8 +25,9 @@ allowed books, table rulings); this file covers what was in progress and what's 
 
 1. **Domains: done.** All 8 have rules; Nature is the Oriental Adventures shaman domain, allowed by table
    ruling (see `CLAUDE.md`). Two-domain picker in the Character Build; Law notice quotes the PHB rule.
-2. **Domain powers the sheet could track:** only Balance (AC) is computed. Earth (turn air / rebuke earth,
-   3 + Cha per day), Nature (rebuke animals/plants, 3 + Cha per day) and Protection (1/day ward) could get trackers like the Balance block if he takes them.
+2. **Turning trackers: done.** The Turn Undead card counts attempts used today (with Undo and New day),
+   has Divine Metamagic buttons once a "Divine Metamagic (…)" feat is in the feats list (cost 1 + slot increase,
+   from `levels` in `feats.js`), and shows Earth / Nature turning cards with their own uses when those domains are chosen.
 3. **Level-up button.** A guided flow on top of the Character Build: hit die roll → skill points
    (budget, max ranks) → feat if due (from the feat plan) → ability +1 at 4/8/12… → summary → confirm,
    with undo of the last level-up.

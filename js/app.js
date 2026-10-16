@@ -422,6 +422,7 @@
   // ---------------- Turn undead ----------------
   // 3 + Cha attempts a day (+4 per Extra Turning); turning check 1d20 + Cha (+2 with 5 ranks of
   // Knowledge (religion)); turning damage 2d6 + turning level + Cha.
+  function turnAttempts(){ return Math.max(0, 3 + abilityMod("cha") + 4 * featCount("Extra Turning")); }
   function updateTurnUndead(){
     var out = document.getElementById("turnAttempts");
     if (!out) return;
@@ -430,7 +431,7 @@
     var cha = abilityMod("cha");
     var kr = (state.skills || []).filter(function(s){ return s.name === "Knowledge (religion)"; })[0];
     var syn = kr && num(kr.ranks) >= 5 ? 2 : 0;
-    out.textContent = Math.max(0, 3 + cha + 4 * featCount("Extra Turning"));
+    out.textContent = turnAttempts();
     document.getElementById("turnCheck").textContent = "1d20" + signed(cha + syn);
     document.getElementById("turnDamage").textContent = "2d6" + signed(lvl + cha);
     document.getElementById("turnLevel").textContent = lvl;
@@ -865,13 +866,20 @@
   function renderFeats(){ lastToughness = featCount("Toughness"); renderList("featsList", state.feats, FEAT_FIELDS, onFeatsChange); renderFeatsView(); }
 
   // Extra line computed from the current sheet, for feats whose numbers depend on it.
-  function featLiveNote(name){
+  function featLiveNote(name, title){
     if (name === "Power Attack") {
       var bab = Math.max(0, num(state.bab));
       return "Now: up to −" + bab + " attack → +" + bab + " dmg (+" + (bab * 2) + " two-handed).";
     }
     if (name === "Divine Metamagic" || name === "Divine Might" || name === "Divine Vigor") {
-      return "Turn attempts/day: " + (3 + abilityMod("cha")) + " (3 + Cha " + signed(abilityMod("cha")) + ").";
+      var et = featCount("Extra Turning");
+      var line = "Turn attempts/day: " + turnAttempts() + " (3 + Cha " + signed(abilityMod("cha")) + (et ? " + " + 4 * et + " Extra Turning" : "") + ").";
+      // Divine Metamagic (X): costs 1 + X's slot increase in turn attempts.
+      var m = name === "Divine Metamagic" && String(title || "").match(/\(([^)]+)\)/);
+      var mm = m ? CF.findFeat(m[1]) : null;
+      var up = mm ? String(mm.rules.summary).match(/slot \+(\d+)/) : null;
+      if (up) line += " " + mm.name + " costs " + (1 + Number(up[1])) + " attempts.";
+      return line;
     }
     return "";
   }
@@ -902,7 +910,7 @@
       sum.textContent = "No summary on file — add one as a note in edit mode.";
     }
     if (sum.textContent) el.appendChild(sum);
-    var live = hit ? featLiveNote(hit.name) : "";
+    var live = hit ? featLiveNote(hit.name, title) : "";
     if (live) {
       var l = document.createElement("div");
       l.className = "feat-live"; l.textContent = live;
@@ -1118,7 +1126,49 @@
     hp.appendChild(rolls);
     hp.appendChild(el("div", "build-sum", "")).id = "buildHpSum";
 
+    renderFeatPlan();
     updateBuildReadouts();
+  }
+
+  // Feat plan: one row per feat level. A planned feat counts as taken once the feats list has it
+  // (as many times as it is planned so far, e.g. Extra Turning twice); a due one gets a Take button.
+  function featPlanStatus(){
+    var lvl = num(state.level), seen = {};
+    return (state.featPlan || []).slice().sort(function(a, b){ return num(a.level) - num(b.level); }).map(function(p){
+      var key = String(p.name || "").trim().toLowerCase();
+      seen[key] = (seen[key] || 0) + 1;
+      var have = (state.feats || []).filter(function(f){ return String(f.name || "").trim().toLowerCase() === key; }).length;
+      var status = have >= seen[key] ? "taken" : (num(p.level) <= lvl ? "due" : "planned");
+      return { plan:p, status:status };
+    });
+  }
+  function renderFeatPlan(){
+    var box = document.getElementById("buildFeats");
+    if (!box) return;
+    box.innerHTML = "";
+    featPlanStatus().forEach(function(row){
+      var p = row.plan, hit = CF.findFeat(p.name);
+      var item = el("div", "plan-row " + row.status);
+      item.appendChild(el("span", "plan-lvl", "L" + num(p.level)));
+      var body = el("div", "plan-body");
+      body.appendChild(el("div", "plan-name", p.name));
+      if (hit) body.appendChild(el("div", "plan-sum", hit.rules.summary));
+      item.appendChild(body);
+      if (row.status === "taken") {
+        var ok = el("span", "plan-state"); ok.innerHTML = ICONS.done; ok.setAttribute("aria-label", "Taken");
+        item.appendChild(ok);
+      } else if (row.status === "due") {
+        var take = el("button", "plan-take"); take.type = "button";
+        take.innerHTML = ICONS.plus + "<span>Take</span>";
+        take.addEventListener("click", function(){
+          state.feats.push({ name:p.name, notes:"" });
+          renderFeats(); rebuild(); renderFeatPlan();
+        });
+        item.appendChild(take);
+      }
+      box.appendChild(item);
+    });
+    if (!box.firstChild) box.appendChild(el("div", "hint", "No feats planned."));
   }
   // Hit die for the n-th character level (0-based): classes in list order.
   function hitDieFor(n){
@@ -1127,6 +1177,10 @@
     return 8;
   }
 
+  function planName(level){
+    var p = (state.featPlan || []).filter(function(x){ return num(x.level) === level; })[0];
+    return p ? " (" + p.name + ")" : "";
+  }
   function updateBuildReadouts(){
     var card = document.getElementById("buildCard");
     if (!card || card.hidden) return;
@@ -1151,7 +1205,7 @@
     var have = (state.feats || []).filter(function(f){ return String(f.name || "").trim(); }).length;
     var next = document.getElementById("buildNext");
     next.textContent = "Level " + lvl + " · BAB " + signed(state.bab) + " · base saves " + [state.saves.fort.base, state.saves.ref.base, state.saves.will.base].map(signed).join(" / ") +
-      " · feats " + have + " of " + owed + " · next feat at level " + nextFeat + " · next ability +1 at level " + nextAbility + ".";
+      " · feats " + have + " of " + owed + " · next feat at level " + nextFeat + planName(nextFeat) + " · next ability +1 at level " + nextAbility + ".";
   }
 
   // ---------------- Long text (domains, story) ----------------

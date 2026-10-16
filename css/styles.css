@@ -467,3 +467,15 @@ body.lightbox-open{overflow:hidden;}
 .section-edit-btn span{transform:translateY(.14em);}
 .header-edit-btn span{transform:translateY(.05em);}
 .add-row-btn span{transform:translateY(.08em);}
+/* Feat plan (Character Build) */
+.plan-row{display:flex;align-items:center;gap:10px;padding:8px 10px;margin-bottom:6px;border-radius:12px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);}
+.plan-row.planned{opacity:.6;}
+.plan-row.due{border-color:rgba(232,201,138,0.55);background:rgba(232,201,138,0.08);}
+.plan-lvl{flex:0 0 30px;font-family:var(--font-mono);font-size:11px;color:var(--gold-strong);}
+.plan-body{flex:1;min-width:0;}
+.plan-name{font-weight:600;font-size:13.5px;overflow-wrap:anywhere;}
+.plan-sum{font-size:12px;color:var(--text-2);line-height:1.4;}
+.plan-state{flex:none;display:inline-flex;color:var(--celestial);}
+.plan-state .btn-icon{width:16px;height:16px;}
+.plan-take{flex:none;display:inline-flex;align-items:center;gap:5px;padding:6px 11px;border-radius:var(--radius-pill);background:rgba(232,201,138,0.15);border:1px solid rgba(232,201,138,0.55);color:var(--gold-strong);font-size:12.5px;font-weight:600;}
+.plan-take .btn-icon{width:12px;height:12px;}

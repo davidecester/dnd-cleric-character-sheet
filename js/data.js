@@ -20,6 +20,16 @@ window.CaseFile = window.CaseFile || {};
     abilityItems:  { str:0, dex:0, con:0, int:0, wis:2, cha:0 },
     abilityIncreases: { "4":"wis" },
     hpRolls: [8, 7, 7, 7, 7, 7],
+    // Planned feat progression (feat levels 1, 3, 6, 9…); the build card offers each one when it's due.
+    featPlan: [
+      { level:1,  name:"Power Attack" },
+      { level:3,  name:"Extend Spell" },
+      { level:6,  name:"Persistent Spell" },
+      { level:9,  name:"Divine Metamagic (Persistent Spell)" },
+      { level:12, name:"Extra Turning" },
+      { level:15, name:"Extra Turning" },
+      { level:18, name:"Combat Reflexes" }
+    ],
     buildRev: 1,
     abilities: { str:18, dex:10, con:16, int:10, wis:23, cha:14 },
     hp: { current:61, max:61 },

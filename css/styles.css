@@ -298,7 +298,19 @@ details.breakdown[open] summary::after{content:' ▴';}
 .text-block:focus{outline:none;border-color:var(--celestial);box-shadow:0 0 0 3px rgba(127,212,255,0.20);}
 .domain-block{margin-bottom:14px;}
 .domain-block:last-child{margin-bottom:0;}
-.domain-block .domain-name{font-family:var(--font-mono);font-size:12px;letter-spacing:1px;color:var(--gold-strong);text-transform:uppercase;margin-bottom:6px;display:block;}
+.domain-block .domain-name{font-family:var(--font-mono);font-size:12px;letter-spacing:1px;color:var(--gold-strong);text-transform:uppercase;margin-bottom:2px;display:block;}
+.domain-src{font-size:11.5px;color:var(--text-2);margin-bottom:8px;}
+.domain-power{margin:0 0 8px;font-size:13.5px;line-height:1.45;color:var(--text-1);}
+.domain-power.pending{color:var(--text-2);}
+.domain-label{display:block;font-size:11px;letter-spacing:.5px;text-transform:uppercase;color:var(--text-2);margin-bottom:2px;}
+.domain-spells{list-style:none;margin:0 0 4px;padding:0;}
+.domain-spells li{display:flex;gap:8px;padding:4px 0;font-size:13px;line-height:1.4;color:var(--text-2);border-top:1px solid rgba(255,255,255,0.06);}
+.domain-spells li.later{display:none;}
+.domain-spells.open li.later{display:flex;opacity:.6;}
+.ds-lvl{flex:none;width:16px;font-family:var(--font-mono);color:var(--gold-strong);}
+.ds-txt{min-width:0;overflow-wrap:anywhere;}
+.ds-name{color:var(--text-1);}
+.domain-block .text-view, .domain-block textarea{margin-top:8px;}
 .danger-btn{width:100%;padding:11px;margin-top:2px;background:rgba(229,154,154,0.08);border:1px solid rgba(229,154,154,0.5);color:var(--rose);border-radius:var(--radius-pill);font-size:13px;font-weight:500;}
 .danger-btn:active{background:var(--rose);color:#2a1414;}
 
@@ -344,6 +356,13 @@ details.breakdown[open] summary::after{content:' ▴';}
 .power-btn.primary{background:rgba(127,212,255,0.18);border-color:rgba(127,212,255,0.55);color:var(--celestial);}
 .power-btn.ghost{background:transparent;color:var(--text-2);}
 .power-btn:disabled{opacity:.35;}
+#turnBlock, #domainTurnList .power-block{margin-top:12px;}
+#turnBlock .power-actions{margin-top:10px;}
+.dm-actions:empty{display:none;}
+#turnMetaNote{margin-top:8px;}
+.turn-reset{margin-top:10px;}
+.turn-stats{display:flex;gap:14px;flex-wrap:wrap;margin-top:8px;font-family:var(--font-mono);font-size:12px;color:var(--text-2);}
+.turn-stats b{color:var(--text-1);font-weight:500;}
 .stat-box.buffed{border-color:rgba(127,212,255,0.6);box-shadow:0 0 12px rgba(127,212,255,0.25);}
 .stat-box.buffed .computed-value{color:var(--celestial);}
 
@@ -381,7 +400,7 @@ details.breakdown[open] summary::after{content:' ▴';}
 .skill-meta{flex-wrap:wrap;column-gap:4px;}
 .skill-meta .ab-mod{color:var(--celestial);opacity:.8;white-space:nowrap;}
 
-#domainBalance, #domainMagic{min-height:70px;}
+.domain-block textarea{min-height:70px;}
 
 /* ---------- Tablet & desktop ----------
    Phones keep the single column above. From tablet width the cards of each tab
@@ -398,7 +417,7 @@ details.breakdown[open] summary::after{content:' ▴';}
   #panel-combat .list-row .col-small, #panel-combat .list-head .col-small{flex-basis:76px;}
   /* Magic: domains and spells side by side */
   #panel-magic.active{column-count:auto;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);column-gap:18px;align-items:start;}
-  #domainBalance, #domainMagic{min-height:130px;}
+  .domain-block textarea{min-height:130px;}
   #panel-combat .list-row .col-name, #panel-combat .list-head .col-name{flex:2;}
   #panel-combat .list-row .col-mid, #panel-combat .list-head .col-mid{flex:3;}
   /* Skills: the long skill list on the left, feats and abilities stacked on the right */

@@ -75,6 +75,7 @@
         if (saved && setLevel6Ranks(saved)) migrated = true;
         if (saved && migrateBuild(saved)) migrated = true;
         if (saved && addLedgerEntries(saved)) migrated = true;
+        if (saved && trimDomainNotes(saved)) migrated = true;
         (state.featPlan || []).forEach(function(p){
           if (num(p.level) !== 18) return;
           if (p.name === "Combat Reflexes") p.name = "";
@@ -310,6 +311,18 @@
     return true;
   }
 
+  // The domain notes used to repeat the granted power, which the Domains card now shows from
+  // the rules data. Untouched old default notes become the shorter ones; edited notes stay.
+  function trimDomainNotes(saved){
+    if (num(saved.domainsRev) >= 1) return false;
+    var d = state.domains || (state.domains = {});
+    var oldBalance = /^Once per day, as a free action, add your Wisdom modifier to AC for 1 round per cleric level \(currently \+\d+ AC for \d+ rounds\)\. /;
+    if (oldBalance.test(d.balance || "")) d.balance = String(d.balance).replace(oldBalance, "");
+    if (d.magic === "Can use certain Wizard spell-completion and spell-trigger items as a Wizard of half his Cleric level. Grants access to useful utility and anti-magic domain spells.") d.magic = DEFAULT_DATA.domains.magic;
+    state.domainsRev = 1;
+    return true;
+  }
+
   // Saved sheets from before an attack's stats were filled in (e.g. the Morningstar)
   // pick up the default numbers, as long as the user hasn't typed any yet.
   function fillBlankAttacks(){
@@ -392,7 +405,7 @@
     var acTotal = 10 + num(ac.armor) + num(ac.shield) + acDex + num(ac.size) + num(ac.natural) + num(ac.deflection) + num(ac.misc);
     var acTouch = 10 + acDex + num(ac.size) + num(ac.deflection) + num(ac.misc);
     var acFF = acDex > 0 ? acTotal - acDex : acTotal;
-    var balBonus = (state.balance && state.balance.active) ? Math.max(0, wis) : 0;
+    var balBonus = (hasDomain("Balance") && state.balance && state.balance.active) ? Math.max(0, wis) : 0;
     acTotal += balBonus; acTouch += balBonus; acFF += balBonus;
     ["out-ac-total","out-ac-touch","out-ac-ff"].forEach(function(id){
       document.getElementById(id).parentNode.classList.toggle("buffed", balBonus > 0);
@@ -427,12 +440,16 @@
   // ---------------- Turn undead ----------------
   // 3 + Cha attempts a day (+4 per Extra Turning); turning check 1d20 + Cha (+2 with 5 ranks of
   // Knowledge (religion)); turning damage 2d6 + turning level + Cha.
+  // Extra Turning adds 4 uses to each turning ability (undead and any domain one, PHB).
   function turnAttempts(){ return Math.max(0, 3 + abilityMod("cha") + 4 * featCount("Extra Turning")); }
+  function turningLevel(){
+    return buildClasses().filter(function(c){ return CF.CLASSES[c.name].turnsUndead; })
+      .reduce(function(sum, c){ return sum + num(c.level); }, 0) + featCount("Improved Turning");
+  }
   function updateTurnUndead(){
     var out = document.getElementById("turnAttempts");
     if (!out) return;
-    var lvl = buildClasses().filter(function(c){ return CF.CLASSES[c.name].turnsUndead; })
-      .reduce(function(sum, c){ return sum + num(c.level); }, 0) + featCount("Improved Turning");
+    var lvl = turningLevel();
     var cha = abilityMod("cha");
     var kr = (state.skills || []).filter(function(s){ return s.name === "Knowledge (religion)"; })[0];
     var syn = kr && num(kr.ranks) >= 5 ? 2 : 0;
@@ -440,6 +457,220 @@
     document.getElementById("turnCheck").textContent = "1d20" + signed(cha + syn);
     document.getElementById("turnDamage").textContent = "2d6" + signed(lvl + cha);
     document.getElementById("turnLevel").textContent = lvl;
+    updateTurnTracker();
+    renderDomainTurning();
+  }
+
+  // Turn attempts used today: a log of uses, each costing 1 (turn undead) or 1 + the metamagic
+  // feat's slot increase (Divine Metamagic, Complete Divine). Undo takes back the last one.
+  function turnLog(){
+    state.turning = state.turning || { log:[] };
+    state.turning.log = state.turning.log || [];
+    return state.turning.log;
+  }
+  function turnUsed(){ return turnLog().reduce(function(sum, u){ return sum + num(u.cost); }, 0); }
+  // Divine Metamagic is taken once per metamagic feat, e.g. "Divine Metamagic (Persistent Spell)".
+  // Without a named feat it covers every metamagic feat the character has.
+  function divineMetamagicOptions(){
+    var names = [];
+    (state.feats || []).forEach(function(f){
+      var n = String(f.name || "").trim();
+      if (!/^divine metamagic\b/i.test(n)) return;
+      var inner = (n.match(/\(([^)]+)\)/) || [])[1];
+      if (inner) {
+        var hit = CF.findFeat(inner) || CF.findFeat(inner + " Spell");
+        if (hit && hit.rules.levels) names.push(hit.name);
+      } else {
+        (state.feats || []).forEach(function(g){
+          var h = CF.findFeat(g.name);
+          if (h && h.rules.levels) names.push(h.name);
+        });
+      }
+    });
+    return names.filter(function(n, i){ return names.indexOf(n) === i; }).map(function(n){
+      return { name:n, cost:1 + CF.FEAT_RULES[n].levels };
+    });
+  }
+  function updateTurnTracker(){
+    var leftEl = document.getElementById("turnLeft");
+    if (!leftEl) return;
+    var max = turnAttempts(), used = turnUsed(), left = Math.max(0, max - used);
+    leftEl.textContent = left + "/" + max + " left";
+    var counts = {}, order = [];
+    turnLog().forEach(function(u){ if (!counts[u.what]) { counts[u.what] = 0; order.push(u.what); } counts[u.what]++; });
+    document.getElementById("turnLog").textContent = order.length
+      ? "Used: " + order.map(function(w){ return w + (counts[w] > 1 ? " ×" + counts[w] : ""); }).join(" · ")
+      : "None used yet.";
+    document.getElementById("turnUse").disabled = left < 1;
+    document.getElementById("turnUndo").disabled = !turnLog().length;
+    var box = document.getElementById("turnMetamagic"), note = document.getElementById("turnMetaNote");
+    box.innerHTML = "";
+    var opts = divineMetamagicOptions(), short = [];
+    opts.forEach(function(o){
+      var b = el("button", "power-btn", o.name.replace(/ Spell$/, "") + " · " + o.cost);
+      b.type = "button";
+      b.setAttribute("aria-label", "Divine Metamagic: " + o.name + ", costs " + o.cost + " turn attempts");
+      b.disabled = left < o.cost;
+      b.addEventListener("click", function(){ spendTurn(o.name + " (" + o.cost + ")", o.cost); });
+      box.appendChild(b);
+      if (o.cost > max) short.push(o.name + " needs " + o.cost);
+    });
+    note.hidden = !opts.length;
+    note.textContent = opts.length ? "Divine Metamagic: spend 1 + the feat's level cost in turn attempts, cast in the normal slot." +
+      (short.length ? " " + short.join(", ") + " — more than your " + max + " per day." : "") : "";
+  }
+  function spendTurn(what, cost){
+    if (turnAttempts() - turnUsed() < cost) return;
+    turnLog().push({ what:what, cost:cost });
+    updateTurnTracker(); scheduleSave();
+  }
+
+  // Domain turning powers (Earth, Nature): their own uses per day, 3 + Cha (+4 per Extra Turning),
+  // turning level = cleric level. Only shown while that domain is chosen.
+  function renderDomainTurning(){
+    var box = document.getElementById("domainTurnList");
+    if (!box) return;
+    box.innerHTML = "";
+    state.domainTurning = state.domainTurning || {};
+    var max = turnAttempts(), cha = abilityMod("cha"), lvl = turningLevel();
+    chosenDomains().filter(function(d){ return d.turning; }).forEach(function(d){
+      var key = domainKey(d.name), used = num(state.domainTurning[key]), left = Math.max(0, max - used);
+      var block = el("div", "power-block");
+      var head = el("div", "power-head"), txt = el("div");
+      txt.appendChild(el("div", "power-title", d.name + " Domain · " + d.turning.title));
+      txt.appendChild(el("div", "power-desc", d.turning.desc));
+      head.appendChild(txt);
+      head.appendChild(el("div", "power-uses", left + "/" + max + " left"));
+      block.appendChild(head);
+      var stats = el("div", "turn-stats");
+      stats.innerHTML = "<span>Check <b>1d20" + signed(cha) + "</b></span><span>Damage <b>2d6" + signed(lvl + cha) + "</b></span><span>Level <b>" + lvl + "</b></span>";
+      block.appendChild(stats);
+      var acts = el("div", "power-actions");
+      acts.style.marginTop = "10px";
+      var use = el("button", "power-btn primary", "Use"), undo = el("button", "power-btn", "Undo");
+      use.type = undo.type = "button";
+      use.disabled = left < 1; undo.disabled = used < 1;
+      use.addEventListener("click", function(){ state.domainTurning[key] = used + 1; renderDomainTurning(); scheduleSave(); });
+      undo.addEventListener("click", function(){ state.domainTurning[key] = Math.max(0, used - 1); renderDomainTurning(); scheduleSave(); });
+      acts.appendChild(use); acts.appendChild(undo);
+      block.appendChild(acts);
+      box.appendChild(block);
+    });
+  }
+  function bindTurning(){
+    document.getElementById("turnUse").addEventListener("click", function(){ spendTurn("Turn undead", 1); });
+    document.getElementById("turnUndo").addEventListener("click", function(){ turnLog().pop(); updateTurnTracker(); scheduleSave(); });
+    document.getElementById("turnReset").addEventListener("click", function(){
+      state.turning = { log:[] }; state.domainTurning = {};
+      updateTurnTracker(); renderDomainTurning(); scheduleSave();
+    });
+  }
+
+  // ---------------- Domains ----------------
+  // The two chosen domains (state.domainChoice) pick the rules shown on the Domains card,
+  // the domain slot's options on the Spells card, and powers the sheet works out (Balance → AC).
+  function chosenDomains(){
+    return (state.domainChoice || []).map(CF.findDomain).filter(Boolean);
+  }
+  function hasDomain(name){ return (state.domainChoice || []).indexOf(name) !== -1; }
+  function domainKey(name){ return String(name).toLowerCase(); }
+  // Highest spell level the cleric can cast now (0 if none).
+  function maxSpellLevel(){
+    return state.spellLevels.reduce(function(m, l){ return l.auto && num(l.total) > 0 ? Math.max(m, num(l.level)) : m; }, 0);
+  }
+
+  function renderDomains(){
+    var box = document.getElementById("domainsList");
+    if (!box) return;
+    box.innerHTML = "";
+    var btn = box.closest(".card").querySelector(".text-edit-btn");
+    var editing = btn && btn.getAttribute("aria-pressed") === "true";
+    var top = maxSpellLevel();
+    state.domains = state.domains || {};
+    chosenDomains().forEach(function(d){
+      var block = el("div", "domain-block");
+      block.appendChild(el("span", "domain-name", d.name));
+      block.appendChild(el("div", "domain-src", d.source));
+      if (d.pending) {
+        block.appendChild(el("p", "domain-power pending", d.pending));
+      } else {
+        var power = el("p", "domain-power");
+        power.appendChild(el("span", "domain-label", "Granted power"));
+        power.appendChild(document.createTextNode(d.power));
+        block.appendChild(power);
+        var list = el("ol", "domain-spells");
+        d.spells.forEach(function(sp, i){
+          var li = el("li", i + 1 > top ? "later" : "");
+          li.appendChild(el("span", "ds-lvl", String(i + 1)));
+          var txt = el("span", "ds-txt");
+          txt.appendChild(el("span", "ds-name", sp[0]));
+          txt.appendChild(document.createTextNode(" " + sp[1]));
+          li.appendChild(txt);
+          list.appendChild(li);
+        });
+        block.appendChild(list);
+        if (top < 9) {
+          var more = el("button", "more-link", "Show all 9 spells"); more.type = "button";
+          more.addEventListener("click", function(){
+            var open = list.classList.toggle("open");
+            more.textContent = open ? "Show fewer" : "Show all 9 spells";
+          });
+          block.appendChild(more);
+        } else list.classList.add("open");
+      }
+      var key = domainKey(d.name);
+      var ta = el("textarea", "text-block");
+      ta.setAttribute("data-clamp", "3");
+      ta.setAttribute("aria-label", d.name + " domain notes");
+      ta.value = state.domains[key] || "";
+      ta.addEventListener("input", function(){ state.domains[key] = ta.value; scheduleSave(); });
+      block.appendChild(ta);
+      box.appendChild(block);
+      setupLongText(ta, "No notes yet — tap Edit.");
+      if (editing) ta._setEditing(true);
+    });
+  }
+
+  // Character Build: pick the two domains (deity's or ascension), no domain twice.
+  function renderDomainPicker(){
+    var box = document.getElementById("buildDomains");
+    if (!box) return;
+    box.innerHTML = "";
+    state.domainChoice = state.domainChoice || [];
+    [0, 1].forEach(function(i){
+      var wrap = el("label", "build-inc");
+      wrap.appendChild(el("span", "", "Domain " + (i + 1)));
+      var sel = el("select");
+      [["deity", "Deity's domains"], ["ascension", "Ascension concept"]].forEach(function(g){
+        var og = el("optgroup"); og.label = g[1];
+        CF.DOMAIN_OPTIONS.filter(function(d){ return d.group === g[0]; }).forEach(function(d){
+          var opt = el("option", "", d.name); opt.value = d.name;
+          opt.disabled = d.name === state.domainChoice[1 - i];
+          og.appendChild(opt);
+        });
+        sel.appendChild(og);
+      });
+      sel.value = state.domainChoice[i] || "";
+      sel.addEventListener("change", function(){
+        state.domainChoice[i] = sel.value;
+        onDomainsChange();
+      });
+      wrap.appendChild(sel);
+      box.appendChild(wrap);
+    });
+  }
+  function onDomainsChange(){
+    renderDomainPicker();
+    renderDomains();
+    renderSpellLevels();
+    recomputeDerived();
+    scheduleSave();
+  }
+
+  // Domain spells for one spell level, e.g. "Make Whole (Balance) or Nystul's Magic Aura (Magic)".
+  function domainSlotText(level){
+    var opts = chosenDomains().filter(function(d){ return d.spells; }).map(function(d){ return d.spells[level - 1][0] + " (" + d.name + ")"; });
+    return opts.join(" or ");
   }
 
   // ---------------- Balance domain power ----------------
@@ -447,6 +678,7 @@
     var b = state.balance, lvl = num(state.level), bonus = Math.max(0, abilityMod("wis"));
     var block = document.getElementById("balanceBlock");
     if (!block) return;
+    block.hidden = !hasDomain("Balance");
     block.classList.toggle("active", !!b.active);
     document.getElementById("balanceUses").textContent = (b.used ? 0 : 1) + "/1 today";
     var status;
@@ -812,8 +1044,6 @@
     bindField("sessionNotes", function(){ return state.sessionNotes; }, function(v){ state.sessionNotes = v; });
     bindField("armor", function(){ return state.armor; }, function(v){ state.armor = v; });
     bindField("shield", function(){ return state.shield; }, function(v){ state.shield = v; });
-    bindField("domainBalance", function(){ return state.domains.balance; }, function(v){ state.domains.balance = v; });
-    bindField("domainMagic", function(){ return state.domains.magic; }, function(v){ state.domains.magic = v; });
     document.querySelectorAll("textarea.text-block").forEach(function(ta){ if (ta._renderView && ta.hidden) ta._renderView(); });
   }
 
@@ -1035,6 +1265,7 @@
     updateHpBar();
     renderAttacksView();
     renderSpellLevels();
+    renderDomains();
     renderHeaderView();
     syncStoryCaption();
     document.getElementById("levelNo").textContent = state.level;
@@ -1131,6 +1362,7 @@
     hp.appendChild(rolls);
     hp.appendChild(el("div", "build-sum", "")).id = "buildHpSum";
 
+    renderDomainPicker();
     renderFeatPlan();
     updateBuildReadouts();
   }
@@ -1261,7 +1493,8 @@
   // In view mode a long text shows as plain wrapped text, cut to a few lines with
   // Show more; the card's Edit swaps in the textarea, grown to fit the whole text.
   function growTextarea(ta){ ta.style.height = "auto"; ta.style.height = (ta.scrollHeight + 2) + "px"; }
-  function setupLongText(ta){
+  function setupLongText(ta, emptyText){
+    if (ta._renderView) return;
     var view = document.createElement("div");
     view.className = "text-view";
     var more = document.createElement("button");
@@ -1276,7 +1509,7 @@
     }
     function render(){
       var text = String(ta.value || "").trim();
-      view.textContent = text || "Nothing written yet — tap Edit.";
+      view.textContent = text || emptyText || "Nothing written yet — tap Edit.";
       view.classList.toggle("empty", !text);
       view.classList.toggle("clamped", !open);
       view.style.webkitLineClamp = open ? "" : String(lines);
@@ -1297,7 +1530,7 @@
     render();
   }
   function bindLongTexts(){
-    document.querySelectorAll("textarea.text-block").forEach(setupLongText);
+    document.querySelectorAll("textarea.text-block").forEach(function(ta){ setupLongText(ta); });
     document.querySelectorAll(".text-edit-btn").forEach(function(btn){
       var card = btn.closest(".card");
       paintToggle(btn, false);
@@ -1394,6 +1627,8 @@
         var bd = document.createElement("div");
         bd.className = "slvl-bd"; bd.textContent = "Per day: " + lvl.breakdown;
         block.appendChild(bd);
+        var slot = /domain/.test(lvl.breakdown) ? domainSlotText(num(lvl.level)) : "";
+        if (slot) block.appendChild(el("div", "slvl-bd slvl-domain", "Domain slot: " + slot));
       }
 
       var spellsWrap = document.createElement("div");
@@ -1425,6 +1660,7 @@
     safe(renderFeats, "renderFeats");
     safe(renderRacial, "renderRacial");
     safe(renderSpellLevels, "renderSpellLevels");
+    safe(renderDomains, "renderDomains");
     safe(renderEquipment, "renderEquipment");
     safe(renderMountGear, "renderMountGear");
     safe(renderLedger, "renderLedger");
@@ -1650,6 +1886,7 @@
     safe(bindLongTexts, "bindLongTexts");
     safe(renderBuild, "renderBuild");
     safe(bindBalance, "bindBalance");
+    safe(bindTurning, "bindTurning");
     safe(bindSkills, "bindSkills");
     safe(recomputeDerived, "recomputeDerived");
     safe(initImagePickers, "initImagePickers");

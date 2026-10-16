@@ -23,18 +23,11 @@ allowed books, table rulings); this file covers what was in progress and what's 
 
 ## Still to do
 
-1. **Domain data and picker.** `DOMAIN_OPTIONS` in `js/classes.js` lists the 8 allowed domains but has no
-   rules yet. For each, add the granted power and domain spells 1–9 from a D&D 3.5 source:
-   - Deity's domains: Nature (Forgotten Realms, shaman domain, link above), Magic (PHB),
-     Balance (Spell Compendium p. 271, current), Earth (PHB / Forgotten Realms)
-   - Ascension concept: Law, Good, Protection (PHB), Inquisition (Complete Divine / Spell Compendium)
-   - Current domains: **Balance** and **Magic**.
-   - Then add a two-domain picker to the Character Build. Swapping domains should update the Domains
-     card (Magic tab), the domain spell slot, and powers the sheet computes (e.g. the Balance power on
-     Overview → Armor Class).
-2. **Law domain rule.** Check in the 3.5 SRD/PHB whether alignment domains need a matching alignment.
-   If confirmed, add one short line to the Law notice in the Domains card; the table allows Law anyway
-   (`IGNORE_DOMAIN_ALIGNMENT`). Pathfinder text doesn't count.
+1. **Domains: done.** All 8 have rules; Nature is the Oriental Adventures shaman domain, allowed by table
+   ruling (see `CLAUDE.md`). Two-domain picker in the Character Build; Law notice quotes the PHB rule.
+2. **Turning trackers: done.** The Turn Undead card counts attempts used today (with Undo and New day),
+   has Divine Metamagic buttons once a "Divine Metamagic (…)" feat is in the feats list (cost 1 + slot increase,
+   from `levels` in `feats.js`), and shows Earth / Nature turning cards with their own uses when those domains are chosen.
 3. **Level-up button.** A guided flow on top of the Character Build: hit die roll → skill points
    (budget, max ranks) → feat if due (from the feat plan) → ability +1 at 4/8/12… → summary → confirm,
    with undo of the last level-up.

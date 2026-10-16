@@ -105,10 +105,14 @@ window.CaseFile = window.CaseFile || {};
     darkvision: 18,
     units: "m",
     ranksRev: 1,
+    domainChoice: ["Balance", "Magic"],
+    turning: { log:[] },
+    domainTurning: {},
     domains: {
-      balance: "Once per day, as a free action, add your Wisdom modifier to AC for 1 round per cleric level (currently +6 AC for 6 rounds). Reflects Caelian's pursuit of equilibrium — weighing extremes rather than favoring either side.",
-      magic: "Can use certain Wizard spell-completion and spell-trigger items as a Wizard of half his Cleric level. Grants access to useful utility and anti-magic domain spells."
+      balance: "Reflects Caelian's pursuit of equilibrium — weighing extremes rather than favoring either side.",
+      magic: "Useful utility and anti-magic domain spells."
     },
+    domainsRev: 1,
     racialTraits: [
       { text:"Celestial heritage" },
       { text:"Daylight 1/day (spell-like ability)" },

@@ -76,6 +76,7 @@
         if (saved && migrateBuild(saved)) migrated = true;
         if (saved && addLedgerEntries(saved)) migrated = true;
         if (saved && trimDomainNotes(saved)) migrated = true;
+        if (saved && fillStory(saved)) migrated = true;
         (state.featPlan || []).forEach(function(p){
           if (num(p.level) !== 18) return;
           if (p.name === "Combat Reflexes") p.name = "";
@@ -320,6 +321,16 @@
     if (oldBalance.test(d.balance || "")) d.balance = String(d.balance).replace(oldBalance, "");
     if (d.magic === "Can use certain Wizard spell-completion and spell-trigger items as a Wizard of half his Cleric level. Grants access to useful utility and anti-magic domain spells.") d.magic = DEFAULT_DATA.domains.magic;
     state.domainsRev = 1;
+    return true;
+  }
+
+  // Story texts from Caelian's profile document: filled in once, only where the box is still empty.
+  function fillStory(saved){
+    if (num(saved.storyRev) >= 1) return false;
+    ["appearance", "backstory", "ideal"].forEach(function(k){
+      if (!String(state[k] || "").trim()) state[k] = DEFAULT_DATA[k];
+    });
+    state.storyRev = 1;
     return true;
   }
 

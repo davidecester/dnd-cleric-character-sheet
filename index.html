@@ -39,17 +39,43 @@
     <div class="header-edit" id="headerEdit" hidden>
       <div class="he-field he-wide"><label for="f-name">Name</label><input id="f-name" type="text" spellcheck="false"></div>
       <div class="he-field"><label for="f-race">Race</label><input id="f-race" type="text"></div>
-      <div class="he-field"><label for="f-class">Class</label><input id="f-class" type="text"></div>
-      <div class="he-field"><label for="f-level">Level</label><input id="f-level" type="number" min="1" max="20" inputmode="numeric"></div>
       <div class="he-field"><label for="f-alignment">Alignment</label><input id="f-alignment" type="text"></div>
     </div>
-    <button class="header-edit-btn" id="headerEditBtn" type="button" aria-pressed="false" aria-controls="headerEdit">✎ Edit</button>
+    <button class="header-edit-btn" id="headerEditBtn" type="button" aria-pressed="false" aria-controls="headerEdit"><span>Edit</span></button>
   </header>
 
   <main class="content">
 
     <!-- OVERVIEW -->
     <section class="panel active" id="panel-overview">
+      <div class="card build-card" id="buildCard" hidden>
+        <h2>Character Build</h2>
+        <div class="hint">Class levels, ability scores and hit point rolls. Base attack, saves, max hp, attacks, spells per day and skill points are worked out from these (D&amp;D 3.5 tables).</div>
+        <div class="build-sec">
+          <div class="bd-title">Class levels</div>
+          <div id="buildClasses"></div>
+          <div class="hint">Prestige classes will be added here with their own tables.</div>
+        </div>
+        <div class="build-sec">
+          <div class="bd-title">Ability scores</div>
+          <div class="build-grid" id="buildAbilities"></div>
+          <div class="hint">Base = rolled score · Race = racial adjustment · Lvl = +1s from level increases · Items = enhancement bonuses (e.g. Periapt of Wisdom).</div>
+        </div>
+        <div class="build-sec">
+          <div class="bd-title">Ability increases</div>
+          <div class="build-incs" id="buildIncreases"></div>
+        </div>
+        <div class="build-sec">
+          <div class="bd-title">Hit die rolls</div>
+          <div id="buildHp"></div>
+        </div>
+        <div class="build-sec">
+          <div class="bd-title">Feat plan</div>
+          <div id="buildFeats"></div>
+        </div>
+        <div class="build-next" id="buildNext"></div>
+      </div>
+
       <div class="card">
         <h2>Ability Scores</h2>
         <div class="ability-grid" id="abilityGrid"></div>
@@ -215,13 +241,14 @@
       <div class="card">
         <div class="card-head">
           <h2>Attacks</h2>
-          <button class="section-edit-btn" id="attacksEditBtn" type="button" aria-pressed="false" aria-controls="attacksEdit">✎ Edit</button>
+          <button class="section-edit-btn" id="attacksEditBtn" type="button" aria-pressed="false" aria-controls="attacksEdit"><span>Edit</span></button>
         </div>
         <div id="attacksView"></div>
         <div id="attacksEdit" hidden>
-          <div class="list-head attack-head"><span class="col-name">Weapon</span><span class="col-small">Atk</span><span class="col-small">Dmg</span><span class="col-mid">Notes</span><span class="del-gap"></span></div>
+          <div class="list-head attack-head"><span class="col-name">Weapon</span><span class="col-small">Dice</span><span class="col-small">Enh.</span><span class="col-mid">Notes</span><span class="del-gap"></span></div>
+          <div class="hint">Attack and damage are worked out from BAB, Str and the enhancement bonus. Write "Two-handed" in the notes for 1½ × Str damage.</div>
           <div id="attacksList"></div>
-          <button class="add-row-btn" id="addAttack">+ Add attack</button>
+          <button class="add-row-btn" id="addAttack"><span>Add attack</span></button>
         </div>
       </div>
 
@@ -231,9 +258,9 @@
           <div class="pa-head">
             <span class="pa-title">Power Attack</span>
             <div class="pa-stepper">
-              <button type="button" id="paMinus" aria-label="Less Power Attack">−</button>
+              <button type="button" id="paMinus" aria-label="Less Power Attack"><svg class="btn-icon" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 8h9"/></svg></button>
               <span id="paValue" aria-live="polite">Off</span>
-              <button type="button" id="paPlus" aria-label="More Power Attack">+</button>
+              <button type="button" id="paPlus" aria-label="More Power Attack"><svg class="btn-icon" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3.5v9M3.5 8h9"/></svg></button>
             </div>
           </div>
           <div class="feat-summary" id="paSummary"></div>
@@ -270,7 +297,7 @@
         <div class="hint skills-hint">Tick = class skill. Cross-class ranks cost 2 points and cap at half. <span id="skillsNotes" hidden>Greyed totals are trained-only skills with no ranks yet. Tap <span class="info-icon" aria-label="info"><svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="7" fill="none" stroke="currentColor" stroke-width="1.3"/><circle cx="8" cy="4.9" r="1" fill="currentColor"/><rect x="7.25" y="6.9" width="1.5" height="4.8" rx=".75" fill="currentColor"/></svg></span> for a skill’s notes (armor penalty, racial and synergy bonuses); it turns blue when a synergy adds +2. </span><button type="button" class="more-link" id="skillsNotesBtn" aria-expanded="false" aria-controls="skillsNotes">Show more</button></div>
         <div class="skill-head"><span></span><span>Skill</span><span>Ranks</span><span>Misc</span><span>Total</span></div>
         <div id="skillsList"></div>
-        <button class="add-row-btn" id="addSkill">+ Add skill</button>
+        <button class="add-row-btn" id="addSkill"><span>Add skill</span></button>
       </div>
 
       <div class="card">
@@ -286,25 +313,25 @@
       <div class="card">
         <div class="card-head">
           <h2>Feats</h2>
-          <button class="section-edit-btn" id="featsEditBtn" type="button" aria-pressed="false" aria-controls="featsEdit">✎ Edit</button>
+          <button class="section-edit-btn" id="featsEditBtn" type="button" aria-pressed="false" aria-controls="featsEdit"><span>Edit</span></button>
         </div>
         <div id="featsView"></div>
         <div id="featsEdit" hidden>
           <div class="hint">Type the feat name (e.g. "Weapon Focus (longspear)") to pick up its 3.5 rules. Notes show under the rules.</div>
           <div id="featsList"></div>
-          <button class="add-row-btn" id="addFeat">+ Add feat</button>
+          <button class="add-row-btn" id="addFeat"><span>Add feat</span></button>
         </div>
       </div>
 
       <div class="card">
         <div class="card-head">
           <h2>Special Abilities — Lesser Aasimar</h2>
-          <button class="section-edit-btn" id="racialEditBtn" type="button" aria-pressed="false" aria-controls="racialEdit">✎ Edit</button>
+          <button class="section-edit-btn" id="racialEditBtn" type="button" aria-pressed="false" aria-controls="racialEdit"><span>Edit</span></button>
         </div>
         <ul class="trait-list" id="racialView"></ul>
         <div id="racialEdit" hidden>
           <div id="racialList"></div>
-          <button class="add-row-btn" id="addRacial">+ Add trait</button>
+          <button class="add-row-btn" id="addRacial"><span>Add trait</span></button>
         </div>
       </div>
     </section>
@@ -312,22 +339,40 @@
     <!-- MAGIC -->
     <section class="panel" id="panel-magic">
       <div class="card">
-        <h2>Domains</h2>
+        <div class="card-head">
+          <h2>Domains</h2>
+          <button class="section-edit-btn text-edit-btn" type="button" aria-pressed="false"><span>Edit</span></button>
+        </div>
         <div class="domain-block">
           <span class="domain-name">Balance</span>
-          <textarea class="text-block" id="domainBalance"></textarea>
+          <textarea class="text-block" id="domainBalance" data-clamp="3"></textarea>
         </div>
         <div class="domain-block">
           <span class="domain-name">Magic</span>
-          <textarea class="text-block" id="domainMagic"></textarea>
+          <textarea class="text-block" id="domainMagic" data-clamp="3"></textarea>
+        </div>
+        <div class="rule-note" role="note">
+          <svg class="btn-icon" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="6.3"/><path d="M8 7.3v4"/><circle cx="8" cy="4.9" r=".4" fill="currentColor"/></svg>
+          <p>Law domain: allowed for Caelian by table ruling.</p>
         </div>
       </div>
 
       <div class="card">
+        <h2>Turn Undead</h2>
+        <div class="stat-row">
+          <div class="stat-box"><label>Per day</label><div class="computed-value" id="turnAttempts">5</div></div>
+          <div class="stat-box"><label>Check</label><div class="computed-value" id="turnCheck">1d20+4</div></div>
+          <div class="stat-box"><label>Damage</label><div class="computed-value" id="turnDamage">2d6+8</div></div>
+        </div>
+        <div class="hint">Turning level <span id="turnLevel">6</span>. The check sets the strongest undead you can turn (up to 4 HD above or below your turning level); damage is the total HD turned. Knowledge (religion) 5+ ranks adds +2 to the check.</div>
+      </div>
+
+      <div class="card">
         <h2>Spells</h2>
-        <div class="hint">Each level tracks its own save DC, spells per day, and prepared list — same clustering as a paper sheet.</div>
+        <a class="link-btn" href="https://dnd-caelian-spellbook.cesterdav.workers.dev/" target="_blank" rel="noopener"><span>Open spellbook</span><svg class="btn-icon" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 3.5h6v6"/><path d="M12.5 3.5L4 12"/></svg></a>
+        <div class="hint">Spells per day and save DCs follow your cleric level and Wisdom (class table + bonus spells + domain slot). Track what's left and what you prepared.</div>
         <div id="spellLevelsList"></div>
-        <button class="add-row-btn" id="addSpellLevel">+ Add spell level</button>
+        <button class="add-row-btn" id="addSpellLevel"><span>Add spell level</span></button>
       </div>
     </section>
 
@@ -336,39 +381,38 @@
       <div class="card">
         <h2>Main Equipment</h2>
         <div id="equipmentList"></div>
-        <button class="add-row-btn" id="addEquipment">+ Add item</button>
+        <button class="add-row-btn" id="addEquipment"><span>Add item</span></button>
       </div>
 
       <div class="card">
         <h2>Mount &amp; Travel</h2>
         <div id="mountList"></div>
-        <button class="add-row-btn" id="addMount">+ Add item</button>
+        <button class="add-row-btn" id="addMount"><span>Add item</span></button>
       </div>
 
       <div class="card">
         <h2>Coin Ledger</h2>
         <div class="ledger-total"><span class="lbl">Gold on hand</span><span class="amt" id="ledgerTotal">0 gp</span></div>
         <div id="ledgerList"></div>
-        <button class="add-row-btn" id="addLedger">+ Add entry</button>
+        <button class="add-row-btn" id="addLedger"><span>Add entry</span></button>
       </div>
     </section>
 
     <!-- STORY -->
     <section class="panel" id="panel-story">
       <div class="card story-card">
-        <div class="banner-wrap" id="bgTrigger">
+        <div class="banner-wrap" id="bgTrigger" role="button" tabindex="0" aria-label="Background image">
           <img class="banner-img" id="bgImage" alt="">
           <div class="banner-placeholder" id="bgPlaceholder">
-            <span class="plus">+</span>
+            <span class="plus"><svg class="btn-icon" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3.5v9M3.5 8h9"/></svg></span>
             <span>Tap to add a background image</span>
+            <span class="banner-sub">Tap the circle for a portrait</span>
           </div>
-          <button class="img-edit-btn" id="bgEditBtn" aria-label="Change background">✎</button>
         </div>
         <div class="portrait-row">
-          <div class="portrait-circle" id="portraitTrigger">
+          <div class="portrait-circle" id="portraitTrigger" role="button" tabindex="0" aria-label="Portrait">
             <img class="portrait-img" id="portraitImage" alt="">
-            <div class="portrait-placeholder" id="portraitPlaceholder">+</div>
-            <button class="img-edit-btn small" id="portraitEditBtn" aria-label="Change portrait">✎</button>
+            <div class="portrait-placeholder" id="portraitPlaceholder"><svg class="btn-icon" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3.5v9M3.5 8h9"/></svg></div>
           </div>
         </div>
         <div class="portrait-caption-pad">
@@ -380,25 +424,37 @@
       </div>
 
       <div class="card">
-        <h2>Appearance</h2>
+        <div class="card-head">
+          <h2>Appearance</h2>
+          <button class="section-edit-btn text-edit-btn" type="button" aria-pressed="false"><span>Edit</span></button>
+        </div>
         <div class="hint">How Caelian looks and carries himself.</div>
         <textarea class="text-block" id="appearance" style="min-height:90px;"></textarea>
       </div>
 
       <div class="card">
-        <h2>Backstory</h2>
+        <div class="card-head">
+          <h2>Backstory</h2>
+          <button class="section-edit-btn text-edit-btn" type="button" aria-pressed="false"><span>Edit</span></button>
+        </div>
         <div class="hint">Origins, key events, how he became who he is.</div>
         <textarea class="text-block" id="backstory" style="min-height:220px;"></textarea>
       </div>
 
       <div class="card">
-        <h2>Ideal</h2>
+        <div class="card-head">
+          <h2>Ideal</h2>
+          <button class="section-edit-btn text-edit-btn" type="button" aria-pressed="false"><span>Edit</span></button>
+        </div>
         <div class="hint">The principle Caelian holds to, and how he means to live up to it.</div>
         <textarea class="text-block" id="ideal" style="min-height:120px;"></textarea>
       </div>
 
       <div class="card">
-        <h2>Session Notes</h2>
+        <div class="card-head">
+          <h2>Session Notes</h2>
+          <button class="section-edit-btn text-edit-btn" type="button" aria-pressed="false"><span>Edit</span></button>
+        </div>
         <div class="hint">Free space for whatever comes up at the table.</div>
         <textarea class="text-block" id="sessionNotes" style="min-height:200px;"></textarea>
       </div>
@@ -421,9 +477,24 @@
     <button class="tab-btn" data-tab="story">Story</button>
   </nav>
 
+<div class="lightbox" id="lightbox" hidden role="dialog" aria-modal="true" aria-labelledby="lightboxTitle">
+  <div class="lightbox-panel">
+    <div class="lightbox-head">
+      <span class="lightbox-title" id="lightboxTitle">Image</span>
+      <button type="button" class="lightbox-close" id="lightboxClose" aria-label="Close"></button>
+    </div>
+    <img class="lightbox-img" id="lightboxImg" alt="">
+    <div class="lightbox-actions">
+      <button type="button" class="power-btn primary" id="lightboxChange"></button>
+      <button type="button" class="power-btn danger" id="lightboxRemove"></button>
+    </div>
+  </div>
+</div>
+
 <script src="js/storage.js"></script>
 <script src="js/data.js"></script>
 <script src="js/feats.js"></script>
+<script src="js/classes.js"></script>
 <script src="js/app.js"></script>
 </body>
 </html>

@@ -4,6 +4,8 @@
    feat gives. Add entries here for feats not yet covered.
    Fields: type, prereq, summary, combat (also listed on the
    Combat tab), source (omit for the core SRD).
+   Allowed books: PHB, DMG, the Complete series, Tome of Battle,
+   Spell Compendium, FRCS, Races of Faerûn, Player's Guide to Faerûn.
    ========================================================= */
 window.CaseFile = window.CaseFile || {};
 (function(){
@@ -62,6 +64,9 @@ window.CaseFile = window.CaseFile || {};
     "Widen Spell": { type:"Metamagic", summary:"Double area · slot +3 levels." },
     "Persistent Spell": { type:"Metamagic", prereq:"Extend Spell", source:"Complete Arcane",
       summary:"A spell with personal or fixed range (e.g. Divine Favor, Righteous Might) lasts 24 hours · slot +6 levels." },
+    // ---------- Tome of Battle ----------
+    "Martial Study": { type:"General", source:"Tome of Battle", combat:true,
+      summary:"Learn one maneuver of a discipline (e.g. Devoted Spirit), usable 1/encounter at initiator level ½ character level; its key skill becomes a class skill. Stances need Martial Stance." },
     // ---------- Divine ----------
     "Extra Turning": { type:"General", prereq:"Turn undead", summary:"+4 turn/rebuke attempts per day." },
     "Improved Turning": { type:"General", prereq:"Turn undead", summary:"Turn undead as one level higher." },

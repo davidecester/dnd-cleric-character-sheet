@@ -21,6 +21,24 @@
   function abilityMod(key){ return Math.floor((num(state.abilities[key]) - 10) / 2); }
   function safe(fn, label){ try { fn(); } catch(e){ console.error("Error in " + label + ":", e); } }
 
+  // Button icons (inline SVG, drawn in the button's text colour).
+  function svgIcon(paths){
+    return '<svg class="btn-icon" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">' + paths + '</svg>';
+  }
+  var ICONS = {
+    edit: svgIcon('<path d="M10.8 2.7l2.5 2.5-7.6 7.6-3.2.7.7-3.2z"/><path d="M9.3 4.2l2.5 2.5"/>'),
+    done: svgIcon('<path d="M3.2 8.6l3.1 3.1 6.5-6.9"/>'),
+    levelUp: svgIcon('<path d="M3.5 8.5L8 4l4.5 4.5"/><path d="M3.5 12.5L8 8l4.5 4.5"/>'),
+    remove: svgIcon('<path d="M4.5 4.5l7 7M11.5 4.5l-7 7"/>'),
+    plus: svgIcon('<path d="M8 3.5v9M3.5 8h9"/>'),
+    minus: svgIcon('<path d="M3.5 8h9"/>'),
+    trash: svgIcon('<path d="M3 4.5h10M6.5 4.5V3h3v1.5M4.5 4.5l.6 8.5h5.8l.6-8.5"/>')
+  };
+  // Label an Edit/Done toggle; the header's toggle also opens the build, so it says so.
+  function paintToggle(btn, editing, idleLabel, idleIcon){
+    btn.innerHTML = (editing ? ICONS.done : (idleIcon || ICONS.edit)) + "<span>" + (editing ? "Done" : (idleLabel || "Edit")) + "</span>";
+  }
+
   // ---------------- Storage ----------------
   function scheduleSave(){
     clearTimeout(saveTimer);
@@ -40,7 +58,7 @@
       })
       .catch(function(err){ console.error("Save failed:", err); statusEl.textContent = "Save failed"; });
   }
-  var levelledUp = false;
+  var migrated = false;
   function loadState(){
     return Promise.resolve()
       .then(function(){ return storage.get(STORAGE_KEY); })
@@ -53,8 +71,16 @@
         fillBlankAttacks();
         fixRacialTraits();
         if (saved) toMetric(saved);
-        if (saved && levelUpTo6(saved)) levelledUp = true;
-        if (saved && setLevel6Ranks(saved)) levelledUp = true;
+        if (saved && levelUpTo6(saved)) migrated = true;
+        if (saved && setLevel6Ranks(saved)) migrated = true;
+        if (saved && migrateBuild(saved)) migrated = true;
+        if (saved && addLedgerEntries(saved)) migrated = true;
+        (state.featPlan || []).forEach(function(p){
+          if (num(p.level) !== 18) return;
+          if (p.name === "Combat Reflexes") p.name = "";
+          if (!p.name && !p.options) p.options = clone(DEFAULT_DATA.featPlan.filter(function(d){ return num(d.level) === 18; })[0].options || []);
+        });
+        computeBuild(false);
       })
       .catch(function(){ state = clone(DEFAULT_DATA); });
   }
@@ -142,6 +168,148 @@
     return true;
   }
 
+  // ---------------- Build: class levels, ability scores, hp rolls ----------------
+  var ABILS = ["str","dex","con","int","wis","cha"];
+  var ABIL_LABEL = { str:"STR", dex:"DEX", con:"CON", int:"INT", wis:"WIS", cha:"CHA" };
+
+  function buildClasses(){
+    return (state.classes || []).filter(function(c){ return CF.CLASSES[c.name] && num(c.level) > 0; });
+  }
+  function classLabel(){
+    var list = buildClasses();
+    if (!list.length) return (state.className + " " + state.level).trim();
+    return list.map(function(c){ return c.name + " " + num(c.level); }).join(" / ");
+  }
+  // Ability increases taken so far (one at every 4th character level).
+  function increaseCount(key, lvl){
+    var inc = state.abilityIncreases || {}, n = 0;
+    Object.keys(inc).forEach(function(l){ if (num(l) <= lvl && inc[l] === key) n++; });
+    return n;
+  }
+  function featCount(name){
+    return (state.feats || []).filter(function(f){ return String(f.name || "").trim().toLowerCase() === name.toLowerCase(); }).length;
+  }
+
+  // Works out everything that follows from class levels and the ability build:
+  // total level, ability totals, base attack, base saves, max hp, attacks, spells per day.
+  // With adjustCurrent, current hp (and spells left) move by the same amount as their max.
+  function computeBuild(adjustCurrent){
+    var list = buildClasses();
+    if (!list.length) return;
+    var lvl = list.reduce(function(sum, c){ return sum + num(c.level); }, 0);
+    state.level = lvl;
+    state.className = list.map(function(c){ return c.name; }).join(" / ");
+    ABILS.forEach(function(k){
+      state.abilities[k] = num((state.abilityBase || {})[k]) + num((state.abilityRacial || {})[k]) +
+        num((state.abilityItems || {})[k]) + increaseCount(k, lvl);
+    });
+    state.bab = list.reduce(function(sum, c){ return sum + CF.classBab(CF.CLASSES[c.name].bab, num(c.level)); }, 0);
+    ["fort","ref","will"].forEach(function(k){
+      state.saves[k].base = list.reduce(function(sum, c){ return sum + CF.classSave(CF.CLASSES[c.name].saves[k], num(c.level)); }, 0);
+    });
+    state.hpRolls = state.hpRolls || [];
+    while (state.hpRolls.length < lvl) state.hpRolls.push("");
+    var con = abilityMod("con"), max = 3 * featCount("Toughness");
+    for (var i = 0; i < lvl; i++) max += Math.max(1, num(state.hpRolls[i]) + con);
+    if (adjustCurrent) state.hp.current = num(state.hp.current) + (max - num(state.hp.max));
+    state.hp.max = max;
+    (state.attacks || []).forEach(computeAttack);
+    computeSpells(adjustCurrent);
+  }
+
+  // Attack and damage from base attack, Str and the weapon's enhancement bonus.
+  // Two-handed weapons (see notes) add 1½ × Str to damage.
+  function computeAttack(a){
+    if (!String(a.dice || "").trim()) return;
+    var str = abilityMod("str"), enh = num(a.enh);
+    var strDmg = isTwoHanded(a) && str > 0 ? Math.floor(str * 1.5) : str;
+    a.bonus = signed(num(state.bab) + str + enh + num(a.atkMisc));
+    var dmg = strDmg + enh + num(a.dmgMisc);
+    a.damage = String(a.dice).trim() + (dmg ? signed(dmg) : "");
+  }
+
+  // Spells per day = class table + bonus spells from the casting ability + 1 domain slot (1st level up).
+  function computeSpells(adjustLeft){
+    state.spellLevels = state.spellLevels || [];
+    buildClasses().forEach(function(c){
+      var cls = CF.CLASSES[c.name].caster;
+      if (!cls) return;
+      var row = cls.perDay[Math.min(20, num(c.level)) - 1] || [];
+      var score = num(state.abilities[cls.ability]), mod = abilityMod(cls.ability);
+      row.forEach(function(base, sl){
+        var canCast = score >= 10 + sl;
+        var bonus = canCast ? CF.bonusSpells(mod, sl) : 0;
+        var dom = cls.domains && sl >= 1 ? 1 : 0;
+        if (!canCast) { base = 0; dom = 0; }
+        var entry = state.spellLevels.filter(function(l){ return num(l.level) === sl; })[0];
+        if (!entry) { entry = { level:sl, dc:0, total:0, remaining:0, spells:[] }; state.spellLevels.push(entry); }
+        var total = base + bonus + dom;
+        if (adjustLeft && entry.auto) entry.remaining = Math.max(0, num(entry.remaining) + total - num(entry.total));
+        entry.auto = true;
+        entry.dc = 10 + sl + mod;
+        entry.total = total;
+        entry.breakdown = base + " " + c.name.toLowerCase() + (bonus ? " + " + bonus + " " + ABIL_LABEL[cls.ability] : "") + (dom ? " + 1 domain" : "");
+      });
+    });
+    // Spell levels the class can no longer cast (after lowering the level) drop out,
+    // unless spells were written in them.
+    var reach = 0;
+    buildClasses().forEach(function(c){
+      var cls = CF.CLASSES[c.name].caster;
+      if (cls) reach = Math.max(reach, (cls.perDay[Math.min(20, num(c.level)) - 1] || []).length);
+    });
+    state.spellLevels = state.spellLevels.filter(function(l){
+      if (!l.auto || num(l.level) < reach) return true;
+      if ((l.spells || []).some(function(sp){ return String(sp.name || "").trim(); })) { l.total = 0; l.breakdown = "not castable at this level"; return true; }
+      return false;
+    });
+    state.spellLevels.sort(function(a, b){ return num(a.level) - num(b.level); });
+  }
+
+  function skillBudget(){
+    var list = buildClasses(), int = abilityMod("int");
+    if (!list.length) return Math.max(1, 2 + int) * (num(state.level) + 3);
+    return list.reduce(function(sum, c, i){
+      var per = Math.max(1, CF.CLASSES[c.name].skillPoints + int);
+      return sum + per * (num(c.level) + (i === 0 ? 3 : 0)); // ×4 at 1st level, from the first class
+    }, 0);
+  }
+
+  // Sheets saved before the build existed: keep their numbers by working the build back
+  // from them (base scores from the totals, hp rolls from max hp, attack extras as misc).
+  function migrateBuild(saved){
+    if (num(saved.buildRev) >= 1) return false;
+    var lvl = Math.max(1, num(state.level));
+    state.classes = [{ name:"Cleric", level:lvl }];
+    state.abilityBase = {};
+    ABILS.forEach(function(k){
+      state.abilityBase[k] = num(state.abilities[k]) - num(state.abilityRacial[k]) - num(state.abilityItems[k]) - increaseCount(k, lvl);
+    });
+    var con = abilityMod("con"), rest = num(state.hp.max) - con * lvl - 8;
+    state.hpRolls = [8];
+    for (var i = 1; i < lvl; i++) state.hpRolls.push(Math.floor(rest / (lvl - 1)) + (i <= rest % (lvl - 1) ? 1 : 0));
+    var bab = CF.classBab("medium", lvl), str = abilityMod("str");
+    (state.attacks || []).forEach(function(a){
+      var dmg = parseDamage(a.damage), atk = parseBonus(a.bonus);
+      if (a.dice || !dmg || atk === null) return;
+      var m = String(a.name || "").match(/^\+(\d+)/);
+      a.dice = dmg.dice; a.enh = m ? Number(m[1]) : 0;
+      var strDmg = isTwoHanded(a) && str > 0 ? Math.floor(str * 1.5) : str;
+      a.atkMisc = atk - (bab + str + a.enh);
+      a.dmgMisc = dmg.mod - (strDmg + a.enh);
+    });
+    state.buildRev = 1;
+    return true;
+  }
+
+  // Gold since level 6: quest reward, paid information, stable.
+  function addLedgerEntries(saved){
+    if (num(saved.ledgerRev) >= 1 || !saved.ledger) return false;
+    DEFAULT_DATA.ledger.slice(-3).forEach(function(e){ state.ledger.push(clone(e)); });
+    state.ledgerRev = 1;
+    return true;
+  }
+
   // Saved sheets from before an attack's stats were filled in (e.g. the Morningstar)
   // pick up the default numbers, as long as the user hasn't typed any yet.
   function fillBlankAttacks(){
@@ -181,7 +349,7 @@
         row.appendChild(input);
       });
       var del = document.createElement("button");
-      del.className = "row-del"; del.setAttribute("aria-label", "Remove"); del.textContent = "✕";
+      del.className = "row-del"; del.setAttribute("aria-label", "Remove"); del.innerHTML = ICONS.remove;
       del.addEventListener("click", function(){
         data.splice(idx, 1);
         renderList(containerId, data, fields, onChange);
@@ -251,8 +419,27 @@
     document.getElementById("out-init").textContent = signed(init);
 
     updateSkillTotals();
+    updateTurnUndead();
     updateBalanceUI();
     renderFeatsView();
+  }
+
+  // ---------------- Turn undead ----------------
+  // 3 + Cha attempts a day (+4 per Extra Turning); turning check 1d20 + Cha (+2 with 5 ranks of
+  // Knowledge (religion)); turning damage 2d6 + turning level + Cha.
+  function turnAttempts(){ return Math.max(0, 3 + abilityMod("cha") + 4 * featCount("Extra Turning")); }
+  function updateTurnUndead(){
+    var out = document.getElementById("turnAttempts");
+    if (!out) return;
+    var lvl = buildClasses().filter(function(c){ return CF.CLASSES[c.name].turnsUndead; })
+      .reduce(function(sum, c){ return sum + num(c.level); }, 0) + featCount("Improved Turning");
+    var cha = abilityMod("cha");
+    var kr = (state.skills || []).filter(function(s){ return s.name === "Knowledge (religion)"; })[0];
+    var syn = kr && num(kr.ranks) >= 5 ? 2 : 0;
+    out.textContent = turnAttempts();
+    document.getElementById("turnCheck").textContent = "1d20" + signed(cha + syn);
+    document.getElementById("turnDamage").textContent = "2d6" + signed(lvl + cha);
+    document.getElementById("turnLevel").textContent = lvl;
   }
 
   // ---------------- Balance domain power ----------------
@@ -377,7 +564,7 @@
       }
       row.classList.toggle("cls", !!s.cls);
     });
-    var budget = Math.max(1, 2 + abilityMod("int")) * (lvl + 3);
+    var budget = skillBudget();
     var pts = document.getElementById("skillPoints");
     pts.textContent = spent + "/" + budget;
     pts.style.color = spent > budget ? "var(--rose)" : "";
@@ -533,13 +720,11 @@
   function renderHeader(){
     document.getElementById("f-name").value = state.name;
     document.getElementById("f-race").value = state.race;
-    document.getElementById("f-class").value = state.className;
-    document.getElementById("f-level").value = state.level;
     document.getElementById("f-alignment").value = state.alignment;
     renderHeaderView();
     document.getElementById("levelNo").textContent = state.level;
     document.getElementById("storyName").textContent = state.name;
-    document.getElementById("storySubtitle").textContent = state.race + " · " + state.className + " " + state.level;
+    document.getElementById("storySubtitle").textContent = state.race + " · " + classLabel();
   }
 
   function renderAbilities(){
@@ -553,13 +738,10 @@
       var lbl = document.createElement("label"); lbl.textContent = label;
       var input = document.createElement("input");
       input.type = "number"; input.value = state.abilities[key];
+      input.readOnly = true; input.tabIndex = -1;
+      input.title = "Set under Edit & level up → Character Build";
       var mod = document.createElement("div");
       mod.className = "ability-mod"; mod.textContent = signed(Math.floor((state.abilities[key]-10)/2));
-      input.addEventListener("input", function(){
-        state.abilities[key] = input.value === "" ? 10 : Number(input.value);
-        mod.textContent = signed(Math.floor((state.abilities[key]-10)/2));
-        recomputeDerived(); scheduleSave();
-      });
       cell.appendChild(lbl); cell.appendChild(input); cell.appendChild(mod);
       grid.appendChild(cell);
     });
@@ -581,7 +763,8 @@
 
   function renderCoreStats(){
     bindField("hp-current", function(){ return state.hp.current; }, function(v){ state.hp.current = v; updateHpBar(); }, true);
-    bindField("hp-max", function(){ return state.hp.max; }, function(v){ state.hp.max = v; updateHpBar(); }, true);
+    var hpMax = document.getElementById("hp-max");
+    hpMax.value = state.hp.max; hpMax.readOnly = true; hpMax.title = "Max hp: set the rolls under Edit & level up → Character Build";
     updateHpBar();
     document.querySelectorAll("[data-hp]").forEach(function(btn){
       btn.addEventListener("click", function(){
@@ -594,7 +777,8 @@
       });
     });
 
-    bindField("bab", function(){ return state.bab; }, function(v){ state.bab = v; recomputeDerived(); }, true);
+    var babEl = document.getElementById("bab");
+    babEl.value = state.bab; babEl.readOnly = true; babEl.title = "From your class levels";
 
     // AC breakdown
     ["armor","shield","dex","size","natural","deflection","misc"].forEach(function(k){
@@ -602,7 +786,9 @@
     });
     // Save breakdowns
     ["fort","ref","will"].forEach(function(s){
-      ["base","magic","misc","temp"].forEach(function(k){
+      var baseEl = document.getElementById("save-" + s + "-base");
+      baseEl.value = state.saves[s].base; baseEl.readOnly = true; baseEl.title = "From your class levels";
+      ["magic","misc","temp"].forEach(function(k){
         bindField("save-" + s + "-" + k, function(){ return state.saves[s][k]; }, function(v){ state.saves[s][k] = v; recomputeDerived(); }, true);
       });
     });
@@ -628,12 +814,13 @@
     bindField("shield", function(){ return state.shield; }, function(v){ state.shield = v; });
     bindField("domainBalance", function(){ return state.domains.balance; }, function(v){ state.domains.balance = v; });
     bindField("domainMagic", function(){ return state.domains.magic; }, function(v){ state.domains.magic = v; });
+    document.querySelectorAll("textarea.text-block").forEach(function(ta){ if (ta._renderView && ta.hidden) ta._renderView(); });
   }
 
   var ATTACK_FIELDS = [
     { field:"name", placeholder:"Weapon", className:"col-name" },
-    { field:"bonus", placeholder:"Atk", className:"col-small" },
-    { field:"damage", placeholder:"Dmg", className:"col-small" },
+    { field:"dice", placeholder:"1d8", className:"col-small" },
+    { field:"enh", type:"number", placeholder:"+0", className:"col-small" },
     { field:"notes", placeholder:"Notes", className:"col-mid" }
   ];
   var FEAT_FIELDS = [
@@ -651,7 +838,7 @@
     { field:"name", placeholder:"Spell name", className:"col-name" }
   ];
 
-  function onAttacksChange(){ renderCombatFeats(); renderAttacksView(); }
+  function onAttacksChange(){ (state.attacks || []).forEach(computeAttack); renderCombatFeats(); renderAttacksView(); }
   function renderAttacks(){ renderList("attacksList", state.attacks, ATTACK_FIELDS, onAttacksChange); onAttacksChange(); }
 
   function renderAttacksView(){
@@ -677,18 +864,27 @@
       }
       view.appendChild(el);
     });
-    if (!view.firstChild) view.innerHTML = '<div class="hint">No attacks yet — tap ✎ Edit to add one.</div>';
+    if (!view.firstChild) view.innerHTML = '<div class="hint">No attacks yet — tap Edit to add one.</div>';
   }
-  function renderFeats(){ renderList("featsList", state.feats, FEAT_FIELDS, renderCombatFeats); renderFeatsView(); }
+  function onFeatsChange(){ renderCombatFeats(); if (featCount("Toughness") !== lastToughness) rebuild(); }
+  var lastToughness = -1;
+  function renderFeats(){ lastToughness = featCount("Toughness"); renderList("featsList", state.feats, FEAT_FIELDS, onFeatsChange); renderFeatsView(); }
 
   // Extra line computed from the current sheet, for feats whose numbers depend on it.
-  function featLiveNote(name){
+  function featLiveNote(name, title){
     if (name === "Power Attack") {
       var bab = Math.max(0, num(state.bab));
       return "Now: up to −" + bab + " attack → +" + bab + " dmg (+" + (bab * 2) + " two-handed).";
     }
     if (name === "Divine Metamagic" || name === "Divine Might" || name === "Divine Vigor") {
-      return "Turn attempts/day: " + (3 + abilityMod("cha")) + " (3 + Cha " + signed(abilityMod("cha")) + ").";
+      var et = featCount("Extra Turning");
+      var line = "Turn attempts/day: " + turnAttempts() + " (3 + Cha " + signed(abilityMod("cha")) + (et ? " + " + 4 * et + " Extra Turning" : "") + ").";
+      // Divine Metamagic (X): costs 1 + X's slot increase in turn attempts.
+      var m = name === "Divine Metamagic" && String(title || "").match(/\(([^)]+)\)/);
+      var mm = m ? CF.findFeat(m[1]) : null;
+      var up = mm ? String(mm.rules.summary).match(/slot \+(\d+)/) : null;
+      if (up) line += " " + mm.name + " costs " + (1 + Number(up[1])) + " attempts.";
+      return line;
     }
     return "";
   }
@@ -719,7 +915,7 @@
       sum.textContent = "No summary on file — add one as a note in edit mode.";
     }
     if (sum.textContent) el.appendChild(sum);
-    var live = hit ? featLiveNote(hit.name) : "";
+    var live = hit ? featLiveNote(hit.name, title) : "";
     if (live) {
       var l = document.createElement("div");
       l.className = "feat-live"; l.textContent = live;
@@ -741,7 +937,7 @@
       view.appendChild(featEntry(f.name || "Unnamed feat", CF.findFeat(f.name), f.notes));
     });
     if (!view.firstChild) {
-      view.innerHTML = '<div class="hint">No feats yet — tap ✎ Edit to add one.</div>';
+      view.innerHTML = '<div class="hint">No feats yet — tap Edit to add one.</div>';
     }
     renderCombatFeats();
   }
@@ -811,10 +1007,11 @@
     document.getElementById("paPlus").addEventListener("click", function(){ step(1); });
   }
 
-  // ✎ Edit / ✓ Done toggle for a card: "<key>EditBtn" swaps "<key>View" and "<key>Edit";
+  // Edit / Done toggle for a card: "<key>EditBtn" swaps "<key>View" and "<key>Edit";
   // the view is re-rendered on Done.
   function bindSectionToggle(key, renderView){
     var btn = document.getElementById(key + "EditBtn");
+    paintToggle(btn, false);
     var view = document.getElementById(key + "View");
     var edit = document.getElementById(key + "Edit");
     btn.addEventListener("click", function(){
@@ -822,10 +1019,297 @@
       edit.hidden = !editing;
       view.hidden = editing;
       btn.setAttribute("aria-pressed", String(editing));
-      btn.textContent = editing ? "✓ Done" : "✎ Edit";
+      paintToggle(btn, editing);
       if (!editing) renderView();
     });
   }
+  // ---------------- Character Build card (shown with the header's Edit & level up) ----------------
+  // Refresh everything that comes from the build after a change.
+  function rebuild(){
+    computeBuild(true);
+    renderAbilities();
+    document.getElementById("bab").value = state.bab;
+    ["fort","ref","will"].forEach(function(k){ document.getElementById("save-" + k + "-base").value = state.saves[k].base; });
+    document.getElementById("hp-max").value = state.hp.max;
+    document.getElementById("hp-current").value = state.hp.current;
+    updateHpBar();
+    renderAttacksView();
+    renderSpellLevels();
+    renderHeaderView();
+    syncStoryCaption();
+    document.getElementById("levelNo").textContent = state.level;
+    recomputeDerived();
+    updateBuildReadouts();
+    scheduleSave();
+  }
+
+  function el(tag, cls, text){
+    var e = document.createElement(tag);
+    if (cls) e.className = cls;
+    if (text !== undefined) e.textContent = text;
+    return e;
+  }
+  function numInput(value, onInput, label){
+    var i = el("input");
+    i.type = "number"; i.inputMode = "numeric"; i.value = value; i.setAttribute("aria-label", label);
+    i.addEventListener("input", function(){ onInput(i.value === "" ? "" : Number(i.value)); rebuild(); });
+    return i;
+  }
+
+  function renderBuild(){
+    var card = document.getElementById("buildCard");
+    if (!card || card.hidden) return;
+    var lvl = num(state.level);
+
+    // Class levels
+    var cls = document.getElementById("buildClasses");
+    cls.innerHTML = "";
+    state.classes.forEach(function(c){
+      var row = el("div", "build-class");
+      row.appendChild(el("span", "build-class-name", c.name));
+      var step = el("div", "pa-stepper");
+      var minus = el("button"), val = el("span", "", String(num(c.level))), plus = el("button");
+      minus.innerHTML = ICONS.minus; plus.innerHTML = ICONS.plus;
+      minus.type = plus.type = "button";
+      minus.setAttribute("aria-label", "One " + c.name + " level less");
+      plus.setAttribute("aria-label", "One " + c.name + " level more");
+      minus.disabled = num(c.level) <= 1;
+      plus.disabled = lvl >= 20;
+      minus.addEventListener("click", function(){ c.level = Math.max(1, num(c.level) - 1); rebuild(); renderBuild(); });
+      plus.addEventListener("click", function(){ c.level = num(c.level) + 1; rebuild(); renderBuild(); });
+      step.appendChild(minus); step.appendChild(val); step.appendChild(plus);
+      row.appendChild(step);
+      cls.appendChild(row);
+    });
+
+    // Ability scores: base + race + level increases + items
+    var ab = document.getElementById("buildAbilities");
+    ab.innerHTML = "";
+    ["", "Base", "Race", "Lvl", "Items", "Total"].forEach(function(h){ ab.appendChild(el("span", "bg-head", h)); });
+    ABILS.forEach(function(k){
+      ab.appendChild(el("span", "bg-label", ABIL_LABEL[k]));
+      ab.appendChild(numInput(state.abilityBase[k], function(v){ state.abilityBase[k] = v; }, ABIL_LABEL[k] + " base"));
+      ab.appendChild(numInput(state.abilityRacial[k], function(v){ state.abilityRacial[k] = v; }, ABIL_LABEL[k] + " racial"));
+      ab.appendChild(el("span", "auto-readout bg-inc", "+0")).setAttribute("data-inc", k);
+      ab.appendChild(numInput(state.abilityItems[k], function(v){ state.abilityItems[k] = v; }, ABIL_LABEL[k] + " items"));
+      ab.appendChild(el("span", "auto-readout bg-total", "")).setAttribute("data-total", k);
+    });
+
+    // Ability increases, one per 4 levels
+    var inc = document.getElementById("buildIncreases");
+    inc.innerHTML = "";
+    for (var L = 4; L <= lvl; L += 4) (function(L){
+      var wrap = el("label", "build-inc");
+      wrap.appendChild(el("span", "", "Level " + L));
+      var sel = el("select");
+      [["", "—"]].concat(ABILS.map(function(k){ return [k, ABIL_LABEL[k]]; })).forEach(function(o){
+        var opt = el("option", "", o[1]); opt.value = o[0]; sel.appendChild(opt);
+      });
+      sel.value = (state.abilityIncreases || {})[L] || "";
+      sel.addEventListener("change", function(){
+        state.abilityIncreases = state.abilityIncreases || {};
+        if (sel.value) state.abilityIncreases[L] = sel.value; else delete state.abilityIncreases[L];
+        rebuild();
+      });
+      wrap.appendChild(sel);
+      inc.appendChild(wrap);
+    })(L);
+    if (!inc.firstChild) inc.appendChild(el("div", "hint", "First +1 at level 4."));
+
+    // Hit point rolls, one per level
+    var hp = document.getElementById("buildHp");
+    hp.innerHTML = "";
+    var rolls = el("div", "build-rolls");
+    for (var i = 0; i < lvl; i++) (function(i){
+      var cell = el("label", "build-roll");
+      cell.appendChild(el("span", "", "L" + (i + 1)));
+      var input = numInput(state.hpRolls[i], function(v){ state.hpRolls[i] = v; }, "Level " + (i + 1) + " hit die roll");
+      input.placeholder = "d" + hitDieFor(i);
+      cell.appendChild(input);
+      rolls.appendChild(cell);
+    })(i);
+    hp.appendChild(rolls);
+    hp.appendChild(el("div", "build-sum", "")).id = "buildHpSum";
+
+    renderFeatPlan();
+    updateBuildReadouts();
+  }
+
+  // Feat plan: one row per feat level. A planned feat counts as taken once the feats list has it
+  // (as many times as it is planned so far, e.g. Extra Turning twice); a due one gets a Take button.
+  function featPlanStatus(){
+    var lvl = num(state.level), seen = {};
+    return (state.featPlan || []).slice().sort(function(a, b){ return num(a.level) - num(b.level); }).map(function(p){
+      var key = String(p.name || "").trim().toLowerCase();
+      if (!key) return { plan:p, status:"open" };
+      seen[key] = (seen[key] || 0) + 1;
+      var have = (state.feats || []).filter(function(f){ return String(f.name || "").trim().toLowerCase() === key; }).length;
+      var status = have >= seen[key] ? "taken" : (num(p.level) <= lvl ? "due" : "planned");
+      return { plan:p, status:status };
+    });
+  }
+  function renderFeatPlan(){
+    var box = document.getElementById("buildFeats");
+    if (!box) return;
+    box.innerHTML = "";
+    featPlanStatus().forEach(function(row){
+      var p = row.plan, hit = CF.findFeat(p.name);
+      var item = el("div", "plan-row " + row.status);
+      item.appendChild(el("span", "plan-lvl", "L" + num(p.level)));
+      var body = el("div", "plan-body");
+      body.appendChild(el("div", "plan-name", p.name || "Feat to choose"));
+      if (hit) body.appendChild(el("div", "plan-sum", hit.rules.summary));
+      else if (row.status === "open") {
+        body.appendChild(el("div", "plan-sum", "You get a feat at this level: still to choose" + ((p.options || []).length ? ". Options:" : ".")));
+        (p.options || []).forEach(function(o){
+          var opt = el("div", "plan-opt");
+          var txt = el("div", "plan-opt-txt");
+          txt.appendChild(el("div", "plan-opt-name", o.name));
+          txt.appendChild(el("div", "plan-sum", o.why || ((CF.findFeat(o.name) || {}).rules || {}).summary || ""));
+          opt.appendChild(txt);
+          var pick = el("button", "plan-take"); pick.type = "button";
+          pick.innerHTML = ICONS.done + "<span>Choose</span>";
+          pick.setAttribute("aria-label", "Choose " + o.name + " for level " + num(p.level));
+          pick.addEventListener("click", function(){ p.name = o.name; renderFeatPlan(); updateBuildReadouts(); scheduleSave(); });
+          opt.appendChild(pick);
+          body.appendChild(opt);
+        });
+        // Any other feat from the allowed books
+        var other = el("div", "plan-opt plan-other");
+        var txt2 = el("div", "plan-opt-txt");
+        var input = el("input", "plan-other-input");
+        input.type = "text"; input.placeholder = "Feat name";
+        input.setAttribute("aria-label", "Another feat for level " + num(p.level));
+        txt2.appendChild(el("div", "plan-opt-name", "Something else"));
+        txt2.appendChild(input);
+        txt2.appendChild(el("div", "plan-sum", "Any feat from your allowed books whose prerequisites you meet."));
+        other.appendChild(txt2);
+        var pickOther = el("button", "plan-take"); pickOther.type = "button";
+        pickOther.innerHTML = ICONS.done + "<span>Choose</span>";
+        pickOther.setAttribute("aria-label", "Choose the typed feat for level " + num(p.level));
+        function chooseOther(){
+          var name = input.value.trim();
+          if (!name) { input.focus(); return; }
+          p.name = name; renderFeatPlan(); updateBuildReadouts(); scheduleSave();
+        }
+        pickOther.addEventListener("click", chooseOther);
+        input.addEventListener("keydown", function(e){ if (e.key === "Enter") chooseOther(); });
+        other.appendChild(pickOther);
+        body.appendChild(other);
+      }
+      item.appendChild(body);
+      if ((p.options || []).length && p.name && row.status !== "taken") {
+        var change = el("button", "more-link plan-change", "Change choice"); change.type = "button";
+        change.addEventListener("click", function(){ p.name = ""; renderFeatPlan(); updateBuildReadouts(); scheduleSave(); });
+        body.appendChild(change);
+      }
+      if (row.status === "taken") {
+        var ok = el("span", "plan-state"); ok.innerHTML = ICONS.done; ok.setAttribute("aria-label", "Taken");
+        item.appendChild(ok);
+      } else if (row.status === "due") {
+        var take = el("button", "plan-take"); take.type = "button";
+        take.innerHTML = ICONS.plus + "<span>Take</span>";
+        take.addEventListener("click", function(){
+          state.feats.push({ name:p.name, notes:"" });
+          renderFeats(); rebuild(); renderFeatPlan();
+        });
+        item.appendChild(take);
+      }
+      box.appendChild(item);
+    });
+    if (!box.firstChild) box.appendChild(el("div", "hint", "No feats planned."));
+  }
+  // Hit die for the n-th character level (0-based): classes in list order.
+  function hitDieFor(n){
+    var list = buildClasses(), seen = 0;
+    for (var i = 0; i < list.length; i++) { seen += num(list[i].level); if (n < seen) return CF.CLASSES[list[i].name].hitDie; }
+    return 8;
+  }
+
+  function planName(level){
+    var p = (state.featPlan || []).filter(function(x){ return num(x.level) === level; })[0];
+    return p ? " (" + (p.name || "feat to choose") + ")" : "";
+  }
+  function updateBuildReadouts(){
+    var card = document.getElementById("buildCard");
+    if (!card || card.hidden) return;
+    var lvl = num(state.level);
+    card.querySelectorAll("[data-inc]").forEach(function(o){ o.textContent = signed(increaseCount(o.getAttribute("data-inc"), lvl)); });
+    card.querySelectorAll("[data-total]").forEach(function(o){
+      var k = o.getAttribute("data-total");
+      o.textContent = state.abilities[k] + " (" + signed(abilityMod(k)) + ")";
+    });
+    var con = abilityMod("con"), sum = 0, missing = [];
+    for (var i = 0; i < lvl; i++) { sum += num(state.hpRolls[i]); if (state.hpRolls[i] === "" || state.hpRolls[i] === undefined) missing.push(i + 1); }
+    var tough = featCount("Toughness");
+    var txt = "Rolls " + sum + " + Con " + signed(con) + " × " + lvl + (tough ? " + Toughness " + 3 * tough : "") + " = " + state.hp.max + " max hp";
+    if (missing.length) txt += " · enter the roll for level " + missing.join(", ");
+    var sumEl = document.getElementById("buildHpSum");
+    if (sumEl) { sumEl.textContent = txt; sumEl.classList.toggle("warn", missing.length > 0); }
+    // What the next levels bring
+    var nextFeat = lvl + 1; while (!CF.isFeatLevel(nextFeat)) nextFeat++;
+    var nextAbility = lvl + 1; while (!CF.isAbilityLevel(nextAbility)) nextAbility++;
+    var owed = 0;
+    for (var L = 1; L <= lvl; L++) if (CF.isFeatLevel(L)) owed++;
+    var have = (state.feats || []).filter(function(f){ return String(f.name || "").trim(); }).length;
+    var next = document.getElementById("buildNext");
+    next.textContent = "Level " + lvl + " · BAB " + signed(state.bab) + " · base saves " + [state.saves.fort.base, state.saves.ref.base, state.saves.will.base].map(signed).join(" / ") +
+      " · feats " + have + " of " + owed + " · next feat at level " + nextFeat + planName(nextFeat) + " · next ability +1 at level " + nextAbility + ".";
+  }
+
+  // ---------------- Long text (domains, story) ----------------
+  // In view mode a long text shows as plain wrapped text, cut to a few lines with
+  // Show more; the card's Edit swaps in the textarea, grown to fit the whole text.
+  function growTextarea(ta){ ta.style.height = "auto"; ta.style.height = (ta.scrollHeight + 2) + "px"; }
+  function setupLongText(ta){
+    var view = document.createElement("div");
+    view.className = "text-view";
+    var more = document.createElement("button");
+    more.type = "button"; more.className = "more-link text-view-more"; more.hidden = true;
+    ta.parentNode.insertBefore(view, ta);
+    ta.parentNode.insertBefore(more, ta);
+    ta.hidden = true;
+    var lines = Number(ta.getAttribute("data-clamp")) || 6, open = false;
+    function measure(){
+      if (open || !view.offsetHeight) return;
+      more.hidden = view.scrollHeight <= view.clientHeight + 1;
+    }
+    function render(){
+      var text = String(ta.value || "").trim();
+      view.textContent = text || "Nothing written yet — tap Edit.";
+      view.classList.toggle("empty", !text);
+      view.classList.toggle("clamped", !open);
+      view.style.webkitLineClamp = open ? "" : String(lines);
+      more.textContent = open ? "Show less" : "Show more";
+      more.hidden = !open;
+      measure();
+    }
+    more.addEventListener("click", function(){ open = !open; render(); });
+    ta.addEventListener("input", function(){ growTextarea(ta); });
+    // Panels start hidden, so check for overflow again once the text is on screen.
+    if (window.ResizeObserver) new ResizeObserver(measure).observe(view);
+    window.addEventListener("resize", measure);
+    ta._renderView = render;
+    ta._setEditing = function(editing){
+      ta.hidden = !editing; view.hidden = editing;
+      if (editing) { more.hidden = true; growTextarea(ta); } else render();
+    };
+    render();
+  }
+  function bindLongTexts(){
+    document.querySelectorAll("textarea.text-block").forEach(setupLongText);
+    document.querySelectorAll(".text-edit-btn").forEach(function(btn){
+      var card = btn.closest(".card");
+      paintToggle(btn, false);
+      btn.addEventListener("click", function(){
+        var editing = btn.getAttribute("aria-pressed") !== "true";
+        btn.setAttribute("aria-pressed", String(editing));
+        paintToggle(btn, editing);
+        card.querySelectorAll("textarea.text-block").forEach(function(ta){ ta._setEditing(editing); });
+      });
+    });
+  }
+
   function bindSectionToggles(){
     bindSectionToggle("feats", renderFeatsView);
     bindSectionToggle("attacks", renderAttacksView);
@@ -842,7 +1326,7 @@
       li.textContent = t.text;
       view.appendChild(li);
     });
-    if (!view.firstChild) view.innerHTML = '<li class="hint">No traits yet — tap ✎ Edit to add one.</li>';
+    if (!view.firstChild) view.innerHTML = '<li class="hint">No traits yet — tap Edit to add one.</li>';
   }
   function renderEquipment(){ renderList("equipmentList", state.equipment, EQUIPMENT_FIELDS); }
   function renderMountGear(){ renderList("mountList", state.mountGear, EQUIPMENT_FIELDS); }
@@ -879,19 +1363,38 @@
         return wrap;
       }
 
-      head.appendChild(bdField("Lvl", "level"));
-      head.appendChild(bdField("DC", "dc"));
-      head.appendChild(bdField("Total", "total"));
+      function readout(labelText, value){
+        var wrap = document.createElement("div");
+        wrap.className = "bd-field";
+        var lbl = document.createElement("label"); lbl.textContent = labelText;
+        var out = document.createElement("div"); out.className = "auto-readout"; out.textContent = value;
+        wrap.appendChild(lbl); wrap.appendChild(out);
+        return wrap;
+      }
+      if (lvl.auto) {
+        head.appendChild(readout("Lvl", lvl.level));
+        head.appendChild(readout("DC", lvl.dc));
+        head.appendChild(readout("Per day", lvl.total));
+      } else {
+        head.appendChild(bdField("Lvl", "level"));
+        head.appendChild(bdField("DC", "dc"));
+        head.appendChild(bdField("Total", "total"));
+      }
       head.appendChild(bdField("Left", "remaining"));
 
       var delLevel = document.createElement("button");
-      delLevel.className = "row-del small"; delLevel.setAttribute("aria-label","Remove level"); delLevel.textContent = "✕";
+      delLevel.className = "row-del small"; delLevel.setAttribute("aria-label","Remove level"); delLevel.innerHTML = ICONS.remove;
       delLevel.addEventListener("click", function(){
         state.spellLevels.splice(idx, 1);
         renderSpellLevels(); scheduleSave();
       });
-      head.appendChild(delLevel);
+      if (!lvl.auto) head.appendChild(delLevel);
       block.appendChild(head);
+      if (lvl.auto && lvl.breakdown) {
+        var bd = document.createElement("div");
+        bd.className = "slvl-bd"; bd.textContent = "Per day: " + lvl.breakdown;
+        block.appendChild(bd);
+      }
 
       var spellsWrap = document.createElement("div");
       spellsWrap.className = "slvl-spells";
@@ -901,7 +1404,7 @@
 
       var addSpellBtn = document.createElement("button");
       addSpellBtn.className = "add-row-btn small";
-      addSpellBtn.textContent = "+ Add spell";
+      addSpellBtn.innerHTML = ICONS.plus + "<span>Add spell</span>";
       addSpellBtn.addEventListener("click", function(){
         addAndReveal(spellsListId, lvl.spells, { name:"", cast:false }, LEVEL_SPELL_FIELDS);
       });
@@ -929,7 +1432,7 @@
 
   function renderHeaderView(){
     document.getElementById("v-name").textContent = state.name;
-    var parts = [state.race, (state.className + " " + state.level).trim(), state.alignment];
+    var parts = [state.race, classLabel(), state.alignment];
     var sub = document.getElementById("v-sub");
     sub.textContent = "";
     parts.filter(function(p){ return String(p).trim() !== ""; }).forEach(function(p, i){
@@ -946,6 +1449,7 @@
 
   function bindHeaderEditToggle(){
     var btn = document.getElementById("headerEditBtn");
+    paintToggle(btn, false, "Edit & level up", ICONS.levelUp);
     var view = document.getElementById("headerView");
     var edit = document.getElementById("headerEdit");
     btn.addEventListener("click", function(){
@@ -953,34 +1457,33 @@
       edit.hidden = !editing;
       view.hidden = editing;
       btn.setAttribute("aria-pressed", String(editing));
-      btn.textContent = editing ? "✓ Done" : "✎ Edit";
-      if (editing) document.getElementById("f-name").focus();
-      else renderHeaderView();
+      paintToggle(btn, editing, "Edit & level up", ICONS.levelUp);
+      var build = document.getElementById("buildCard");
+      build.hidden = !editing;
+      if (editing) {
+        var overviewTab = document.querySelector('.tab-btn[data-tab="overview"]');
+        if (overviewTab && !overviewTab.classList.contains("active")) overviewTab.click();
+        renderBuild();
+        document.getElementById("f-name").focus({ preventScroll:true });
+      } else renderHeaderView();
     });
   }
 
   function syncStoryCaption(){
     document.getElementById("storyName").textContent = state.name;
-    document.getElementById("storySubtitle").textContent = state.race + " · " + state.className + " " + state.level;
+    document.getElementById("storySubtitle").textContent = state.race + " · " + classLabel();
   }
 
   function bindHeaderFields(){
     document.getElementById("f-name").addEventListener("input", function(e){ state.name = e.target.value; syncStoryCaption(); scheduleSave(); });
     document.getElementById("f-race").addEventListener("input", function(e){ state.race = e.target.value; syncStoryCaption(); scheduleSave(); });
-    document.getElementById("f-class").addEventListener("input", function(e){ state.className = e.target.value; syncStoryCaption(); scheduleSave(); });
-    document.getElementById("f-level").addEventListener("input", function(e){
-      state.level = e.target.value === "" ? "" : Number(e.target.value);
-      document.getElementById("levelNo").textContent = state.level || "";
-      syncStoryCaption();
-      recomputeDerived();
-      scheduleSave();
-    });
     document.getElementById("f-alignment").addEventListener("input", function(e){ state.alignment = e.target.value; scheduleSave(); });
   }
 
   function bindAddButtons(){
-    document.getElementById("addAttack").addEventListener("click", function(){ addAndReveal("attacksList", state.attacks, { name:"", bonus:"", damage:"", notes:"" }, ATTACK_FIELDS, onAttacksChange); });
-    document.getElementById("addFeat").addEventListener("click", function(){ addAndReveal("featsList", state.feats, { name:"", notes:"" }, FEAT_FIELDS, renderCombatFeats); });
+    document.querySelectorAll(".add-row-btn").forEach(function(b){ if (!b.querySelector("svg")) b.insertAdjacentHTML("afterbegin", ICONS.plus); });
+    document.getElementById("addAttack").addEventListener("click", function(){ addAndReveal("attacksList", state.attacks, { name:"", dice:"", enh:0, bonus:"", damage:"", notes:"" }, ATTACK_FIELDS, onAttacksChange); });
+    document.getElementById("addFeat").addEventListener("click", function(){ addAndReveal("featsList", state.feats, { name:"", notes:"" }, FEAT_FIELDS, onFeatsChange); });
     document.getElementById("addRacial").addEventListener("click", function(){ addAndReveal("racialList", state.racialTraits, { text:"" }, RACIAL_FIELDS); });
     document.getElementById("addEquipment").addEventListener("click", function(){ addAndReveal("equipmentList", state.equipment, { name:"" }, EQUIPMENT_FIELDS); });
     document.getElementById("addMount").addEventListener("click", function(){ addAndReveal("mountList", state.mountGear, { name:"" }, EQUIPMENT_FIELDS); });
@@ -1003,7 +1506,9 @@
       var confirmed = window.confirm("Restore the character sheet to Caelian's original stats? This erases any changes you've made.");
       if (!confirmed) return;
       state = clone(DEFAULT_DATA);
+      computeBuild(false);
       renderAll();
+      renderBuild();
       saveState();
     });
   }
@@ -1023,26 +1528,39 @@
   }
 
   // ---------------- Story images (stored separately from character data — large binary blobs) ----------------
+  // Empty: tapping the spot opens the photo picker. With an image: tapping opens it in the
+  // lightbox, where it can be changed or removed.
+  var lightboxTarget = null;
   function setupImagePicker(opts){
     var fileInput = document.getElementById(opts.fileInputId);
     var imgEl = document.getElementById(opts.imgId);
     var placeholderEl = document.getElementById(opts.placeholderId);
     var triggerEl = document.getElementById(opts.triggerId);
-    var editBtn = opts.editBtnId ? document.getElementById(opts.editBtnId) : null;
+    var picker = { title: opts.title, hasImage: false, img: imgEl };
 
     function showImage(dataUrl){
       imgEl.src = dataUrl;
       imgEl.style.display = "block";
       placeholderEl.style.display = "none";
+      picker.hasImage = true;
     }
     function showPlaceholder(){
+      imgEl.removeAttribute("src");
       imgEl.style.display = "none";
       placeholderEl.style.display = "flex";
+      picker.hasImage = false;
     }
+    picker.pick = function(){ fileInput.value = ""; fileInput.click(); };
+    picker.remove = function(){
+      showPlaceholder();
+      Promise.resolve()
+        .then(function(){ return storage.set(opts.storageKey, ""); })
+        .catch(function(err){ console.error("Image remove failed:", err); });
+    };
 
-    function openPicker(e){ if (e) e.stopPropagation(); fileInput.click(); }
-    triggerEl.addEventListener("click", openPicker);
-    if (editBtn) editBtn.addEventListener("click", openPicker);
+    function open(){ if (picker.hasImage) openLightbox(picker); else picker.pick(); }
+    triggerEl.addEventListener("click", open);
+    triggerEl.addEventListener("keydown", function(e){ if (e.key === "Enter" || e.key === " ") { e.preventDefault(); open(); } });
 
     fileInput.addEventListener("change", function(){
       var file = fileInput.files[0];
@@ -1059,6 +1577,7 @@
           ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
           var dataUrl = canvas.toDataURL("image/jpeg", opts.quality);
           showImage(dataUrl);
+          if (lightboxTarget === picker) document.getElementById("lightboxImg").src = dataUrl;
           Promise.resolve()
             .then(function(){ return storage.set(opts.storageKey, dataUrl); })
             .catch(function(err){ console.error("Image save failed:", err); });
@@ -1074,16 +1593,48 @@
       .catch(function(){ showPlaceholder(); });
   }
 
+  function openLightbox(picker){
+    lightboxTarget = picker;
+    var box = document.getElementById("lightbox");
+    document.getElementById("lightboxTitle").textContent = picker.title;
+    document.getElementById("lightboxImg").src = picker.img.src;
+    box.hidden = false;
+    document.body.classList.add("lightbox-open");
+    document.getElementById("lightboxClose").focus();
+  }
+  function closeLightbox(){
+    var box = document.getElementById("lightbox");
+    if (box.hidden) return;
+    box.hidden = true;
+    document.body.classList.remove("lightbox-open");
+    lightboxTarget = null;
+  }
+  function bindLightbox(){
+    var box = document.getElementById("lightbox");
+    document.getElementById("lightboxClose").innerHTML = ICONS.remove;
+    document.getElementById("lightboxChange").innerHTML = ICONS.edit + "<span>Change</span>";
+    document.getElementById("lightboxRemove").innerHTML = ICONS.trash + "<span>Remove</span>";
+    document.getElementById("lightboxClose").addEventListener("click", closeLightbox);
+    box.addEventListener("click", function(e){ if (e.target === box) closeLightbox(); });
+    document.addEventListener("keydown", function(e){ if (e.key === "Escape") closeLightbox(); });
+    document.getElementById("lightboxChange").addEventListener("click", function(){ if (lightboxTarget) lightboxTarget.pick(); });
+    document.getElementById("lightboxRemove").addEventListener("click", function(){
+      if (!lightboxTarget) return;
+      if (!window.confirm("Remove this image?")) return;
+      lightboxTarget.remove();
+      closeLightbox();
+    });
+  }
+
   function initImagePickers(){
+    bindLightbox();
     setupImagePicker({
-      fileInputId:"bgFileInput", imgId:"bgImage", placeholderId:"bgPlaceholder",
-      triggerId:"bgTrigger", editBtnId:"bgEditBtn",
-      storageKey:BG_IMAGE_KEY, maxDim:1600, quality:0.82
+      title:"Background", fileInputId:"bgFileInput", imgId:"bgImage", placeholderId:"bgPlaceholder",
+      triggerId:"bgTrigger", storageKey:BG_IMAGE_KEY, maxDim:1600, quality:0.82
     });
     setupImagePicker({
-      fileInputId:"portraitFileInput", imgId:"portraitImage", placeholderId:"portraitPlaceholder",
-      triggerId:"portraitTrigger", editBtnId:"portraitEditBtn",
-      storageKey:PORTRAIT_IMAGE_KEY, maxDim:900, quality:0.85
+      title:"Portrait", fileInputId:"portraitFileInput", imgId:"portraitImage", placeholderId:"portraitPlaceholder",
+      triggerId:"portraitTrigger", storageKey:PORTRAIT_IMAGE_KEY, maxDim:900, quality:0.85
     });
   }
 
@@ -1096,11 +1647,13 @@
     safe(bindAddButtons, "bindAddButtons");
     safe(bindReset, "bindReset");
     safe(bindTabs, "bindTabs");
+    safe(bindLongTexts, "bindLongTexts");
+    safe(renderBuild, "renderBuild");
     safe(bindBalance, "bindBalance");
     safe(bindSkills, "bindSkills");
     safe(recomputeDerived, "recomputeDerived");
     safe(initImagePickers, "initImagePickers");
-    if (levelledUp) scheduleSave();
+    if (migrated) scheduleSave();
   });
 
 })();

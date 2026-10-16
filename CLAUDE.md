@@ -39,7 +39,7 @@ at the end of `styles.css`; check those widths too when adding or reordering car
 - Table rulings that override the books:
   - Alignment domains are allowed whatever the cleric's alignment (Law is open to Caelian, Neutral Good).
     `IGNORE_DOMAIN_ALIGNMENT` in `classes.js`; don't block or warn on it.
-  - Allowed domains are in `DOMAIN_OPTIONS` in `classes.js` (deity: Nature, Magic, Balance, Earth;
+  - Allowed domains, with granted powers and domain spells, are in `DOMAIN_OPTIONS` in `classes.js` (deity: Nature, Magic, Balance, Earth;
     ascension concept: Law, Good, Protection, Inquisition).
 - Never use Pathfinder material (rules, wording, sources), even where it copies 3.5; only D&D 3.5 sources.
 - Rules follow D&D 3.5 official sources. Books allowed at the owner's table (use only these for feats,

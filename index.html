@@ -57,6 +57,11 @@
           <div class="hint">Prestige classes will be added here with their own tables.</div>
         </div>
         <div class="build-sec">
+          <div class="bd-title">Domains</div>
+          <div class="build-incs" id="buildDomains"></div>
+          <div class="hint">Two domains. Changing them updates the Domains card and domain slot (Magic tab) and the Balance power on Armor Class.</div>
+        </div>
+        <div class="build-sec">
           <div class="bd-title">Ability scores</div>
           <div class="build-grid" id="buildAbilities"></div>
           <div class="hint">Base = rolled score · Race = racial adjustment · Lvl = +1s from level increases · Items = enhancement bonuses (e.g. Periapt of Wisdom).</div>
@@ -343,17 +348,10 @@
           <h2>Domains</h2>
           <button class="section-edit-btn text-edit-btn" type="button" aria-pressed="false"><span>Edit</span></button>
         </div>
-        <div class="domain-block">
-          <span class="domain-name">Balance</span>
-          <textarea class="text-block" id="domainBalance" data-clamp="3"></textarea>
-        </div>
-        <div class="domain-block">
-          <span class="domain-name">Magic</span>
-          <textarea class="text-block" id="domainMagic" data-clamp="3"></textarea>
-        </div>
+        <div id="domainsList"></div>
         <div class="rule-note" role="note">
           <svg class="btn-icon" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="6.3"/><path d="M8 7.3v4"/><circle cx="8" cy="4.9" r=".4" fill="currentColor"/></svg>
-          <p>Law domain: allowed for Caelian by table ruling.</p>
+          <p>Law domain: the Player's Handbook allows an alignment domain only to a cleric of that alignment. Allowed for Caelian by table ruling.</p>
         </div>
       </div>
 

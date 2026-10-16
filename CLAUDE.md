@@ -41,6 +41,8 @@ at the end of `styles.css`; check those widths too when adding or reordering car
     `IGNORE_DOMAIN_ALIGNMENT` in `classes.js`; don't block or warn on it.
   - Allowed domains, with granted powers and domain spells, are in `DOMAIN_OPTIONS` in `classes.js` (deity: Nature, Magic, Balance, Earth;
     ascension concept: Law, Good, Protection, Inquisition).
+  - The Nature domain is the shaman domain from Oriental Adventures (realmshelps.net "Nature (Shaman)"),
+    allowed as an exception to the book list. Only this domain; other Oriental Adventures material stays out.
 - Never use Pathfinder material (rules, wording, sources), even where it copies 3.5; only D&D 3.5 sources.
 - Rules follow D&D 3.5 official sources. Books allowed at the owner's table (use only these for feats,
   spells, prestige classes and rules data):

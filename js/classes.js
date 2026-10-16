@@ -33,8 +33,21 @@ window.CaseFile = window.CaseFile || {};
   // Book rule (PHB, cleric): an alignment domain (Chaos, Evil, Good, Law) needs a matching
   // alignment. Table ruling: allowed whatever the alignment, so Law is open to Caelian (Neutral Good).
   var DOMAIN_OPTIONS = [
-    { name:"Nature", group:"deity", source:"Oriental Adventures (shaman domain)",
-      pending:"Not filled in: this domain and most of its spells come from Oriental Adventures, which isn't on the table's book list." },
+    // Nature comes from Oriental Adventures (shaman domain, as listed on realmshelps.net). Not on the book
+    // list, but the owner allows this domain by table ruling.
+    { name:"Nature", group:"deity", source:"Oriental Adventures (shaman domain), allowed by table ruling",
+      power:"Rebuke or command normal animals or plant creatures as an evil cleric rebukes or commands undead. 3 + Charisma modifier times per day.",
+      spells:[
+        ["Trance", "Meditate to learn about nearby spirits."],
+        ["Commune with Lesser Spirit", "Lesser spirit creature answers one question/two levels."],
+        ["Possess Animal", "You possess a normal animal."],
+        ["Elemental Ward", "Drives elementals away."],
+        ["Commune with Greater Spirit", "Any spirit creature answers one question/level."],
+        ["Transport via Plants", "Move instantly from one plant to another of the same kind."],
+        ["Control Weather", "Changes weather in local area."],
+        ["Animal Shapes", "One ally/level polymorphs into chosen animal."],
+        ["Shapechange", "Transforms you into any creature, and change forms once per round."]
+      ] },
     { name:"Magic", group:"deity", source:"Player's Handbook",
       power:"Use scrolls, wands and other spell-completion or spell-trigger items as a wizard of half your cleric level (at least 1st).",
       spells:[

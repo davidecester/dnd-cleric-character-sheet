@@ -23,14 +23,10 @@ allowed books, table rulings); this file covers what was in progress and what's 
 
 ## Still to do
 
-1. **Nature domain: waiting on the owner.** The realmshelps "Nature (Shaman)" domain and most of its spells
-   (Trance, Commune with Lesser/Greater Spirit, Elemental Ward) come from Oriental Adventures, which isn't on
-   the allowed book list. Its entry in `DOMAIN_OPTIONS` has a `pending` note and no rules. Once the owner decides
-   (allow OA for this domain, or pick another source or domain), fill in `power` and `spells`.
-   Done: the other 7 domains have rules (PHB via d20srd, Balance/Inquisition from Spell Compendium pp. 271/275),
-   there's a two-domain picker in the Character Build, and the Law notice quotes the PHB rule.
+1. **Domains: done.** All 8 have rules; Nature is the Oriental Adventures shaman domain, allowed by table
+   ruling (see `CLAUDE.md`). Two-domain picker in the Character Build; Law notice quotes the PHB rule.
 2. **Domain powers the sheet could track:** only Balance (AC) is computed. Earth (turn air / rebuke earth,
-   3 + Cha per day) and Protection (1/day ward) could get trackers like the Balance block if he takes them.
+   3 + Cha per day), Nature (rebuke animals/plants, 3 + Cha per day) and Protection (1/day ward) could get trackers like the Balance block if he takes them.
 3. **Level-up button.** A guided flow on top of the Character Build: hit die roll → skill points
    (budget, max ranks) → feat if due (from the feat plan) → ability +1 at 4/8/12… → summary → confirm,
    with undo of the last level-up.

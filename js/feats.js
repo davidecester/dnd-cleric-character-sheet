@@ -4,6 +4,8 @@
    feat gives. Add entries here for feats not yet covered.
    Fields: type, prereq, summary, combat (also listed on the
    Combat tab), source (omit for the core SRD).
+   Allowed books: PHB, DMG, the Complete series, Tome of Battle,
+   Spell Compendium, FRCS, Races of Faerûn, Player's Guide to Faerûn.
    ========================================================= */
 window.CaseFile = window.CaseFile || {};
 (function(){

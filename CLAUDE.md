@@ -34,6 +34,13 @@ at the end of `styles.css`; check those widths too when adding or reordering car
 
 ## Conventions
 
+- Rules follow D&D 3.5 official sources. Books allowed at the owner's table (use only these for feats,
+  spells, prestige classes and rules data):
+  - Core: Player's Handbook, Dungeon Master's Guide
+  - The Complete series (Arcane, Divine, Warrior, Adventurer, Champion, Mage, Psionic, Scoundrel)
+  - Tome of Battle, Spell Compendium
+  - Forgotten Realms: Forgotten Realms Campaign Setting, Races of Faerûn, and the Faerûn books tied to the
+    character's race (lesser aasimar: Player's Guide to Faerûn)
 - Distances are metric (3.5 convention: 5 ft = 1.5 m, so 30 ft = 9 m, 60 ft = 18 m). Don't add feet.
 - Match the existing style: vanilla JS in an IIFE, ES5-style (`var`, `function`), no frameworks.
 - Text that the user reads in view mode should wrap, not be clipped by fixed-width inputs.

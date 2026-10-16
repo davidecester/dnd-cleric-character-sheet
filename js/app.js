@@ -2162,8 +2162,13 @@
 
     Promise.resolve()
       .then(function(){ return storage.get(opts.storageKey); })
-      .then(function(res){ if (res && res.value) showImage(res.value); else showPlaceholder(); })
-      .catch(function(){ showPlaceholder(); });
+      .then(function(res){
+        // Nothing saved yet: Caelian's own image. Saved as "" means the user removed it.
+        if (res && res.value) showImage(res.value);
+        else if (opts.defaultSrc && !(res && res.value === "")) showImage(opts.defaultSrc);
+        else showPlaceholder();
+      })
+      .catch(function(){ if (opts.defaultSrc) showImage(opts.defaultSrc); else showPlaceholder(); });
   }
 
   function openLightbox(picker){
@@ -2203,11 +2208,11 @@
     bindLightbox();
     setupImagePicker({
       title:"Background", fileInputId:"bgFileInput", imgId:"bgImage", placeholderId:"bgPlaceholder",
-      triggerId:"bgTrigger", storageKey:BG_IMAGE_KEY, maxDim:1600, quality:0.82
+      triggerId:"bgTrigger", storageKey:BG_IMAGE_KEY, maxDim:1600, quality:0.82, defaultSrc:"img/caelian-bg.jpg"
     });
     setupImagePicker({
       title:"Portrait", fileInputId:"portraitFileInput", imgId:"portraitImage", placeholderId:"portraitPlaceholder",
-      triggerId:"portraitTrigger", storageKey:PORTRAIT_IMAGE_KEY, maxDim:900, quality:0.85
+      triggerId:"portraitTrigger", storageKey:PORTRAIT_IMAGE_KEY, maxDim:900, quality:0.85, defaultSrc:"img/caelian-symbol.jpg"
     });
   }
 

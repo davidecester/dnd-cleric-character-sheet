@@ -17,6 +17,8 @@ Mobile-first D&D 3.5 cleric character sheet. Plain static site, no build step:
   - The Character Build (header "Edit & level up") holds class levels, ability base/racial/items/increases and hp rolls;
     `computeBuild()` derives level, abilities, BAB, saves, max hp, attacks and spells per day from them
 
+Work in progress and open tasks: `docs/NEXT-SESSION.md`.
+
 Open `index.html` directly in a browser to run it. The owner mainly uses it on iPhone Safari,
 so check changes at phone width (~360px) and keep Safari quirks in mind (safe-area insets,
 overscroll background).

@@ -28,13 +28,14 @@ allowed books, table rulings); this file covers what was in progress and what's 
 2. **Turning trackers: done.** The Turn Undead card counts attempts used today (with Undo and New day),
    has Divine Metamagic buttons once a "Divine Metamagic (…)" feat is in the feats list (cost 1 + slot increase,
    from `levels` in `feats.js`), and shows Earth / Nature turning cards with their own uses when those domains are chosen.
-3. **Level-up button.** A guided flow on top of the Character Build: hit die roll → skill points
-   (budget, max ranks) → feat if due (from the feat plan) → ability +1 at 4/8/12… → summary → confirm,
-   with undo of the last level-up.
+3. **Level-up button: done.** "Level up to N" in the Character Build opens a guided card: hit die (type or roll)
+   → ability +1 at 4/8/12… → skill points (budget, max ranks, cross-class half ranks) → feat if due (from the
+   feat plan, or another) → summary of before/after numbers → confirm. "Undo level N" reverses the last one
+   (`state.lastLevelUp`). When prestige classes exist, add a class choice as the first step (`lu.cls`).
 4. **Prestige classes.** The owner plans one or two; they'll send which. Add each to `CLASSES` in
    `js/classes.js` (BAB, saves, hit die, skill points, spellcasting advance via `casterOf`).
-5. **Feat plan, level 18:** still to choose (options in the Build card: Quicken Spell, Martial Study
-   (Devoted Spirit), a third Extra Turning, or something else).
+5. **Feat plan, level 18:** still to choose (options in the Build card and in the level-up feat step: Quicken Spell,
+   Martial Study (Devoted Spirit), a third Extra Turning, or something else).
 6. **Check on the owner's iPhone:** hp digits no longer cropped; icon/label centring with IBM Plex Mono.
 
 ## Character facts (Caelian Vàel)

@@ -28,7 +28,7 @@ window.CaseFile = window.CaseFile || {};
       { level:9,  name:"Divine Metamagic (Persistent Spell)" },
       { level:12, name:"Extra Turning" },
       { level:15, name:"Extra Turning" },
-      { level:18, name:"Combat Reflexes" }
+      { level:18, name:"" } // to choose
     ],
     buildRev: 1,
     abilities: { str:18, dex:10, con:16, int:10, wis:23, cha:14 },

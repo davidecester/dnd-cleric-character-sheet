@@ -31,7 +31,7 @@ window.CaseFile = window.CaseFile || {};
   // domains of his own divine concept (the god-shards storyline). Granted powers and domain
   // spells get filled in as the rules text is confirmed.
   // Table ruling: alignment domains are allowed whatever the cleric's alignment, so Law is
-  // open to Caelian (Neutral Good) even though the PHB limits it to lawful clerics.
+  // open to Caelian (Neutral Good). The book rule hasn't been checked against a D&D 3.5 source yet.
   var DOMAIN_OPTIONS = [
     { name:"Nature",      group:"deity",     source:"Forgotten Realms (shaman domain)" },
     { name:"Magic",       group:"deity",     source:"Player's Handbook" },

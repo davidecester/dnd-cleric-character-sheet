@@ -75,6 +75,7 @@
         if (saved && setLevel6Ranks(saved)) migrated = true;
         if (saved && migrateBuild(saved)) migrated = true;
         if (saved && addLedgerEntries(saved)) migrated = true;
+        (state.featPlan || []).forEach(function(p){ if (num(p.level) === 18 && p.name === "Combat Reflexes") p.name = ""; });
         computeBuild(false);
       })
       .catch(function(){ state = clone(DEFAULT_DATA); });
@@ -1136,6 +1137,7 @@
     var lvl = num(state.level), seen = {};
     return (state.featPlan || []).slice().sort(function(a, b){ return num(a.level) - num(b.level); }).map(function(p){
       var key = String(p.name || "").trim().toLowerCase();
+      if (!key) return { plan:p, status:"open" };
       seen[key] = (seen[key] || 0) + 1;
       var have = (state.feats || []).filter(function(f){ return String(f.name || "").trim().toLowerCase() === key; }).length;
       var status = have >= seen[key] ? "taken" : (num(p.level) <= lvl ? "due" : "planned");
@@ -1151,8 +1153,9 @@
       var item = el("div", "plan-row " + row.status);
       item.appendChild(el("span", "plan-lvl", "L" + num(p.level)));
       var body = el("div", "plan-body");
-      body.appendChild(el("div", "plan-name", p.name));
+      body.appendChild(el("div", "plan-name", p.name || "Feat to choose"));
       if (hit) body.appendChild(el("div", "plan-sum", hit.rules.summary));
+      else if (row.status === "open") body.appendChild(el("div", "plan-sum", "You get a feat at this level: still to choose."));
       item.appendChild(body);
       if (row.status === "taken") {
         var ok = el("span", "plan-state"); ok.innerHTML = ICONS.done; ok.setAttribute("aria-label", "Taken");
@@ -1179,7 +1182,7 @@
 
   function planName(level){
     var p = (state.featPlan || []).filter(function(x){ return num(x.level) === level; })[0];
-    return p ? " (" + p.name + ")" : "";
+    return p ? " (" + (p.name || "feat to choose") + ")" : "";
   }
   function updateBuildReadouts(){
     var card = document.getElementById("buildCard");
@@ -1246,15 +1249,6 @@
       if (editing) { more.hidden = true; growTextarea(ta); } else render();
     };
     render();
-  }
-  function bindLawNote(){
-    var btn = document.getElementById("lawNoteBtn"), more = document.getElementById("lawNoteMore");
-    if (!btn) return;
-    btn.addEventListener("click", function(){
-      more.hidden = !more.hidden;
-      btn.setAttribute("aria-expanded", String(!more.hidden));
-      btn.textContent = more.hidden ? "Show more" : "Show less";
-    });
   }
   function bindLongTexts(){
     document.querySelectorAll("textarea.text-block").forEach(setupLongText);
@@ -1608,7 +1602,6 @@
     safe(bindReset, "bindReset");
     safe(bindTabs, "bindTabs");
     safe(bindLongTexts, "bindLongTexts");
-    safe(bindLawNote, "bindLawNote");
     safe(renderBuild, "renderBuild");
     safe(bindBalance, "bindBalance");
     safe(bindSkills, "bindSkills");

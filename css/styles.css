@@ -494,3 +494,5 @@ body.lightbox-open{overflow:hidden;}
 .plan-row.open .plan-lvl{padding-top:2px;}
 .plan-opt .plan-take{padding:4px 9px;font-size:11.5px;font-weight:600;}
 .plan-opt .plan-take .btn-icon{width:11px;height:11px;}
+.plan-other-input{width:100%;min-width:0;background:rgba(255,255,255,0.06);border:1px solid var(--glass-border);border-radius:8px;color:var(--text-1);font-size:13px;padding:6px 8px;margin:3px 0;}
+.plan-other-input:focus{outline:none;border-color:var(--celestial);}

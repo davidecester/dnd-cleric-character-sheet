@@ -1174,6 +1174,28 @@
           opt.appendChild(pick);
           body.appendChild(opt);
         });
+        // Any other feat from the allowed books
+        var other = el("div", "plan-opt plan-other");
+        var txt2 = el("div", "plan-opt-txt");
+        var input = el("input", "plan-other-input");
+        input.type = "text"; input.placeholder = "Feat name";
+        input.setAttribute("aria-label", "Another feat for level " + num(p.level));
+        txt2.appendChild(el("div", "plan-opt-name", "Something else"));
+        txt2.appendChild(input);
+        txt2.appendChild(el("div", "plan-sum", "Any feat from your allowed books whose prerequisites you meet."));
+        other.appendChild(txt2);
+        var pickOther = el("button", "plan-take"); pickOther.type = "button";
+        pickOther.innerHTML = ICONS.done + "<span>Choose</span>";
+        pickOther.setAttribute("aria-label", "Choose the typed feat for level " + num(p.level));
+        function chooseOther(){
+          var name = input.value.trim();
+          if (!name) { input.focus(); return; }
+          p.name = name; renderFeatPlan(); updateBuildReadouts(); scheduleSave();
+        }
+        pickOther.addEventListener("click", chooseOther);
+        input.addEventListener("keydown", function(e){ if (e.key === "Enter") chooseOther(); });
+        other.appendChild(pickOther);
+        body.appendChild(other);
       }
       item.appendChild(body);
       if ((p.options || []).length && p.name && row.status !== "taken") {

@@ -75,7 +75,11 @@
         if (saved && setLevel6Ranks(saved)) migrated = true;
         if (saved && migrateBuild(saved)) migrated = true;
         if (saved && addLedgerEntries(saved)) migrated = true;
-        (state.featPlan || []).forEach(function(p){ if (num(p.level) === 18 && p.name === "Combat Reflexes") p.name = ""; });
+        (state.featPlan || []).forEach(function(p){
+          if (num(p.level) !== 18) return;
+          if (p.name === "Combat Reflexes") p.name = "";
+          if (!p.name && !p.options) p.options = clone(DEFAULT_DATA.featPlan.filter(function(d){ return num(d.level) === 18; })[0].options || []);
+        });
         computeBuild(false);
       })
       .catch(function(){ state = clone(DEFAULT_DATA); });
@@ -1155,8 +1159,28 @@
       var body = el("div", "plan-body");
       body.appendChild(el("div", "plan-name", p.name || "Feat to choose"));
       if (hit) body.appendChild(el("div", "plan-sum", hit.rules.summary));
-      else if (row.status === "open") body.appendChild(el("div", "plan-sum", "You get a feat at this level: still to choose."));
+      else if (row.status === "open") {
+        body.appendChild(el("div", "plan-sum", "You get a feat at this level: still to choose" + ((p.options || []).length ? ". Options:" : ".")));
+        (p.options || []).forEach(function(o){
+          var opt = el("div", "plan-opt");
+          var txt = el("div", "plan-opt-txt");
+          txt.appendChild(el("div", "plan-opt-name", o.name));
+          txt.appendChild(el("div", "plan-sum", o.why || ((CF.findFeat(o.name) || {}).rules || {}).summary || ""));
+          opt.appendChild(txt);
+          var pick = el("button", "plan-take"); pick.type = "button";
+          pick.innerHTML = ICONS.done + "<span>Choose</span>";
+          pick.setAttribute("aria-label", "Choose " + o.name + " for level " + num(p.level));
+          pick.addEventListener("click", function(){ p.name = o.name; renderFeatPlan(); updateBuildReadouts(); scheduleSave(); });
+          opt.appendChild(pick);
+          body.appendChild(opt);
+        });
+      }
       item.appendChild(body);
+      if ((p.options || []).length && p.name && row.status !== "taken") {
+        var change = el("button", "more-link plan-change", "Change choice"); change.type = "button";
+        change.addEventListener("click", function(){ p.name = ""; renderFeatPlan(); updateBuildReadouts(); scheduleSave(); });
+        body.appendChild(change);
+      }
       if (row.status === "taken") {
         var ok = el("span", "plan-state"); ok.innerHTML = ICONS.done; ok.setAttribute("aria-label", "Taken");
         item.appendChild(ok);

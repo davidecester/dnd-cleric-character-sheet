@@ -28,7 +28,11 @@ window.CaseFile = window.CaseFile || {};
       { level:9,  name:"Divine Metamagic (Persistent Spell)" },
       { level:12, name:"Extra Turning" },
       { level:15, name:"Extra Turning" },
-      { level:18, name:"" } // to choose
+      { level:18, name:"", options:[
+        { name:"Quicken Spell", why:"Emergency spell and still attack in the same round (slot 4 levels higher)." },
+        { name:"Martial Study (Devoted Spirit)", why:"A Devoted Spirit maneuver for extra melee tricks." },
+        { name:"Extra Turning", why:"A third one, if Cha hasn't been raised by items or tomes." }
+      ] }
     ],
     buildRev: 1,
     abilities: { str:18, dex:10, con:16, int:10, wis:23, cha:14 },

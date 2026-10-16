@@ -486,3 +486,11 @@ body.lightbox-open{overflow:hidden;}
 .rule-note p:last-child{margin-bottom:0;}
 .plan-row.open{border-style:dashed;border-color:rgba(232,201,138,0.5);}
 .plan-row.open .plan-name{color:var(--gold-strong);font-style:italic;}
+.plan-opt{display:flex;align-items:center;gap:8px;margin-top:6px;padding:6px 8px;border-radius:10px;background:rgba(255,255,255,0.04);}
+.plan-opt-txt{flex:1;min-width:0;}
+.plan-opt-name{font-weight:600;font-size:13px;}
+.plan-change{font-size:12px;margin-top:2px;}
+.plan-row.open{align-items:flex-start;}
+.plan-row.open .plan-lvl{padding-top:2px;}
+.plan-opt .plan-take{padding:4px 9px;font-size:11.5px;font-weight:600;}
+.plan-opt .plan-take .btn-icon{width:11px;height:11px;}

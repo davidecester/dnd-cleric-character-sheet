@@ -312,14 +312,17 @@
     <!-- MAGIC -->
     <section class="panel" id="panel-magic">
       <div class="card">
-        <h2>Domains</h2>
+        <div class="card-head">
+          <h2>Domains</h2>
+          <button class="section-edit-btn text-edit-btn" type="button" aria-pressed="false">✎ Edit</button>
+        </div>
         <div class="domain-block">
           <span class="domain-name">Balance</span>
-          <textarea class="text-block" id="domainBalance"></textarea>
+          <textarea class="text-block" id="domainBalance" data-clamp="3"></textarea>
         </div>
         <div class="domain-block">
           <span class="domain-name">Magic</span>
-          <textarea class="text-block" id="domainMagic"></textarea>
+          <textarea class="text-block" id="domainMagic" data-clamp="3"></textarea>
         </div>
       </div>
 
@@ -380,25 +383,37 @@
       </div>
 
       <div class="card">
-        <h2>Appearance</h2>
+        <div class="card-head">
+          <h2>Appearance</h2>
+          <button class="section-edit-btn text-edit-btn" type="button" aria-pressed="false">✎ Edit</button>
+        </div>
         <div class="hint">How Caelian looks and carries himself.</div>
         <textarea class="text-block" id="appearance" style="min-height:90px;"></textarea>
       </div>
 
       <div class="card">
-        <h2>Backstory</h2>
+        <div class="card-head">
+          <h2>Backstory</h2>
+          <button class="section-edit-btn text-edit-btn" type="button" aria-pressed="false">✎ Edit</button>
+        </div>
         <div class="hint">Origins, key events, how he became who he is.</div>
         <textarea class="text-block" id="backstory" style="min-height:220px;"></textarea>
       </div>
 
       <div class="card">
-        <h2>Ideal</h2>
+        <div class="card-head">
+          <h2>Ideal</h2>
+          <button class="section-edit-btn text-edit-btn" type="button" aria-pressed="false">✎ Edit</button>
+        </div>
         <div class="hint">The principle Caelian holds to, and how he means to live up to it.</div>
         <textarea class="text-block" id="ideal" style="min-height:120px;"></textarea>
       </div>
 
       <div class="card">
-        <h2>Session Notes</h2>
+        <div class="card-head">
+          <h2>Session Notes</h2>
+          <button class="section-edit-btn text-edit-btn" type="button" aria-pressed="false">✎ Edit</button>
+        </div>
         <div class="hint">Free space for whatever comes up at the table.</div>
         <textarea class="text-block" id="sessionNotes" style="min-height:200px;"></textarea>
       </div>

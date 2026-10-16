@@ -628,6 +628,7 @@
     bindField("shield", function(){ return state.shield; }, function(v){ state.shield = v; });
     bindField("domainBalance", function(){ return state.domains.balance; }, function(v){ state.domains.balance = v; });
     bindField("domainMagic", function(){ return state.domains.magic; }, function(v){ state.domains.magic = v; });
+    document.querySelectorAll("textarea.text-block").forEach(function(ta){ if (ta._renderView && ta.hidden) ta._renderView(); });
   }
 
   var ATTACK_FIELDS = [
@@ -826,6 +827,58 @@
       if (!editing) renderView();
     });
   }
+  // ---------------- Long text (domains, story) ----------------
+  // In view mode a long text shows as plain wrapped text, cut to a few lines with
+  // Show more; the card's ✎ Edit swaps in the textarea, grown to fit the whole text.
+  function growTextarea(ta){ ta.style.height = "auto"; ta.style.height = (ta.scrollHeight + 2) + "px"; }
+  function setupLongText(ta){
+    var view = document.createElement("div");
+    view.className = "text-view";
+    var more = document.createElement("button");
+    more.type = "button"; more.className = "more-link text-view-more"; more.hidden = true;
+    ta.parentNode.insertBefore(view, ta);
+    ta.parentNode.insertBefore(more, ta);
+    ta.hidden = true;
+    var lines = Number(ta.getAttribute("data-clamp")) || 6, open = false;
+    function measure(){
+      if (open || !view.offsetHeight) return;
+      more.hidden = view.scrollHeight <= view.clientHeight + 1;
+    }
+    function render(){
+      var text = String(ta.value || "").trim();
+      view.textContent = text || "Nothing written yet — tap ✎ Edit.";
+      view.classList.toggle("empty", !text);
+      view.classList.toggle("clamped", !open);
+      view.style.webkitLineClamp = open ? "" : String(lines);
+      more.textContent = open ? "Show less" : "Show more";
+      more.hidden = !open;
+      measure();
+    }
+    more.addEventListener("click", function(){ open = !open; render(); });
+    ta.addEventListener("input", function(){ growTextarea(ta); });
+    // Panels start hidden, so check for overflow again once the text is on screen.
+    if (window.ResizeObserver) new ResizeObserver(measure).observe(view);
+    window.addEventListener("resize", measure);
+    ta._renderView = render;
+    ta._setEditing = function(editing){
+      ta.hidden = !editing; view.hidden = editing;
+      if (editing) { more.hidden = true; growTextarea(ta); } else render();
+    };
+    render();
+  }
+  function bindLongTexts(){
+    document.querySelectorAll("textarea.text-block").forEach(setupLongText);
+    document.querySelectorAll(".text-edit-btn").forEach(function(btn){
+      var card = btn.closest(".card");
+      btn.addEventListener("click", function(){
+        var editing = btn.getAttribute("aria-pressed") !== "true";
+        btn.setAttribute("aria-pressed", String(editing));
+        btn.textContent = editing ? "✓ Done" : "✎ Edit";
+        card.querySelectorAll("textarea.text-block").forEach(function(ta){ ta._setEditing(editing); });
+      });
+    });
+  }
+
   function bindSectionToggles(){
     bindSectionToggle("feats", renderFeatsView);
     bindSectionToggle("attacks", renderAttacksView);
@@ -1096,6 +1149,7 @@
     safe(bindAddButtons, "bindAddButtons");
     safe(bindReset, "bindReset");
     safe(bindTabs, "bindTabs");
+    safe(bindLongTexts, "bindLongTexts");
     safe(bindBalance, "bindBalance");
     safe(bindSkills, "bindSkills");
     safe(recomputeDerived, "recomputeDerived");

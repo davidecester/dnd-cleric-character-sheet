@@ -283,6 +283,12 @@ details.breakdown[open] summary::after{content:' ▴';}
 
 /* ---------- Text blocks ---------- */
 .text-block{width:100%;background:rgba(255,255,255,0.06);border:1px solid var(--glass-border);border-radius:var(--radius-md);color:var(--text-1);font-family:var(--font-body);font-size:13.5px;line-height:1.55;padding:11px;min-height:88px;resize:vertical;transition:border-color .15s, box-shadow .15s;}
+.text-block[hidden]{display:none;}
+.text-view{font-size:13.5px;line-height:1.55;color:var(--text-1);white-space:pre-wrap;overflow-wrap:anywhere;}
+.text-view.clamped{display:-webkit-box;-webkit-box-orient:vertical;overflow:hidden;}
+.text-view.empty{color:var(--text-2);font-style:italic;}
+.more-link.text-view-more{display:block;margin-top:4px;font-size:13px;}
+.text-view[hidden], .more-link.text-view-more[hidden]{display:none;}
 .text-block:focus{outline:none;border-color:var(--celestial);box-shadow:0 0 0 3px rgba(127,212,255,0.20);}
 .domain-block{margin-bottom:14px;}
 .domain-block:last-child{margin-bottom:0;}

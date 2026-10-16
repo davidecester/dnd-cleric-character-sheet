@@ -48,8 +48,22 @@
 
     <!-- OVERVIEW -->
     <section class="panel active" id="panel-overview">
+      <div class="card build-card levelup-card" id="levelUpCard" hidden>
+        <div class="card-head">
+          <h2 id="luTitle">Level up</h2>
+          <button class="section-edit-btn" id="luCancel" type="button"><span>Cancel</span></button>
+        </div>
+        <ol class="lu-steps" id="luSteps"></ol>
+        <div id="luBody"></div>
+        <div class="lu-nav">
+          <button class="power-btn" id="luBack" type="button">Back</button>
+          <button class="power-btn primary" id="luNext" type="button">Next</button>
+        </div>
+      </div>
+
       <div class="card build-card" id="buildCard" hidden>
         <h2>Character Build</h2>
+        <div class="lu-launch" id="luLaunch"></div>
         <div class="hint">Class levels, ability scores and hit point rolls. Base attack, saves, max hp, attacks, spells per day and skill points are worked out from these (D&amp;D 3.5 tables).</div>
         <div class="build-sec">
           <div class="bd-title">Class levels</div>

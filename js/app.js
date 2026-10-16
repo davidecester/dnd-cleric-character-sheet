@@ -76,6 +76,7 @@
         if (saved && migrateBuild(saved)) migrated = true;
         if (saved && addLedgerEntries(saved)) migrated = true;
         if (saved && trimDomainNotes(saved)) migrated = true;
+        if (saved && fillStory(saved)) migrated = true;
         (state.featPlan || []).forEach(function(p){
           if (num(p.level) !== 18) return;
           if (p.name === "Combat Reflexes") p.name = "";
@@ -320,6 +321,15 @@
     if (oldBalance.test(d.balance || "")) d.balance = String(d.balance).replace(oldBalance, "");
     if (d.magic === "Can use certain Wizard spell-completion and spell-trigger items as a Wizard of half his Cleric level. Grants access to useful utility and anti-magic domain spells.") d.magic = DEFAULT_DATA.domains.magic;
     state.domainsRev = 1;
+    return true;
+  }
+
+  // Story texts from Caelian's latest profile (the owner's most up-to-date version): written over
+  // the old texts once. Later edits are kept.
+  function fillStory(saved){
+    if (num(saved.storyRev) >= 2) return false;
+    ["appearance", "backstory", "ideal"].forEach(function(k){ state[k] = DEFAULT_DATA[k]; });
+    state.storyRev = 2;
     return true;
   }
 
@@ -1364,7 +1374,333 @@
 
     renderDomainPicker();
     renderFeatPlan();
+    renderLevelUpLaunch();
     updateBuildReadouts();
+  }
+
+  // ---------------- Guided level-up ----------------
+  // Steps: hit die → ability +1 (every 4th level) → skill points → feat (1, 3, 6, 9…) → summary.
+  // Confirm applies it on top of the Build; the last level-up can be undone (state.lastLevelUp).
+  var lu = null;
+  function luClassName(){ return (buildClasses()[0] || { name:"Cleric" }).name; }
+  function luSteps(){
+    var lvl = num(state.level) + 1, steps = [["hp", "Hit die"]];
+    if (CF.isAbilityLevel(lvl)) steps.push(["ability", "Ability"]);
+    steps.push(["skills", "Skills"]);
+    if (CF.isFeatLevel(lvl)) steps.push(["feat", "Feat"]);
+    steps.push(["summary", "Summary"]);
+    return steps;
+  }
+  function luPlan(lvl){ return (state.featPlan || []).filter(function(p){ return num(p.level) === lvl; })[0] || null; }
+  function startLevelUp(){
+    if (num(state.level) >= 20) return;
+    var lvl = num(state.level) + 1, plan = luPlan(lvl);
+    lu = { cls:luClassName(), step:0, roll:"", ability:"", skills:{}, feat:plan && plan.name ? plan.name : "", other:"" };
+    document.getElementById("buildCard").hidden = true;
+    document.getElementById("levelUpCard").hidden = false;
+    renderLevelUp();
+    document.getElementById("levelUpCard").scrollIntoView({ behavior:"smooth", block:"start" });
+  }
+  function closeLevelUp(){
+    lu = null;
+    document.getElementById("levelUpCard").hidden = true;
+    var editing = document.getElementById("headerEditBtn").getAttribute("aria-pressed") === "true";
+    document.getElementById("buildCard").hidden = !editing;
+    if (editing) renderBuild();
+  }
+  // Skill points for the new level: class points + Int modifier after this level's increase (min 1).
+  function luSkillBudget(){
+    var int = num(state.abilities.int) + (lu.ability === "int" ? 1 : 0);
+    return Math.max(1, CF.CLASSES[lu.cls].skillPoints + Math.floor((int - 10) / 2));
+  }
+  function luSpent(){
+    return Object.keys(lu.skills).reduce(function(sum, name){
+      var s = state.skills.filter(function(x){ return x.name === name; })[0];
+      return sum + (s && s.cls ? 1 : 2) * num(lu.skills[name]);
+    }, 0);
+  }
+  function luFeatName(){ return lu.feat === "__other" ? lu.other.trim() : lu.feat; }
+  function luStepOk(key){
+    if (key === "hp") { var r = num(lu.roll), d = CF.CLASSES[lu.cls].hitDie; return lu.roll !== "" && r >= 1 && r <= d; }
+    if (key === "ability") return !!lu.ability;
+    if (key === "skills") return luSpent() <= luSkillBudget();
+    if (key === "feat") return !!luFeatName();
+    return true;
+  }
+
+  // Apply the level-up to the current state (also used on a copy for the summary preview).
+  function applyLevelUp(){
+    var c = (state.classes || []).filter(function(x){ return x.name === lu.cls; })[0], added = false;
+    if (!c) { c = { name:lu.cls, level:0 }; state.classes.push(c); added = true; }
+    c.level = num(c.level) + 1;
+    var lvl = buildClasses().reduce(function(sum, x){ return sum + num(x.level); }, 0);
+    state.hpRolls = state.hpRolls || [];
+    while (state.hpRolls.length < lvl) state.hpRolls.push("");
+    state.hpRolls[lvl - 1] = num(lu.roll);
+    var rec = { level:lvl, cls:lu.cls, added:added, ability:"", skills:{}, feat:"", planSet:false };
+    if (lu.ability) {
+      state.abilityIncreases = state.abilityIncreases || {};
+      state.abilityIncreases[lvl] = lu.ability; rec.ability = lu.ability;
+    }
+    Object.keys(lu.skills).forEach(function(name){
+      var add = num(lu.skills[name]);
+      if (!add) return;
+      state.skills.forEach(function(s){ if (s.name === name) s.ranks = num(s.ranks) + add; });
+      rec.skills[name] = add;
+    });
+    var feat = CF.isFeatLevel(lvl) ? luFeatName() : "";
+    if (feat) {
+      state.feats.push({ name:feat, notes:"" }); rec.feat = feat;
+      var plan = luPlan(lvl);
+      if (plan && !String(plan.name || "").trim()) { plan.name = feat; rec.planSet = true; }
+    }
+    state.lastLevelUp = rec;
+  }
+  function undoLevelUp(){
+    var rec = state.lastLevelUp;
+    if (!rec || num(state.level) !== rec.level) return;
+    var c = (state.classes || []).filter(function(x){ return x.name === rec.cls; })[0];
+    if (!c) return;
+    c.level = num(c.level) - 1;
+    if (c.level <= 0 && rec.added) state.classes.splice(state.classes.indexOf(c), 1);
+    state.hpRolls[rec.level - 1] = "";
+    if (rec.ability && state.abilityIncreases) delete state.abilityIncreases[rec.level];
+    Object.keys(rec.skills).forEach(function(name){
+      state.skills.forEach(function(s){ if (s.name === name) s.ranks = Math.max(0, num(s.ranks) - num(rec.skills[name])); });
+    });
+    if (rec.feat) {
+      for (var i = state.feats.length - 1; i >= 0; i--) {
+        if (String(state.feats[i].name || "").trim().toLowerCase() === rec.feat.toLowerCase()) { state.feats.splice(i, 1); break; }
+      }
+      var plan = luPlan(rec.level);
+      if (rec.planSet && plan) plan.name = "";
+    }
+    state.lastLevelUp = null;
+    afterLevelChange();
+  }
+  function afterLevelChange(){
+    rebuild();
+    renderSkills();
+    renderFeats();
+    renderCombatFeats();
+    renderBuild();
+  }
+
+  // Numbers before and after, worked out on a copy of the sheet.
+  function luSnapshot(){
+    var spells = {};
+    (state.spellLevels || []).forEach(function(l){ if (l.auto) spells[num(l.level)] = num(l.total); });
+    return {
+      level: num(state.level), bab: num(state.bab), hp: num(state.hp.max),
+      saves: ["fort","ref","will"].map(function(k){ return num(state.saves[k].base); }),
+      abilities: clone(state.abilities), spells: spells, turns: turnAttempts()
+    };
+  }
+  function luPreview(){
+    var real = state, before = luSnapshot(), after;
+    state = clone(real);
+    try { applyLevelUp(); computeBuild(false); after = luSnapshot(); }
+    finally { state = real; }
+    return { before:before, after:after };
+  }
+
+  function renderLevelUpLaunch(){
+    var box = document.getElementById("luLaunch");
+    if (!box) return;
+    box.innerHTML = "";
+    var lvl = num(state.level);
+    var go = el("button", "power-btn primary"); go.type = "button";
+    go.innerHTML = ICONS.levelUp + "<span>Level up to " + (lvl + 1) + "</span>";
+    go.disabled = lvl >= 20;
+    go.addEventListener("click", startLevelUp);
+    box.appendChild(go);
+    var rec = state.lastLevelUp;
+    if (rec && rec.level === lvl) {
+      var undo = el("button", "power-btn"); undo.type = "button";
+      undo.innerHTML = ICONS.minus + "<span>Undo level " + lvl + "</span>";
+      undo.addEventListener("click", function(){
+        if (!window.confirm("Undo the level-up to level " + lvl + "? The hit die roll, skill ranks" + (rec.feat ? ", feat (" + rec.feat + ")" : "") + (rec.ability ? ", ability +1" : "") + " from it are removed.")) return;
+        undoLevelUp();
+      });
+      box.appendChild(undo);
+    }
+  }
+
+  function renderLevelUp(){
+    if (!lu) return;
+    var steps = luSteps(), key = steps[lu.step][0], lvl = num(state.level) + 1;
+    var cls = CF.CLASSES[lu.cls];
+    document.getElementById("luTitle").textContent = "Level up · " + lu.cls + " " + (((state.classes || []).filter(function(x){ return x.name === lu.cls; })[0] || { level:0 }).level * 1 + 1);
+    var bar = document.getElementById("luSteps");
+    bar.innerHTML = "";
+    steps.forEach(function(s, i){ bar.appendChild(el("li", i < lu.step ? "done" : (i === lu.step ? "now" : ""), s[1])); });
+    var body = document.getElementById("luBody");
+    body.innerHTML = "";
+    var next = document.getElementById("luNext");
+
+    if (key === "hp") {
+      body.appendChild(el("p", "lu-lead", "Roll your hit die (d" + cls.hitDie + ") and enter the result, or let the sheet roll it."));
+      var row = el("div", "lu-row");
+      var input = el("input"); input.type = "number"; input.inputMode = "numeric"; input.min = 1; input.max = cls.hitDie;
+      input.value = lu.roll; input.setAttribute("aria-label", "Hit die roll");
+      var out = el("span", "lu-out");
+      function show(){
+        var r = num(lu.roll);
+        out.textContent = lu.roll === "" ? "" : (r < 1 || r > cls.hitDie ? "1–" + cls.hitDie + " only" : "+" + Math.max(1, r + abilityMod("con")) + " hp (roll " + r + " " + signed(abilityMod("con")) + " Con)");
+        next.disabled = !luStepOk("hp");
+      }
+      input.addEventListener("input", function(){ lu.roll = input.value === "" ? "" : Number(input.value); show(); });
+      var roll = el("button", "power-btn", "Roll d" + cls.hitDie); roll.type = "button";
+      roll.addEventListener("click", function(){ lu.roll = 1 + Math.floor(Math.random() * cls.hitDie); input.value = lu.roll; show(); });
+      row.appendChild(input); row.appendChild(roll); row.appendChild(out);
+      body.appendChild(row);
+      show();
+    }
+
+    if (key === "ability") {
+      body.appendChild(el("p", "lu-lead", "Level " + lvl + ": +1 to one ability score."));
+      var arow = el("div", "lu-row");
+      var sel = el("select"); sel.setAttribute("aria-label", "Ability to raise");
+      [["", "Choose…"]].concat(ABILS.map(function(k){ return [k, ABIL_LABEL[k] + " " + state.abilities[k] + " → " + (num(state.abilities[k]) + 1)]; })).forEach(function(o){
+        var opt = el("option", "", o[1]); opt.value = o[0]; sel.appendChild(opt);
+      });
+      sel.value = lu.ability;
+      sel.addEventListener("change", function(){ lu.ability = sel.value; next.disabled = !luStepOk("ability"); });
+      arow.appendChild(sel);
+      body.appendChild(arow);
+      body.appendChild(el("div", "hint", "A Con increase also raises hp for every level; Int raises this level's skill points."));
+    }
+
+    if (key === "skills") {
+      var budget = luSkillBudget(), maxC = lvl + 3, maxX = maxC / 2;
+      body.appendChild(el("p", "lu-lead", "Spend " + budget + " skill points. Class skills: 1 point per rank, max " + maxC + ". Cross-class: 1 point per ½ rank, max " + maxX + "."));
+      var pts = el("div", "lu-pts");
+      body.appendChild(pts);
+      function paintPts(){
+        var spent = luSpent();
+        pts.textContent = (budget - spent) + " of " + budget + " points left";
+        pts.classList.toggle("over", spent > budget);
+        next.disabled = !luStepOk("skills");
+      }
+      function skillRow(s){
+        var row = el("div", "lu-skill");
+        var name = el("div", "lu-skill-name", s.name);
+        var sub = el("span", "lu-skill-sub");
+        name.appendChild(sub);
+        row.appendChild(name);
+        var step = el("div", "pa-stepper");
+        var minus = el("button"), val = el("span"), plus = el("button");
+        minus.type = plus.type = "button"; minus.innerHTML = ICONS.minus; plus.innerHTML = ICONS.plus;
+        minus.setAttribute("aria-label", "One rank less in " + s.name); plus.setAttribute("aria-label", "One rank more in " + s.name);
+        var inc = s.cls ? 1 : 0.5, cap = s.cls ? maxC : maxX;
+        function paint(){
+          var add = num(lu.skills[s.name]), now = num(s.ranks) + add;
+          val.textContent = (add ? "+" : "") + add;
+          sub.textContent = "Ranks " + num(s.ranks) + (add ? " → " + now : "") + " · max " + cap;
+          row.classList.toggle("added", add > 0);
+          minus.disabled = add <= 0;
+          plus.disabled = now + inc > cap || luSpent() + 1 > budget;
+        }
+        minus.addEventListener("click", function(){ lu.skills[s.name] = Math.max(0, num(lu.skills[s.name]) - inc); repaint(); });
+        plus.addEventListener("click", function(){ lu.skills[s.name] = num(lu.skills[s.name]) + inc; repaint(); });
+        step.appendChild(minus); step.appendChild(val); step.appendChild(plus);
+        row.appendChild(step);
+        row._paint = paint;
+        return row;
+      }
+      var rows = [];
+      function repaint(){ rows.forEach(function(r){ r._paint(); }); paintPts(); }
+      var clsList = el("div"), xList = el("div");
+      state.skills.forEach(function(s){
+        var r = skillRow(s); rows.push(r);
+        (s.cls ? clsList : xList).appendChild(r);
+      });
+      body.appendChild(el("div", "bd-title", "Class skills"));
+      body.appendChild(clsList);
+      var xHasRanks = Object.keys(lu.skills).some(function(n){ return num(lu.skills[n]) && state.skills.some(function(s){ return s.name === n && !s.cls; }); });
+      xList.hidden = !xHasRanks;
+      var more = el("button", "more-link", xHasRanks ? "Hide cross-class skills" : "Show cross-class skills"); more.type = "button";
+      more.addEventListener("click", function(){ xList.hidden = !xList.hidden; more.textContent = xList.hidden ? "Show cross-class skills" : "Hide cross-class skills"; });
+      body.appendChild(more);
+      body.appendChild(xList);
+      repaint();
+    }
+
+    if (key === "feat") {
+      var plan = luPlan(lvl);
+      body.appendChild(el("p", "lu-lead", "Level " + lvl + " gives a feat." + (plan && plan.name ? " Your plan says " + plan.name + "." : "")));
+      var choices = [];
+      if (plan && plan.name) choices.push({ name:plan.name, why:"" });
+      ((plan && !plan.name && plan.options) || []).forEach(function(o){ choices.push(o); });
+      var group = "luFeat";
+      function choice(value, title, sumText, extra){
+        var lab = el("label", "lu-choice");
+        var radio = el("input"); radio.type = "radio"; radio.name = group; radio.value = value;
+        radio.checked = lu.feat === value;
+        radio.addEventListener("change", function(){ lu.feat = value; next.disabled = !luStepOk("feat"); if (extra && value === "__other") extra.focus(); });
+        lab.appendChild(radio);
+        var txt = el("div");
+        txt.appendChild(el("div", "plan-opt-name", title));
+        if (sumText) txt.appendChild(el("div", "plan-sum", sumText));
+        if (extra) txt.appendChild(extra);
+        lab.appendChild(txt);
+        body.appendChild(lab);
+      }
+      choices.forEach(function(o){
+        var hit = CF.findFeat(o.name);
+        var sumText = o.why || (hit ? hit.rules.summary + (hit.rules.prereq ? " Prerequisite: " + hit.rules.prereq + "." : "") : "");
+        choice(o.name, o.name, sumText);
+      });
+      var other = el("input"); other.type = "text"; other.placeholder = "Feat name"; other.value = lu.other;
+      other.setAttribute("aria-label", "Another feat");
+      other.addEventListener("input", function(){ lu.other = other.value; if (other.value.trim()) { lu.feat = "__other"; body.querySelector('input[value="__other"]').checked = true; } next.disabled = !luStepOk("feat"); });
+      choice("__other", choices.length ? "Something else" : "Feat", "Any feat from your allowed books whose prerequisites you meet.", other);
+    }
+
+    if (key === "summary") {
+      var p = luPreview(), b = p.before, a = p.after;
+      body.appendChild(el("p", "lu-lead", "Check the changes, then confirm."));
+      var list = el("ul", "lu-sum-list");
+      function line(label, value){ var li = el("li"); li.appendChild(el("span", "", label)); li.appendChild(el("b", "", value)); list.appendChild(li); }
+      line("Level", b.level + " → " + a.level);
+      line("Hit points", b.hp + " → " + a.hp + " max (" + signed(a.hp - b.hp) + ")");
+      if (a.bab !== b.bab) line("Base attack", signed(b.bab) + " → " + signed(a.bab));
+      ["Fort", "Ref", "Will"].forEach(function(n, i){ if (a.saves[i] !== b.saves[i]) line(n + " base", signed(b.saves[i]) + " → " + signed(a.saves[i])); });
+      ABILS.forEach(function(k){ if (a.abilities[k] !== b.abilities[k]) line(ABIL_LABEL[k], b.abilities[k] + " → " + a.abilities[k]); });
+      var sp = [];
+      Object.keys(a.spells).forEach(function(sl){ if (a.spells[sl] !== (b.spells[sl] || 0)) sp.push("L" + sl + " " + (b.spells[sl] || 0) + "→" + a.spells[sl]); });
+      if (sp.length) line("Spells per day", sp.join(" · "));
+      if (a.turns !== b.turns) line("Turn attempts", b.turns + " → " + a.turns);
+      var sk = Object.keys(lu.skills).filter(function(n){ return num(lu.skills[n]); }).map(function(n){ return n + " +" + lu.skills[n]; });
+      line("Skills", sk.length ? sk.join(", ") : "none");
+      var left = luSkillBudget() - luSpent();
+      if (CF.isFeatLevel(lvl)) line("Feat", luFeatName());
+      body.appendChild(list);
+      if (left > 0) body.appendChild(el("p", "lu-warn", left + " skill point" + (left === 1 ? "" : "s") + " not spent."));
+    }
+
+    document.getElementById("luBack").disabled = lu.step === 0;
+    next.textContent = key === "summary" ? "Confirm level " + lvl : "Next";
+    if (key !== "hp" && key !== "skills") next.disabled = !luStepOk(key);
+  }
+  function bindLevelUp(){
+    paintToggle(document.getElementById("luCancel"), false, "Cancel", ICONS.remove);
+    document.getElementById("luCancel").addEventListener("click", closeLevelUp);
+    document.getElementById("luBack").addEventListener("click", function(){ if (lu && lu.step > 0) { lu.step--; renderLevelUp(); } });
+    document.getElementById("luNext").addEventListener("click", function(){
+      if (!lu) return;
+      var steps = luSteps(), key = steps[lu.step][0];
+      if (!luStepOk(key)) return;
+      if (key === "summary") {
+        applyLevelUp();
+        closeLevelUp();
+        afterLevelChange();
+        return;
+      }
+      lu.step++;
+      renderLevelUp();
+      document.getElementById("levelUpCard").scrollIntoView({ behavior:"smooth", block:"start" });
+    });
   }
 
   // Feat plan: one row per feat level. A planned feat counts as taken once the feats list has it
@@ -1825,8 +2161,13 @@
 
     Promise.resolve()
       .then(function(){ return storage.get(opts.storageKey); })
-      .then(function(res){ if (res && res.value) showImage(res.value); else showPlaceholder(); })
-      .catch(function(){ showPlaceholder(); });
+      .then(function(res){
+        // Nothing saved yet: Caelian's own image. Saved as "" means the user removed it.
+        if (res && res.value) showImage(res.value);
+        else if (opts.defaultSrc && !(res && res.value === "")) showImage(opts.defaultSrc);
+        else showPlaceholder();
+      })
+      .catch(function(){ if (opts.defaultSrc) showImage(opts.defaultSrc); else showPlaceholder(); });
   }
 
   function openLightbox(picker){
@@ -1866,11 +2207,11 @@
     bindLightbox();
     setupImagePicker({
       title:"Background", fileInputId:"bgFileInput", imgId:"bgImage", placeholderId:"bgPlaceholder",
-      triggerId:"bgTrigger", storageKey:BG_IMAGE_KEY, maxDim:1600, quality:0.82
+      triggerId:"bgTrigger", storageKey:BG_IMAGE_KEY, maxDim:1600, quality:0.82, defaultSrc:"img/caelian-bg.jpg"
     });
     setupImagePicker({
       title:"Portrait", fileInputId:"portraitFileInput", imgId:"portraitImage", placeholderId:"portraitPlaceholder",
-      triggerId:"portraitTrigger", storageKey:PORTRAIT_IMAGE_KEY, maxDim:900, quality:0.85
+      triggerId:"portraitTrigger", storageKey:PORTRAIT_IMAGE_KEY, maxDim:900, quality:0.85, defaultSrc:"img/caelian-symbol.jpg"
     });
   }
 
@@ -1887,6 +2228,7 @@
     safe(renderBuild, "renderBuild");
     safe(bindBalance, "bindBalance");
     safe(bindTurning, "bindTurning");
+    safe(bindLevelUp, "bindLevelUp");
     safe(bindSkills, "bindSkills");
     safe(recomputeDerived, "recomputeDerived");
     safe(initImagePickers, "initImagePickers");

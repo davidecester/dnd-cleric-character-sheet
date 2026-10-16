@@ -12,6 +12,15 @@ window.CaseFile = window.CaseFile || {};
     className: "Cleric",
     level: 6,
     alignment: "Neutral Good",
+    // Class levels and ability build: the sheet works out level-based numbers from these
+    // (base attack, saves, max hp, spells per day, skill points). Edit them under ✎ Edit.
+    classes: [ { name:"Cleric", level:6 } ],
+    abilityBase:   { str:18, dex:10, con:16, int:10, wis:18, cha:12 },
+    abilityRacial: { str:0, dex:0, con:0, int:0, wis:2, cha:2 },
+    abilityItems:  { str:0, dex:0, con:0, int:0, wis:2, cha:0 },
+    abilityIncreases: { "4":"wis" },
+    hpRolls: [8, 7, 7, 7, 7, 7],
+    buildRev: 1,
     abilities: { str:18, dex:10, con:16, int:10, wis:23, cha:14 },
     hp: { current:61, max:61 },
     bab: 4,
@@ -67,8 +76,8 @@ window.CaseFile = window.CaseFile || {};
     ],
     initiative: { misc:0 },
     attacks: [
-      { name:"+1 Longspear", bonus:"+9", damage:"1d8+7", notes:"Crit ×3 · Piercing · Reach 3 m · Two-handed · Main melee weapon" },
-      { name:"Morningstar", bonus:"+8", damage:"1d8+4", notes:"Crit ×2 · Bludgeoning & piercing · One-handed · Backup vs foes inside longspear reach" }
+      { name:"+1 Longspear", dice:"1d8", enh:1, bonus:"+9", damage:"1d8+7", notes:"Crit ×3 · Piercing · Reach 3 m · Two-handed · Main melee weapon" },
+      { name:"Morningstar", dice:"1d8", enh:0, bonus:"+8", damage:"1d8+4", notes:"Crit ×2 · Bludgeoning & piercing · One-handed · Backup vs foes inside longspear reach" }
     ],
     armor: "Full Plate",
     shield: "",
@@ -111,8 +120,11 @@ window.CaseFile = window.CaseFile || {};
     ledger: [
       { desc:"Previous funds", amount:25 }, { desc:"Additional funds received", amount:400 },
       { desc:"Light Horse", amount:-75 }, { desc:"Riding Saddle", amount:-10 },
-      { desc:"Bit and Bridle", amount:-2 }, { desc:"40 Trail Rations", amount:-20 }
+      { desc:"Bit and Bridle", amount:-2 }, { desc:"40 Trail Rations", amount:-20 },
+      { desc:"Quest reward", amount:550 }, { desc:"Information and access to a source", amount:-250 },
+      { desc:"Stable for the horse", amount:-1 }
     ],
+    ledgerRev: 1,
     appearance: "",
     backstory: "",
     ideal: "",

@@ -39,8 +39,6 @@
     <div class="header-edit" id="headerEdit" hidden>
       <div class="he-field he-wide"><label for="f-name">Name</label><input id="f-name" type="text" spellcheck="false"></div>
       <div class="he-field"><label for="f-race">Race</label><input id="f-race" type="text"></div>
-      <div class="he-field"><label for="f-class">Class</label><input id="f-class" type="text"></div>
-      <div class="he-field"><label for="f-level">Level</label><input id="f-level" type="number" min="1" max="20" inputmode="numeric"></div>
       <div class="he-field"><label for="f-alignment">Alignment</label><input id="f-alignment" type="text"></div>
     </div>
     <button class="header-edit-btn" id="headerEditBtn" type="button" aria-pressed="false" aria-controls="headerEdit">✎ Edit</button>
@@ -50,6 +48,30 @@
 
     <!-- OVERVIEW -->
     <section class="panel active" id="panel-overview">
+      <div class="card build-card" id="buildCard" hidden>
+        <h2>Character Build</h2>
+        <div class="hint">Class levels, ability scores and hit point rolls. Base attack, saves, max hp, attacks, spells per day and skill points are worked out from these (D&amp;D 3.5 tables).</div>
+        <div class="build-sec">
+          <div class="bd-title">Class levels</div>
+          <div id="buildClasses"></div>
+          <div class="hint">Prestige classes will be added here with their own tables.</div>
+        </div>
+        <div class="build-sec">
+          <div class="bd-title">Ability scores</div>
+          <div class="build-grid" id="buildAbilities"></div>
+          <div class="hint">Base = rolled score · Race = racial adjustment · Lvl = +1s from level increases · Items = enhancement bonuses (e.g. Periapt of Wisdom).</div>
+        </div>
+        <div class="build-sec">
+          <div class="bd-title">Ability increases</div>
+          <div class="build-incs" id="buildIncreases"></div>
+        </div>
+        <div class="build-sec">
+          <div class="bd-title">Hit die rolls</div>
+          <div id="buildHp"></div>
+        </div>
+        <div class="build-next" id="buildNext"></div>
+      </div>
+
       <div class="card">
         <h2>Ability Scores</h2>
         <div class="ability-grid" id="abilityGrid"></div>
@@ -219,7 +241,8 @@
         </div>
         <div id="attacksView"></div>
         <div id="attacksEdit" hidden>
-          <div class="list-head attack-head"><span class="col-name">Weapon</span><span class="col-small">Atk</span><span class="col-small">Dmg</span><span class="col-mid">Notes</span><span class="del-gap"></span></div>
+          <div class="list-head attack-head"><span class="col-name">Weapon</span><span class="col-small">Dice</span><span class="col-small">Enh.</span><span class="col-mid">Notes</span><span class="del-gap"></span></div>
+          <div class="hint">Attack and damage are worked out from BAB, Str and the enhancement bonus. Write "Two-handed" in the notes for 1½ × Str damage.</div>
           <div id="attacksList"></div>
           <button class="add-row-btn" id="addAttack">+ Add attack</button>
         </div>
@@ -327,8 +350,19 @@
       </div>
 
       <div class="card">
+        <h2>Turn Undead</h2>
+        <div class="stat-row">
+          <div class="stat-box"><label>Per day</label><div class="computed-value" id="turnAttempts">5</div></div>
+          <div class="stat-box"><label>Check</label><div class="computed-value" id="turnCheck">1d20+4</div></div>
+          <div class="stat-box"><label>Damage</label><div class="computed-value" id="turnDamage">2d6+8</div></div>
+        </div>
+        <div class="hint">Turning level <span id="turnLevel">6</span>. The check sets the strongest undead you can turn (up to 4 HD above or below your turning level); damage is the total HD turned. Knowledge (religion) 5+ ranks adds +2 to the check.</div>
+      </div>
+
+      <div class="card">
         <h2>Spells</h2>
-        <div class="hint">Each level tracks its own save DC, spells per day, and prepared list — same clustering as a paper sheet.</div>
+        <a class="link-btn" href="https://dnd-caelian-spellbook.cesterdav.workers.dev/" target="_blank" rel="noopener">Open spellbook ↗</a>
+        <div class="hint">Spells per day and save DCs follow your cleric level and Wisdom (class table + bonus spells + domain slot). Track what's left and what you prepared.</div>
         <div id="spellLevelsList"></div>
         <button class="add-row-btn" id="addSpellLevel">+ Add spell level</button>
       </div>
@@ -439,6 +473,7 @@
 <script src="js/storage.js"></script>
 <script src="js/data.js"></script>
 <script src="js/feats.js"></script>
+<script src="js/classes.js"></script>
 <script src="js/app.js"></script>
 </body>
 </html>

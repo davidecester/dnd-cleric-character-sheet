@@ -8,10 +8,14 @@ Mobile-first D&D 3.5 cleric character sheet. Plain static site, no build step:
 
 - `index.html` — markup for all tabs (Overview, Combat, Skills, Magic, Gear, Story)
 - `css/styles.css` — all styles ("liquid glass" dark theme, design tokens on `:root`)
-- `js/storage.js` → `js/data.js` → `js/feats.js` → `js/app.js` — load in that order
+- `js/storage.js` → `js/data.js` → `js/feats.js` → `js/classes.js` → `js/app.js` — load in that order
   - `data.js` holds `DEFAULT_DATA` (the character's baseline stats, restored by "Restore original")
   - `feats.js` holds `FEAT_RULES`, short 3.5 feat summaries shown on the Skills and Combat tabs
+  - `classes.js` holds `CLASSES`, the 3.5 class tables (BAB, saves, hit die, skill points, spells per day);
+    prestige classes go there in the same shape
   - `app.js` handles rendering, 3.5e rules math and autosave to local storage
+  - The Character Build (header ✎ Edit) holds class levels, ability base/racial/items/increases and hp rolls;
+    `computeBuild()` derives level, abilities, BAB, saves, max hp, attacks and spells per day from them
 
 Open `index.html` directly in a browser to run it. The owner mainly uses it on iPhone Safari,
 so check changes at phone width (~360px) and keep Safari quirks in mind (safe-area insets,

@@ -481,7 +481,13 @@ details.breakdown[open] summary::after{content:' ▴';}
 .build-incs{display:flex;flex-wrap:wrap;gap:8px;}
 .build-inc{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--text-2);}
 .build-inc select{background:rgba(255,255,255,0.06);border:1px solid var(--glass-border);border-radius:8px;color:var(--text-1);font-family:var(--font-mono);font-size:13px;padding:5px 6px;}
-#buildDomains .add-row-btn{flex-basis:100%;}
+#buildDomains{flex-direction:column;align-items:stretch;}
+#buildDomains .build-inc{display:grid;grid-template-columns:72px minmax(0,220px) auto;justify-content:start;}
+#buildDomains .build-inc select{width:100%;}
+#buildDomains .add-row-btn{margin-top:2px;}
+/* Hints in the Build card follow boxes and buttons, not labels: give them room instead of pulling them up. */
+.build-card .hint{margin:8px 0 0;}
+#buildCard > .hint{margin-bottom:16px;}
 .custom-domain{padding:10px;margin-bottom:8px;border-radius:12px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);}
 .custom-domain-head{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
 .custom-domain input[type=text], .custom-domain textarea{width:100%;min-width:0;box-sizing:border-box;background:rgba(255,255,255,0.06);border:1px solid var(--glass-border);border-radius:8px;color:var(--text-1);font-family:var(--font-body);font-size:16px;padding:6px 8px;}

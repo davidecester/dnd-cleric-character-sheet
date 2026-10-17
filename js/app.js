@@ -590,10 +590,24 @@
   }
 
   // ---------------- Domains ----------------
-  // The two chosen domains (state.domainChoice) pick the rules shown on the Domains card,
-  // the domain slot's options on the Spells card, and powers the sheet works out (Balance → AC).
+  // The chosen domains (state.domainChoice: two by the book, more by house rule) pick the rules
+  // shown on the Domains card, the domain slot's options on the Spells card, and powers the sheet
+  // works out (Balance → AC). House-rule domains the owner writes in live in state.customDomains.
+  function findDomain(name){
+    if (!name) return null;
+    var d = CF.findDomain(name);
+    if (d) return d;
+    var c = (state.customDomains || []).filter(function(x){ return x.name === name; })[0];
+    if (!c) return null;
+    return {
+      name:c.name, group:"custom", source:"House rule",
+      power:c.power || "—",
+      spells:(c.spells || []).map(function(sp){ return [sp || "—", ""]; }),
+      turning:c.turning ? { title:"Turning power", desc:c.power || "" } : null
+    };
+  }
   function chosenDomains(){
-    return (state.domainChoice || []).map(CF.findDomain).filter(Boolean);
+    return (state.domainChoice || []).map(findDomain).filter(Boolean);
   }
   function hasDomain(name){ return (state.domainChoice || []).indexOf(name) !== -1; }
   function domainKey(name){ return String(name).toLowerCase(); }
@@ -654,37 +668,117 @@
     });
   }
 
-  // Character Build: pick the two domains (deity's or ascension), no domain twice.
+  // Character Build: pick the domains (deity's, ascension or house rule), no domain twice.
+  // Two by the book; "Add domain" opens more slots for house rules (removable).
   function renderDomainPicker(){
     var box = document.getElementById("buildDomains");
     if (!box) return;
     box.innerHTML = "";
-    state.domainChoice = state.domainChoice || [];
-    [0, 1].forEach(function(i){
+    var choice = state.domainChoice = state.domainChoice || [];
+    while (choice.length < 2) choice.push("");
+    var custom = (state.customDomains || []).filter(function(c){ return c.name; });
+    choice.forEach(function(name, i){
       var wrap = el("label", "build-inc");
       wrap.appendChild(el("span", "", "Domain " + (i + 1)));
       var sel = el("select");
-      [["deity", "Deity's domains"], ["ascension", "Ascension concept"]].forEach(function(g){
+      var none = el("option", "", "—"); none.value = ""; sel.appendChild(none);
+      [["deity", "Deity's domains", CF.DOMAIN_OPTIONS], ["ascension", "Ascension concept", CF.DOMAIN_OPTIONS], ["custom", "House rules", custom]].forEach(function(g){
+        var list = g[2].filter(function(d){ return g[0] === "custom" || d.group === g[0]; });
+        if (!list.length) return;
         var og = el("optgroup"); og.label = g[1];
-        CF.DOMAIN_OPTIONS.filter(function(d){ return d.group === g[0]; }).forEach(function(d){
+        list.forEach(function(d){
           var opt = el("option", "", d.name); opt.value = d.name;
-          opt.disabled = d.name === state.domainChoice[1 - i];
+          opt.disabled = choice.indexOf(d.name) !== -1 && choice.indexOf(d.name) !== i;
           og.appendChild(opt);
         });
         sel.appendChild(og);
       });
-      sel.value = state.domainChoice[i] || "";
+      sel.value = name || "";
       sel.addEventListener("change", function(){
-        state.domainChoice[i] = sel.value;
+        choice[i] = sel.value;
         onDomainsChange();
       });
       wrap.appendChild(sel);
+      if (i >= 2) {
+        var del = el("button"); del.type = "button";
+        del.className = "row-del small"; del.setAttribute("aria-label", "Remove domain " + (i + 1)); del.innerHTML = ICONS.remove;
+        del.addEventListener("click", function(e){ e.preventDefault(); choice.splice(i, 1); onDomainsChange(); });
+        wrap.appendChild(del);
+      }
       box.appendChild(wrap);
     });
+    var add = el("button", "add-row-btn small"); add.type = "button";
+    add.innerHTML = ICONS.plus + "<span>Add domain (house rule)</span>";
+    add.addEventListener("click", function(){ choice.push(""); onDomainsChange(); });
+    box.appendChild(add);
+    renderCustomDomains();
+  }
+
+  // House-rule domains: name, granted power, nine domain spells, and whether the power is a
+  // turning power (gets its own card and uses on the Combat tab). Picked like any other domain.
+  function renderCustomDomains(){
+    var box = document.getElementById("buildCustomDomains");
+    if (!box) return;
+    box.innerHTML = "";
+    var list = state.customDomains = state.customDomains || [];
+    list.forEach(function(c, idx){
+      c.spells = c.spells || [];
+      var card = el("div", "custom-domain");
+      var head = el("div", "custom-domain-head");
+      var name = el("input"); name.type = "text"; name.placeholder = "Domain name"; name.value = c.name || "";
+      name.setAttribute("aria-label", "House-rule domain name");
+      name.addEventListener("change", function(){
+        var old = c.name, nu = name.value.trim();
+        if (nu && (CF.findDomain(nu) || list.some(function(x){ return x !== c && x.name === nu; }))) { name.value = old || ""; return; }
+        c.name = nu;
+        state.domainChoice = (state.domainChoice || []).map(function(n){ return old && n === old ? nu : n; });
+        if (old && state.domains && state.domains[domainKey(old)] && nu) { state.domains[domainKey(nu)] = state.domains[domainKey(old)]; delete state.domains[domainKey(old)]; }
+        onDomainsChange();
+      });
+      head.appendChild(name);
+      var del = el("button"); del.type = "button";
+      del.className = "row-del small"; del.setAttribute("aria-label", "Delete house-rule domain"); del.innerHTML = ICONS.remove;
+      del.addEventListener("click", function(){
+        if (c.name && !confirm("Delete the " + c.name + " domain?")) return;
+        list.splice(idx, 1);
+        state.domainChoice = (state.domainChoice || []).map(function(n){ return n === c.name ? "" : n; });
+        onDomainsChange();
+      });
+      head.appendChild(del);
+      card.appendChild(head);
+      var power = el("textarea"); power.rows = 2; power.placeholder = "Granted power"; power.value = c.power || "";
+      power.setAttribute("aria-label", "Granted power");
+      power.addEventListener("input", function(){ c.power = power.value; scheduleSave(); });
+      power.addEventListener("change", function(){ renderDomains(); renderDomainTurning(); });
+      card.appendChild(power);
+      var spells = el("div", "custom-domain-spells");
+      for (var lv = 1; lv <= 9; lv++) (function(lv){
+        var row = el("label", "custom-domain-spell");
+        row.appendChild(el("span", "ds-lvl", String(lv)));
+        var inp = el("input"); inp.type = "text"; inp.placeholder = "Level " + lv + " spell"; inp.value = c.spells[lv - 1] || "";
+        inp.addEventListener("input", function(){ c.spells[lv - 1] = inp.value; scheduleSave(); });
+        inp.addEventListener("change", function(){ renderDomains(); renderSpellLevels(); });
+        row.appendChild(inp);
+        spells.appendChild(row);
+      })(lv);
+      card.appendChild(spells);
+      var turn = el("label", "custom-domain-turn");
+      var cb = el("input"); cb.type = "checkbox"; cb.checked = !!c.turning;
+      cb.addEventListener("change", function(){ c.turning = cb.checked; renderDomainTurning(); scheduleSave(); });
+      turn.appendChild(cb);
+      turn.appendChild(document.createTextNode(" Turning power (own card and uses on the Combat tab)"));
+      card.appendChild(turn);
+      box.appendChild(card);
+    });
+    var add = el("button", "add-row-btn small"); add.type = "button";
+    add.innerHTML = ICONS.plus + "<span>New house-rule domain</span>";
+    add.addEventListener("click", function(){ list.push({ name:"", power:"", spells:[], turning:false }); renderCustomDomains(); scheduleSave(); });
+    box.appendChild(add);
   }
   function onDomainsChange(){
     renderDomainPicker();
     renderDomains();
+    renderDomainTurning();
     renderSpellLevels();
     recomputeDerived();
     scheduleSave();
@@ -692,7 +786,7 @@
 
   // Domain spells for one spell level, e.g. "Make Whole (Balance) or Magic Stone (Earth)".
   function domainSlotText(level){
-    var opts = chosenDomains().filter(function(d){ return d.spells; }).map(function(d){ return d.spells[level - 1][0] + " (" + d.name + ")"; });
+    var opts = chosenDomains().filter(function(d){ return d.spells && d.spells[level - 1] && d.spells[level - 1][0] !== "—"; }).map(function(d){ return d.spells[level - 1][0] + " (" + d.name + ")"; });
     return opts.join(" or ");
   }
 

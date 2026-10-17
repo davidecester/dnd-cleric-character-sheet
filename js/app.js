@@ -77,6 +77,7 @@
         if (saved && addLedgerEntries(saved)) migrated = true;
         if (saved && trimDomainNotes(saved)) migrated = true;
         if (saved && fillStory(saved)) migrated = true;
+        if (saved && swapMagicForEarth(saved)) migrated = true;
         (state.featPlan || []).forEach(function(p){
           if (num(p.level) !== 18) return;
           if (p.name === "Combat Reflexes") p.name = "";
@@ -321,6 +322,18 @@
     if (oldBalance.test(d.balance || "")) d.balance = String(d.balance).replace(oldBalance, "");
     if (d.magic === "Can use certain Wizard spell-completion and spell-trigger items as a Wizard of half his Cleric level. Grants access to useful utility and anti-magic domain spells.") d.magic = DEFAULT_DATA.domains.magic;
     state.domainsRev = 1;
+    return true;
+  }
+
+  // The owner swapped the Magic domain for Earth: done once, so a later pick in the Build card stays.
+  function swapMagicForEarth(saved){
+    if (num(saved.domainChoiceRev) >= 1) return false;
+    var c = state.domainChoice || (state.domainChoice = DEFAULT_DATA.domainChoice.slice());
+    var i = c.indexOf("Magic");
+    if (i !== -1 && c.indexOf("Earth") === -1) c[i] = "Earth";
+    state.domains = state.domains || {};
+    if (!state.domains.earth) state.domains.earth = DEFAULT_DATA.domains.earth;
+    state.domainChoiceRev = 1;
     return true;
   }
 
@@ -677,7 +690,7 @@
     scheduleSave();
   }
 
-  // Domain spells for one spell level, e.g. "Make Whole (Balance) or Nystul's Magic Aura (Magic)".
+  // Domain spells for one spell level, e.g. "Make Whole (Balance) or Magic Stone (Earth)".
   function domainSlotText(level){
     var opts = chosenDomains().filter(function(d){ return d.spells; }).map(function(d){ return d.spells[level - 1][0] + " (" + d.name + ")"; });
     return opts.join(" or ");

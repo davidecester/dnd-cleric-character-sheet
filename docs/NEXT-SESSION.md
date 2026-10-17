@@ -25,6 +25,7 @@ allowed books, table rulings); this file covers what was in progress and what's 
 
 1. **Domains: done.** All 8 have rules; Nature is the Oriental Adventures shaman domain, allowed by table
    ruling (see `CLAUDE.md`). Two-domain picker in the Character Build; Law notice quotes the PHB rule.
+   Caelian's domains are now Balance and Earth (Magic swapped out; saved sheets switch once, `domainChoiceRev`).
 2. **Turning trackers: done.** The Turn Undead card counts attempts used today (with Undo and New day),
    has Divine Metamagic buttons once a "Divine Metamagic (…)" feat is in the feats list (cost 1 + slot increase,
    from `levels` in `feats.js`), and shows Earth / Nature turning cards with their own uses when those domains are chosen.

@@ -105,12 +105,13 @@ window.CaseFile = window.CaseFile || {};
     darkvision: 18,
     units: "m",
     ranksRev: 1,
-    domainChoice: ["Balance", "Magic"],
+    domainChoice: ["Balance", "Earth"],
+    domainChoiceRev: 1,
     turning: { log:[] },
     domainTurning: {},
     domains: {
       balance: "Reflects Caelian's pursuit of equilibrium — weighing extremes rather than favoring either side.",
-      magic: "Useful utility and anti-magic domain spells."
+      earth: "Steadfast defence and battlefield control: Stoneskin, Wall of Stone, Spike Stones."
     },
     domainsRev: 1,
     racialTraits: [

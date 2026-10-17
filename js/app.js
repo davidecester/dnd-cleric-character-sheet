@@ -357,6 +357,36 @@
     });
   }
 
+  // ---------------- Wrapping one-line fields ----------------
+  // A one-line text field that wraps long text onto more lines instead of cutting it off
+  // (narrow phones). Enter is blocked so the value stays a single line.
+  function wrapField(value, className, placeholder){
+    var ta = document.createElement("textarea");
+    ta.rows = 1; ta.className = className + " wrap-field";
+    ta.value = (value !== undefined && value !== null) ? value : "";
+    if (placeholder) ta.placeholder = placeholder;
+    ta.addEventListener("keydown", function(e){ if (e.key === "Enter") e.preventDefault(); });
+    ta.addEventListener("input", function(){
+      if (/\n/.test(ta.value)) ta.value = ta.value.replace(/\s*\n\s*/g, " ");
+      growTextarea(ta);
+    });
+    if (fieldObserver) fieldObserver.observe(ta);
+    else requestAnimationFrame(function(){ growTextarea(ta); });
+    return ta;
+  }
+  // Hidden fields measure 0 high, so each one is grown again when its width changes
+  // (tab or edit view shown, phone rotated).
+  var fieldObserver = window.ResizeObserver ? new ResizeObserver(function(entries){
+    entries.forEach(function(en){
+      var ta = en.target, w = en.contentRect.width;
+      if (w && w !== ta._grownWidth) { ta._grownWidth = w; growTextarea(ta); }
+    });
+  }) : null;
+  function regrowFields(root){
+    if (fieldObserver) return;
+    (root || document).querySelectorAll("textarea.wrap-field").forEach(function(ta){ if (ta.offsetParent) growTextarea(ta); });
+  }
+
   // ---------------- Generic list renderer ----------------
   function renderList(containerId, data, fields, onChange){
     var el = document.getElementById(containerId);
@@ -371,9 +401,12 @@
           input.type = "checkbox"; input.className = "row-check";
           input.checked = !!item[f.field];
           input.addEventListener("change", function(){ item[f.field] = input.checked; if (onChange) onChange(); scheduleSave(); });
+        } else if (!f.type && f.className !== "col-small") {
+          input = wrapField(item[f.field], f.className || "col-name", f.placeholder);
+          input.addEventListener("input", function(){ item[f.field] = input.value; if (onChange) onChange(); scheduleSave(); });
         } else {
           input = document.createElement("input");
-          input.type = f.type || "text";
+          input.type = f.type;
           input.value = (item[f.field] !== undefined && item[f.field] !== null) ? item[f.field] : "";
           input.placeholder = f.placeholder || "";
           input.className = f.className || "col-name";
@@ -405,7 +438,7 @@
       var lastRow = el.lastElementChild;
       if (!lastRow) return;
       lastRow.scrollIntoView({ behavior: "smooth", block: "center" });
-      var focusable = lastRow.querySelector('input[type="text"], input:not([type="checkbox"])');
+      var focusable = lastRow.querySelector('textarea, input[type="text"], input:not([type="checkbox"])');
       if (focusable) focusable.focus({ preventScroll: true });
     });
   }
@@ -988,7 +1021,7 @@
 
       var nameWrap = document.createElement("div"); nameWrap.className = "skill-name";
       if (s.editable) {
-        var ni = document.createElement("input"); ni.type = "text"; ni.value = s.name;
+        var ni = wrapField(s.name, "skill-name-field");
         ni.addEventListener("input", function(){ s.name = ni.value; scheduleSave(); });
         nameWrap.appendChild(ni);
       } else {
@@ -1060,7 +1093,7 @@
       renderSkills(); scheduleSave();
       requestAnimationFrame(function(){
         var last = document.getElementById("skillsList").lastElementChild;
-        if (last) { last.scrollIntoView({ behavior:"smooth", block:"center" }); var i = last.querySelector('input[type="text"]'); if (i) { i.focus({preventScroll:true}); i.select(); } }
+        if (last) { last.scrollIntoView({ behavior:"smooth", block:"center" }); var i = last.querySelector('textarea, input[type="text"]'); if (i) { i.focus({preventScroll:true}); i.select(); } }
       });
     });
   }
@@ -2193,6 +2226,7 @@
   }
 
   function bindTabs(){
+    window.addEventListener("resize", function(){ regrowFields(); });
     var buttons = document.querySelectorAll(".tab-btn");
     buttons.forEach(function(btn){
       btn.addEventListener("click", function(){
@@ -2201,6 +2235,7 @@
         btn.classList.add("active");
         document.querySelectorAll(".panel").forEach(function(p){ p.classList.remove("active"); });
         document.getElementById("panel-" + tab).classList.add("active");
+        regrowFields(document.getElementById("panel-" + tab));
         window.scrollTo(0, 0);
       });
     });

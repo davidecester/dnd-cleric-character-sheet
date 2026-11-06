@@ -52,7 +52,8 @@ allowed books, table rulings); this file covers what was in progress and what's 
   5/day until Extra Turning at 12.
 - Gear: +1 Longspear (two-handed), Morningstar, Full Plate, Periapt of Wisdom +2, Cloak of Resistance +1,
   Healer's kit (+2 Heal, in Misc). Gold 617 gp after the latest ledger lines. Counted items (rations, potions…)
-  live in the Gear tab's Items & Consumables card (`state.consumables`, name + qty).
+  live in the Gear tab's Items & Consumables card (`state.consumables`, name + qty);
+  anything else picked up goes in Other Items (`state.otherItems`).
 - Spellbook app (linked on the Magic tab): https://dnd-caelian-spellbook.cesterdav.workers.dev/
 
 ## How the owner likes the UI

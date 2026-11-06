@@ -2054,6 +2054,7 @@
   }
   function renderEquipment(){ renderList("equipmentList", state.equipment, EQUIPMENT_FIELDS); }
   function renderMountGear(){ renderList("mountList", state.mountGear, EQUIPMENT_FIELDS); }
+  function renderOtherItems(){ state.otherItems = state.otherItems || []; renderList("otherItemsList", state.otherItems, EQUIPMENT_FIELDS); }
 
   // Name, a count with - / + (typed or stepped), and remove.
   function renderConsumables(){
@@ -2189,6 +2190,7 @@
     safe(renderEquipment, "renderEquipment");
     safe(renderMountGear, "renderMountGear");
     safe(renderConsumables, "renderConsumables");
+    safe(renderOtherItems, "renderOtherItems");
     safe(renderLedger, "renderLedger");
   }
 
@@ -2260,6 +2262,7 @@
         last.querySelector("textarea").focus({ preventScroll:true });
       });
     });
+    document.getElementById("addOtherItem").addEventListener("click", function(){ state.otherItems = state.otherItems || []; addAndReveal("otherItemsList", state.otherItems, { name:"" }, EQUIPMENT_FIELDS); });
     document.getElementById("addLedger").addEventListener("click", function(){ addAndReveal("ledgerList", state.ledger, { desc:"", amount:0 }, LEDGER_FIELDS, computeLedgerTotal); });
     document.getElementById("addSpellLevel").addEventListener("click", function(){
       var nextLevel = state.spellLevels.length ? Math.max.apply(null, state.spellLevels.map(function(l){ return num(l.level); })) + 1 : 0;

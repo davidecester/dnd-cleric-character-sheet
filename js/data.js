@@ -139,6 +139,7 @@ window.CaseFile = window.CaseFile || {};
     consumables: [
       { name:"Trail rations (days)", qty:40 }
     ],
+    otherItems: [],
     ledger: [
       { desc:"Previous funds", amount:25 }, { desc:"Additional funds received", amount:400 },
       { desc:"Light Horse", amount:-75 }, { desc:"Riding Saddle", amount:-10 },

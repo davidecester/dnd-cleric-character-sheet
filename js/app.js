@@ -78,6 +78,7 @@
         if (saved && trimDomainNotes(saved)) migrated = true;
         if (saved && fillStory(saved)) migrated = true;
         if (saved && swapMagicForEarth(saved)) migrated = true;
+        if (saved && addConsumables(saved)) migrated = true;
         (state.featPlan || []).forEach(function(p){
           if (num(p.level) !== 18) return;
           if (p.name === "Combat Reflexes") p.name = "";
@@ -306,6 +307,20 @@
   }
 
   // Gold since level 6: quest reward, paid information, stable.
+  // Items & Consumables is a new Gear card. Saved sheets start it once, moving the
+  // trail rations line out of Mount & Travel (its number becomes the count).
+  function addConsumables(saved){
+    if (saved.consumables) return false;
+    state.consumables = [];
+    state.mountGear = (state.mountGear || []).filter(function(g){
+      var m = /^\s*(\d+)\s+(?:days?\s+(?:of\s+)?)?trail rations?\s*$/i.exec(String(g.name || ""));
+      if (!m) return true;
+      state.consumables.push({ name:"Trail rations (days)", qty:Number(m[1]) });
+      return false;
+    });
+    return true;
+  }
+
   function addLedgerEntries(saved){
     if (num(saved.ledgerRev) >= 1 || !saved.ledger) return false;
     DEFAULT_DATA.ledger.slice(-3).forEach(function(e){ state.ledger.push(clone(e)); });
@@ -2039,6 +2054,41 @@
   }
   function renderEquipment(){ renderList("equipmentList", state.equipment, EQUIPMENT_FIELDS); }
   function renderMountGear(){ renderList("mountList", state.mountGear, EQUIPMENT_FIELDS); }
+  function renderOtherItems(){ state.otherItems = state.otherItems || []; renderList("otherItemsList", state.otherItems, EQUIPMENT_FIELDS); }
+
+  // Name, a count with - / + (typed or stepped), and remove.
+  function renderConsumables(){
+    var list = state.consumables = state.consumables || [];
+    var box = document.getElementById("consumableList");
+    box.innerHTML = "";
+    list.forEach(function(item, idx){
+      var row = document.createElement("div");
+      row.className = "list-row consumable-row";
+      var name = wrapField(item.name, "col-name", "Item");
+      name.addEventListener("input", function(){ item.name = name.value; scheduleSave(); });
+      var step = document.createElement("div");
+      step.className = "qty-stepper";
+      var minus = document.createElement("button"), plus = document.createElement("button");
+      var qty = document.createElement("input");
+      minus.type = plus.type = "button";
+      minus.innerHTML = ICONS.minus; plus.innerHTML = ICONS.plus;
+      minus.setAttribute("aria-label", "Use one");
+      plus.setAttribute("aria-label", "Add one");
+      qty.type = "number"; qty.inputMode = "numeric"; qty.min = "0"; qty.className = "qty-val";
+      qty.setAttribute("aria-label", "Quantity");
+      function paint(){ qty.value = (item.qty === "" || item.qty === undefined) ? "" : item.qty; minus.disabled = num(item.qty) <= 0; }
+      minus.addEventListener("click", function(){ item.qty = Math.max(0, num(item.qty) - 1); paint(); scheduleSave(); });
+      plus.addEventListener("click", function(){ item.qty = num(item.qty) + 1; paint(); scheduleSave(); });
+      qty.addEventListener("input", function(){ item.qty = qty.value === "" ? "" : Math.max(0, Number(qty.value)); minus.disabled = num(item.qty) <= 0; scheduleSave(); });
+      paint();
+      step.appendChild(minus); step.appendChild(qty); step.appendChild(plus);
+      var del = document.createElement("button");
+      del.className = "row-del"; del.setAttribute("aria-label", "Remove"); del.innerHTML = ICONS.remove;
+      del.addEventListener("click", function(){ list.splice(idx, 1); renderConsumables(); scheduleSave(); });
+      row.appendChild(name); row.appendChild(step); row.appendChild(del);
+      box.appendChild(row);
+    });
+  }
 
   function computeLedgerTotal(){
     var total = state.ledger.reduce(function(sum, entry){ return sum + num(entry.amount); }, 0);
@@ -2139,6 +2189,8 @@
     safe(renderDomains, "renderDomains");
     safe(renderEquipment, "renderEquipment");
     safe(renderMountGear, "renderMountGear");
+    safe(renderConsumables, "renderConsumables");
+    safe(renderOtherItems, "renderOtherItems");
     safe(renderLedger, "renderLedger");
   }
 
@@ -2199,6 +2251,18 @@
     document.getElementById("addRacial").addEventListener("click", function(){ addAndReveal("racialList", state.racialTraits, { text:"" }, RACIAL_FIELDS); });
     document.getElementById("addEquipment").addEventListener("click", function(){ addAndReveal("equipmentList", state.equipment, { name:"" }, EQUIPMENT_FIELDS); });
     document.getElementById("addMount").addEventListener("click", function(){ addAndReveal("mountList", state.mountGear, { name:"" }, EQUIPMENT_FIELDS); });
+    document.getElementById("addConsumable").addEventListener("click", function(){
+      state.consumables = state.consumables || [];
+      state.consumables.push({ name:"", qty:1 });
+      renderConsumables(); scheduleSave();
+      requestAnimationFrame(function(){
+        var last = document.getElementById("consumableList").lastElementChild;
+        if (!last) return;
+        last.scrollIntoView({ behavior:"smooth", block:"center" });
+        last.querySelector("textarea").focus({ preventScroll:true });
+      });
+    });
+    document.getElementById("addOtherItem").addEventListener("click", function(){ state.otherItems = state.otherItems || []; addAndReveal("otherItemsList", state.otherItems, { name:"" }, EQUIPMENT_FIELDS); });
     document.getElementById("addLedger").addEventListener("click", function(){ addAndReveal("ledgerList", state.ledger, { desc:"", amount:0 }, LEDGER_FIELDS, computeLedgerTotal); });
     document.getElementById("addSpellLevel").addEventListener("click", function(){
       var nextLevel = state.spellLevels.length ? Math.max.apply(null, state.spellLevels.map(function(l){ return num(l.level); })) + 1 : 0;

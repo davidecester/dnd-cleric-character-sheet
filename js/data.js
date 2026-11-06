@@ -134,8 +134,12 @@ window.CaseFile = window.CaseFile || {};
       { name:"Silver holy symbol" }, { name:"Healer's kit (+2 Heal, in Misc)" }, { name:"Spell component pouch" }, { name:"Standard adventuring equipment" }
     ],
     mountGear: [
-      { name:"Light Horse" }, { name:"Riding Saddle" }, { name:"Bit and Bridle" }, { name:"40 days trail rations" }
+      { name:"Light Horse" }, { name:"Riding Saddle" }, { name:"Bit and Bridle" }
     ],
+    consumables: [
+      { name:"Trail rations (days)", qty:40 }
+    ],
+    otherItems: [],
     ledger: [
       { desc:"Previous funds", amount:25 }, { desc:"Additional funds received", amount:400 },
       { desc:"Light Horse", amount:-75 }, { desc:"Riding Saddle", amount:-10 },

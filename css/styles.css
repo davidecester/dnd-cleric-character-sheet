@@ -147,7 +147,7 @@ input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none;margin:0;}
 .attack-entry{padding:10px 12px;margin-bottom:8px;border-radius:12px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);}
 .attack-top{display:flex;justify-content:space-between;align-items:baseline;gap:4px 12px;flex-wrap:wrap;}
 .attack-name{font-weight:700;color:var(--text-1);font-size:15px;overflow-wrap:anywhere;}
-.attack-nums{font-family:var(--font-mono);font-size:15px;color:var(--gold-strong);white-space:nowrap;}
+.attack-nums{font-family:var(--font-mono);font-size:15px;color:var(--celestial);white-space:nowrap;}
 .attack-notes{font-size:12.5px;line-height:1.4;color:var(--text-2);margin-top:4px;}
 /* Column labels above the attack edit rows */
 .list-head{display:flex;gap:6px;margin-bottom:4px;font-family:var(--font-mono);font-size:9px;letter-spacing:1px;color:var(--text-3);text-transform:uppercase;}
@@ -204,12 +204,12 @@ input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none;margin:0;}
 .stat-box label{display:block;font-family:var(--font-mono);font-size:9px;letter-spacing:1px;color:var(--text-2);margin-bottom:4px;text-transform:uppercase;}
 .stat-box .signed{display:flex;align-items:center;justify-content:center;gap:0;}
 .stat-box .signed span{font-family:var(--font-mono);font-size:16px;color:var(--text-1);}
-/* Read-only (worked out from class levels): sign and number both in the muted colour */
-.stat-box .signed:has(input[readonly]) span, .stat-box input[readonly]{color:var(--text-2);}
+/* Read-only (worked out by the sheet): sign and number both light blue, like every computed value */
+.stat-box .signed:has(input[readonly]) span, .stat-box input[readonly]{color:var(--celestial);}
 .stat-box .signed input{width:3ch;flex:0 0 auto;padding:0;text-align:left;font-size:16px;}
 .stat-box input{width:100%;background:transparent;border:none;color:var(--text-1);font-family:var(--font-mono);font-size:16px;text-align:center;}
 .stat-box input:focus{outline:none;}
-.computed-value{font-family:var(--font-mono);font-size:16px;color:var(--text-1);}
+.computed-value{font-family:var(--font-mono);font-size:16px;color:var(--celestial);}
 
 /* ---------- HP block ---------- */
 .hp-block{background:rgba(255,255,255,0.05);border:1px solid var(--glass-border);border-radius:var(--radius-md);padding:13px 15px;margin-bottom:12px;}
@@ -219,7 +219,7 @@ input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none;margin:0;}
 .hp-values input{background:transparent;border:none;color:var(--text-1);font-size:25px;font-weight:600;width:calc(2.4ch + 12px);min-width:0;height:auto;line-height:1.3;padding:0 6px 2px 2px;text-align:right;-webkit-appearance:none;appearance:none;}
 .hp-values input:focus{outline:none;}
 .hp-sep{color:var(--text-2);font-size:17px;}
-.hp-max{color:var(--text-2) !important;font-size:15px !important;padding:0 4px 2px 4px !important;text-align:left !important;font-weight:400 !important;}
+.hp-max{color:var(--celestial) !important;font-size:15px !important;padding:0 4px 2px 4px !important;text-align:left !important;font-weight:400 !important;}
 .hp-bar-track{height:6px;background:rgba(0,0,0,0.3);border-radius:3px;overflow:hidden;margin-bottom:10px;}
 .hp-bar-fill{height:100%;background:linear-gradient(90deg,var(--rose),var(--gold-strong));transition:width .3s;}
 .resist-block{margin-top:2px;}
@@ -255,6 +255,7 @@ details.breakdown[open] summary::after{content:' ▴';}
 .stat-box input[readonly]{cursor:default;}
 .bd-field input[readonly]{background:rgba(127,212,255,0.08);border-color:rgba(127,212,255,.25);}
 .ability-cell input[readonly], .hp-values input[readonly]{cursor:default;}
+.ability-cell input[readonly]{color:var(--celestial);}
 .bd-field input:focus{outline:none;border-color:var(--celestial);}
 .save-bd-row{display:flex;align-items:center;gap:6px;margin-bottom:8px;flex-wrap:wrap;}
 .save-bd-label{font-family:var(--font-mono);font-size:11px;color:var(--gold-strong);width:36px;flex:0 0 auto;}
@@ -278,7 +279,7 @@ details.breakdown[open] summary::after{content:' ▴';}
 .qty-stepper button{width:30px;height:30px;border-radius:50%;background:rgba(255,255,255,0.08);border:1px solid var(--glass-border);color:var(--text-1);display:inline-flex;align-items:center;justify-content:center;padding:0;}
 .qty-stepper button:disabled{opacity:.35;}
 .qty-stepper .btn-icon{width:13px;height:13px;}
-.list-row .qty-stepper input.qty-val{width:46px;flex:0 0 46px;text-align:center;font-family:var(--font-mono);color:var(--celestial);padding:8px 2px;-moz-appearance:textfield;}
+.list-row .qty-stepper input.qty-val{width:46px;flex:0 0 46px;text-align:center;font-family:var(--font-mono);color:var(--text-1);padding:8px 2px;-moz-appearance:textfield;}
 .qty-stepper input.qty-val::-webkit-outer-spin-button, .qty-stepper input.qty-val::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;}
 .row-del{background:rgba(229,154,154,0.12);border:1px solid rgba(229,154,154,0.4);color:var(--rose);border-radius:50%;width:30px;height:30px;flex:0 0 auto;font-size:13px;line-height:1;}
 .row-del:active{background:var(--rose);color:#2a1414;}
@@ -375,8 +376,9 @@ details.breakdown[open] summary::after{content:' ▴';}
 .turn-reset{margin-top:10px;}
 .turn-stats{display:flex;gap:14px;flex-wrap:wrap;margin-top:8px;font-family:var(--font-mono);font-size:12px;color:var(--text-2);}
 .turn-stats b{color:var(--text-1);font-weight:500;}
-.stat-box.buffed{border-color:rgba(127,212,255,0.6);box-shadow:0 0 12px rgba(127,212,255,0.25);}
-.stat-box.buffed .computed-value{color:var(--celestial);}
+/* Boosted for now (e.g. Balance domain): gold, since light blue marks every worked-out value */
+.stat-box.buffed{border-color:rgba(232,195,122,0.6);box-shadow:0 0 12px rgba(232,195,122,0.25);}
+.stat-box.buffed .computed-value{color:var(--gold-strong);}
 
 /* ---------- Skills ---------- */
 .skill-head,.skill-row{display:grid;grid-template-columns:22px 1fr 48px 44px 42px;gap:6px;align-items:center;}

@@ -79,10 +79,11 @@
         if (saved && fillStory(saved)) migrated = true;
         if (saved && swapMagicForEarth(saved)) migrated = true;
         if (saved && addConsumables(saved)) migrated = true;
+        if (saved && quickenFeatPlan(saved)) migrated = true;
         (state.featPlan || []).forEach(function(p){
-          if (num(p.level) !== 18) return;
-          if (p.name === "Combat Reflexes") p.name = "";
-          if (!p.name && !p.options) p.options = clone(DEFAULT_DATA.featPlan.filter(function(d){ return num(d.level) === 18; })[0].options || []);
+          if (num(p.level) === 18 && p.name === "Combat Reflexes") p.name = "";
+          var def = DEFAULT_DATA.featPlan.filter(function(d){ return num(d.level) === num(p.level); })[0];
+          if (!p.name && !p.options && def && def.options) p.options = clone(def.options);
         });
         computeBuild(false);
       })
@@ -131,7 +132,7 @@
 
   // Level 6 (cleric 6): applied once to a sheet saved at level 5. Everything is added on
   // top of the saved values, so the user's own edits (skill ranks above all) are kept.
-  // Cleric 6: BAB +1, all base saves +1, hp 7 (d8 roll) + 3 Con, feat Persistent Spell,
+  // Cleric 6: BAB +1, all base saves +1, hp 7 (d8 roll) + 3 Con, feat Divine Metamagic (Quicken Spell),
   // 2 skill points (1 Concentration, 1 Diplomacy), one more 2nd- and 3rd-level slot.
   function levelUpTo6(saved){
     if (num(saved.level) !== 5) return false;
@@ -145,8 +146,8 @@
       var b = String(a.bonus || "").trim();
       if (/^[+-]?\d+$/.test(b)) { var n = Number(b) + 1; a.bonus = (n >= 0 ? "+" : "") + n; }
     });
-    var hasFeat = (state.feats || []).some(function(f){ return String(f.name || "").toLowerCase() === "persistent spell"; });
-    if (!hasFeat) state.feats.push({ name:"Persistent Spell", notes:"" });
+    var hasFeat = (state.feats || []).some(function(f){ return /^(persistent spell|divine metamagic\b)/i.test(String(f.name || "")); });
+    if (!hasFeat) state.feats.push({ name:"Divine Metamagic (Quicken Spell)", notes:"" });
     (state.skills || []).forEach(function(sk){
       if (sk.name === "Concentration" || sk.name === "Diplomacy") sk.ranks = num(sk.ranks) + 1;
       if (sk.name === "Heal") sk.misc = num(sk.misc) + 2;
@@ -318,6 +319,21 @@
       state.consumables.push({ name:"Trail rations (days)", qty:Number(m[1]) });
       return false;
     });
+    return true;
+  }
+
+  // New feat progression (owner's choice): Quicken Spell at 3 and Divine Metamagic (Quicken Spell)
+  // at 6 replace Extend Spell and Persistent Spell; Extra Turning at 9 and 12; 15 and 18 open.
+  // Applied once; other feats in the list stay as they are.
+  function quickenFeatPlan(saved){
+    if (num(saved.featPlanRev) >= 1) return false;
+    state.featPlan = clone(DEFAULT_DATA.featPlan);
+    var swap = { "extend spell":"Quicken Spell", "persistent spell":"Divine Metamagic (Quicken Spell)" };
+    state.feats = (state.feats || []).map(function(f){
+      var to = swap[String(f.name || "").trim().toLowerCase()];
+      return to ? { name:to, notes:f.notes || "" } : f;
+    });
+    state.featPlanRev = 1;
     return true;
   }
 

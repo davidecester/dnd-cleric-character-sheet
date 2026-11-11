@@ -37,8 +37,8 @@ allowed books, table rulings); this file covers what was in progress and what's 
    (`state.lastLevelUp`). When prestige classes exist, add a class choice as the first step (`lu.cls`).
 4. **Prestige classes.** The owner plans one or two; they'll send which. Add each to `CLASSES` in
    `js/classes.js` (BAB, saves, hit die, skill points, spellcasting advance via `casterOf`).
-5. **Feat plan, level 18:** still to choose (options in the Build card and in the level-up feat step: Quicken Spell,
-   Martial Study (Devoted Spirit), a third Extra Turning, or something else).
+5. **Feat plan, levels 15 and 18:** still to choose (options in the Build card and in the level-up feat step:
+   a third Extra Turning, Divine Might, Martial Study (Devoted Spirit), or something else).
 6. **Check on the owner's iPhone:** hp digits no longer cropped; icon/label centring with IBM Plex Mono.
 
 ## Character facts (Caelian Vàel)
@@ -47,9 +47,11 @@ allowed books, table rulings); this file covers what was in progress and what's 
   +2 Wis, +2 Cha; darkvision 18 m; resist acid/cold/electricity 5; Daylight 1/day; +2 Listen/Spot.
 - Cleric 6, Neutral Good. Base abilities 18/10/16/10/18/12; +1 Wis at level 4; Periapt of Wisdom +2.
 - HP rolls 8 (max at 1st), then 7s: 61 max. Skill ranks: Concentration 9, Knowledge (religion) 8, Diplomacy 1.
-- Feats: Power Attack (1), Extend Spell (3), Persistent Spell (6). Plan: Divine Metamagic (Persistent) 9,
-  Extra Turning 12 and 15, level 18 open. Divine Metamagic + Persistent costs 7 turn attempts; he has
-  5/day until Extra Turning at 12.
+- Feats: Power Attack (1), Quicken Spell (3), Divine Metamagic (Quicken Spell) (6). Plan: Extra Turning 9 and 12,
+  15 and 18 open (`featPlanRev` 1 migrated old sheets from Extend/Persistent). Divine Metamagic + Quicken costs
+  5 turn attempts: he has 5/day now (one quickened spell), 9 at 9 and 13 at 12.
+- Weapons: one-handed Morningstar works with a shield and Power Attack (1:1). Spear and longspear are two-handed
+  (no shield except a buckler, −1 attack); Power Attack doubles with them. Shortspear is one-handed.
 - Gear: +1 Longspear (two-handed), Morningstar, Full Plate, Periapt of Wisdom +2, Cloak of Resistance +1,
   Healer's kit (+2 Heal, in Misc). Gold 617 gp after the latest ledger lines. Counted items (rations, potions…)
   live in the Gear tab's Items & Consumables card (`state.consumables`, name + qty);

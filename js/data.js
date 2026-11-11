@@ -39,6 +39,7 @@ window.CaseFile = window.CaseFile || {};
       ] }
     ],
     featPlanRev: 1,
+    shieldRev: 1,
     buildRev: 1,
     abilities: { str:18, dex:10, con:16, int:10, wis:23, cha:14 },
     hp: { current:61, max:61 },

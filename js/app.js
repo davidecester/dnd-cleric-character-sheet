@@ -80,6 +80,7 @@
         if (saved && swapMagicForEarth(saved)) migrated = true;
         if (saved && addConsumables(saved)) migrated = true;
         if (saved && quickenFeatPlan(saved)) migrated = true;
+        if (saved && addHeavyShield(saved)) migrated = true;
         (state.featPlan || []).forEach(function(p){
           if (num(p.level) === 18 && p.name === "Combat Reflexes") p.name = "";
           var def = DEFAULT_DATA.featPlan.filter(function(d){ return num(d.level) === num(p.level); })[0];
@@ -342,6 +343,20 @@
       return to ? { name:to, notes:f.notes || "" } : f;
     });
     state.featPlanRev = 1;
+    return true;
+  }
+
+  // Heavy steel shield (+2 AC, armor check penalty −2): once, fills in only what the saved sheet
+  // is still missing, so anything the owner already entered stays as it is.
+  function addHeavyShield(saved){
+    if (num(saved.shieldRev) >= 1) return false;
+    if (!String(state.shield || "").trim()) state.shield = "Heavy Steel Shield";
+    state.ac = state.ac || {};
+    if (!num(state.ac.shield)) state.ac.shield = 2;
+    if (num(state.skillAcp) === -6) state.skillAcp = -8;
+    var gear = (state.equipment || []).map(function(e){ return String(e.name || "").toLowerCase(); }).join("\n");
+    if (gear.indexOf("shield") === -1) (state.equipment = state.equipment || []).push({ name:"Heavy Steel Shield" });
+    state.shieldRev = 1;
     return true;
   }
 

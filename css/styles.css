@@ -204,6 +204,8 @@ input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none;margin:0;}
 .stat-box label{display:block;font-family:var(--font-mono);font-size:9px;letter-spacing:1px;color:var(--text-2);margin-bottom:4px;text-transform:uppercase;}
 .stat-box .signed{display:flex;align-items:center;justify-content:center;gap:0;}
 .stat-box .signed span{font-family:var(--font-mono);font-size:16px;color:var(--text-1);}
+/* Read-only (worked out from class levels): sign and number both in the muted colour */
+.stat-box .signed:has(input[readonly]) span, .stat-box input[readonly]{color:var(--text-2);}
 .stat-box .signed input{width:3ch;flex:0 0 auto;padding:0;text-align:left;font-size:16px;}
 .stat-box input{width:100%;background:transparent;border:none;color:var(--text-1);font-family:var(--font-mono);font-size:16px;text-align:center;}
 .stat-box input:focus{outline:none;}

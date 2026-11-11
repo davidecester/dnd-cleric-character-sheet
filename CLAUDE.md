@@ -53,6 +53,9 @@ at the end of `styles.css`; check those widths too when adding or reordering car
     character's race (lesser aasimar: Player's Guide to Faerûn)
 - Distances are metric (3.5 convention: 5 ft = 1.5 m, so 30 ft = 9 m, 60 ft = 18 m). Don't add feet.
 - Match the existing style: vanilla JS in an IIFE, ES5-style (`var`, `function`), no frameworks.
+- Colours for numbers: stat numbers are white (`--text-1`) whether the user types them or the sheet works them
+  out (AC, saves, BAB, grapple, item counts…). Light blue (`--celestial`) on a stat box means a temporary boost
+  (e.g. Balance on AC, `.buffed`); don't use it to mark read-only values.
 - Text that the user reads in view mode should wrap, not be clipped by fixed-width inputs.
   The header uses a view/edit toggle (Edit / Done, SVG icons from `ICONS` via `paintToggle()`); reuse that pattern for
   other sections that need editing.

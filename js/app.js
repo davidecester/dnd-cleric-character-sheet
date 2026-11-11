@@ -80,6 +80,7 @@
         if (saved && swapMagicForEarth(saved)) migrated = true;
         if (saved && addConsumables(saved)) migrated = true;
         if (saved && quickenFeatPlan(saved)) migrated = true;
+        if (saved && addHeavyShield(saved)) migrated = true;
         (state.featPlan || []).forEach(function(p){
           if (num(p.level) === 18 && p.name === "Combat Reflexes") p.name = "";
           var def = DEFAULT_DATA.featPlan.filter(function(d){ return num(d.level) === num(p.level); })[0];
@@ -191,6 +192,14 @@
     Object.keys(inc).forEach(function(l){ if (num(l) <= lvl && inc[l] === key) n++; });
     return n;
   }
+  // BAB is read-only: the input is as wide as its digits so "+4" sits centred under the label.
+  function showBab(){
+    var e = document.getElementById("bab");
+    if (!e) return;
+    e.value = state.bab;
+    e.style.width = Math.max(1, String(state.bab).length) + "ch";
+  }
+
   function featCount(name){
     return (state.feats || []).filter(function(f){ return String(f.name || "").trim().toLowerCase() === name.toLowerCase(); }).length;
   }
@@ -337,9 +346,26 @@
     return true;
   }
 
+  // Heavy steel shield (+2 AC, armor check penalty −2): once, fills in only what the saved sheet
+  // is still missing, so anything the owner already entered stays as it is.
+  function addHeavyShield(saved){
+    if (num(saved.shieldRev) >= 1) return false;
+    if (!String(state.shield || "").trim()) state.shield = "Heavy Steel Shield";
+    state.ac = state.ac || {};
+    if (!num(state.ac.shield)) state.ac.shield = 2;
+    if (num(state.skillAcp) === -6) state.skillAcp = -8;
+    var gear = (state.equipment || []).map(function(e){ return String(e.name || "").toLowerCase(); }).join("\n");
+    if (!/shield|scudo/.test(gear)) (state.equipment = state.equipment || []).push({ name:"Heavy Steel Shield" });
+    var paid = (state.ledger || []).some(function(e){ return /shield|scudo/i.test(String(e.desc || "")); });
+    if (!paid) (state.ledger = state.ledger || []).push({ desc:"Heavy Steel Shield", amount:-30 });
+    state.shieldRev = 1;
+    return true;
+  }
+
   function addLedgerEntries(saved){
     if (num(saved.ledgerRev) >= 1 || !saved.ledger) return false;
-    DEFAULT_DATA.ledger.slice(-3).forEach(function(e){ state.ledger.push(clone(e)); });
+    var add = ["Quest reward", "Information and access to a source", "Stable for the horse"];
+    DEFAULT_DATA.ledger.forEach(function(e){ if (add.indexOf(e.desc) !== -1) state.ledger.push(clone(e)); });
     state.ledgerRev = 1;
     return true;
   }
@@ -1191,7 +1217,8 @@
     });
 
     var babEl = document.getElementById("bab");
-    babEl.value = state.bab; babEl.readOnly = true; babEl.title = "From your class levels";
+    babEl.readOnly = true; babEl.title = "From your class levels";
+    showBab();
 
     // AC breakdown
     ["armor","shield","dex","size","natural","deflection","misc"].forEach(function(k){
@@ -1439,7 +1466,7 @@
   function rebuild(){
     computeBuild(true);
     renderAbilities();
-    document.getElementById("bab").value = state.bab;
+    showBab();
     ["fort","ref","will"].forEach(function(k){ document.getElementById("save-" + k + "-base").value = state.saves[k].base; });
     document.getElementById("hp-max").value = state.hp.max;
     document.getElementById("hp-current").value = state.hp.current;

@@ -39,11 +39,12 @@ window.CaseFile = window.CaseFile || {};
       ] }
     ],
     featPlanRev: 1,
+    shieldRev: 1,
     buildRev: 1,
     abilities: { str:18, dex:10, con:16, int:10, wis:23, cha:14 },
     hp: { current:61, max:61 },
     bab: 4,
-    ac: { armor:8, shield:0, dex:0, size:0, natural:0, deflection:0, misc:0 },
+    ac: { armor:8, shield:2, dex:0, size:0, natural:0, deflection:0, misc:0 },
     saves: {
       fort: { base:5, magic:1, misc:0, temp:0 },
       ref:  { base:2, magic:1, misc:0, temp:0 },
@@ -52,7 +53,7 @@ window.CaseFile = window.CaseFile || {};
     grapple: { size:0, misc:0 },
     speed: 6,
     balance: { active:false, rounds:0, used:0 },
-    skillAcp: -6,
+    skillAcp: -8,
     skills: [
       { name:"Appraise", ability:"int", untrained:true, acp:0, cls:false, ranks:0, misc:0, editable:false },
       { name:"Balance", ability:"dex", untrained:true, acp:1, cls:false, ranks:0, misc:0, editable:false },
@@ -96,10 +97,10 @@ window.CaseFile = window.CaseFile || {};
     initiative: { misc:0 },
     attacks: [
       { name:"+1 Longspear", dice:"1d8", enh:1, bonus:"+9", damage:"1d8+7", notes:"Crit ×3 · Piercing · Reach 3 m · Two-handed · Main melee weapon" },
-      { name:"Morningstar", dice:"1d8", enh:0, bonus:"+8", damage:"1d8+4", notes:"Crit ×2 · Bludgeoning & piercing · One-handed · Backup vs foes inside longspear reach" }
+      { name:"Morningstar", dice:"1d8", enh:0, bonus:"+8", damage:"1d8+4", notes:"Crit ×2 · Bludgeoning & piercing · One-handed · With the heavy steel shield, or vs foes inside longspear reach" }
     ],
     armor: "Full Plate",
-    shield: "",
+    shield: "Heavy Steel Shield",
     feats: [
       { name:"Power Attack", notes:"" },
       { name:"Quicken Spell", notes:"" },
@@ -134,7 +135,7 @@ window.CaseFile = window.CaseFile || {};
       { level:3, dc:19, total:0, remaining:0, spells:[] }
     ],
     equipment: [
-      { name:"+1 Longspear" }, { name:"Morningstar" }, { name:"Full Plate" },
+      { name:"+1 Longspear" }, { name:"Morningstar" }, { name:"Full Plate" }, { name:"Heavy Steel Shield" },
       { name:"Periapt of Wisdom +2" }, { name:"Cloak of Resistance +1" },
       { name:"Silver holy symbol" }, { name:"Healer's kit (+2 Heal, in Misc)" }, { name:"Spell component pouch" }, { name:"Standard adventuring equipment" }
     ],
@@ -150,7 +151,10 @@ window.CaseFile = window.CaseFile || {};
       { desc:"Light Horse", amount:-75 }, { desc:"Riding Saddle", amount:-10 },
       { desc:"Bit and Bridle", amount:-2 }, { desc:"40 Trail Rations", amount:-20 },
       { desc:"Quest reward", amount:550 }, { desc:"Information and access to a source", amount:-250 },
-      { desc:"Stable for the horse", amount:-1 }
+      { desc:"Stable for the horse", amount:-1 },
+      { desc:"Reward Mission - Iron Watch", amount:150 }, { desc:"Imperial Wage", amount:50 },
+      { desc:"Quest Reward - Lord Morga", amount:500 }, { desc:"Code of Law of Tyr Morga and Judges", amount:-3 },
+      { desc:"Heavy Steel Shield", amount:-30 }
     ],
     ledgerRev: 1,
     appearance: "Caelian “Kael” Vàel, age 21.\n\nIvory-white hair, fair skin lightly tanned by the sun, topaz eyes (with violet and golden-bronze glints), a powerful, resonant voice.\n\nLongspear, heavy armour with a helm, and well-made travelling clothes.",

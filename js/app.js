@@ -364,7 +364,8 @@
 
   function addLedgerEntries(saved){
     if (num(saved.ledgerRev) >= 1 || !saved.ledger) return false;
-    DEFAULT_DATA.ledger.slice(-3).forEach(function(e){ state.ledger.push(clone(e)); });
+    var add = ["Quest reward", "Information and access to a source", "Stable for the horse"];
+    DEFAULT_DATA.ledger.forEach(function(e){ if (add.indexOf(e.desc) !== -1) state.ledger.push(clone(e)); });
     state.ledgerRev = 1;
     return true;
   }

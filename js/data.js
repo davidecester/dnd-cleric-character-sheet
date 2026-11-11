@@ -151,7 +151,10 @@ window.CaseFile = window.CaseFile || {};
       { desc:"Light Horse", amount:-75 }, { desc:"Riding Saddle", amount:-10 },
       { desc:"Bit and Bridle", amount:-2 }, { desc:"40 Trail Rations", amount:-20 },
       { desc:"Quest reward", amount:550 }, { desc:"Information and access to a source", amount:-250 },
-      { desc:"Stable for the horse", amount:-1 }, { desc:"Heavy Steel Shield", amount:-30 }
+      { desc:"Stable for the horse", amount:-1 },
+      { desc:"Reward Mission - Iron Watch", amount:150 }, { desc:"Imperial Wage", amount:50 },
+      { desc:"Quest Reward - Lord Morga", amount:500 }, { desc:"Code of Law of Tyr Morga and Judges", amount:-3 },
+      { desc:"Heavy Steel Shield", amount:-30 }
     ],
     ledgerRev: 1,
     appearance: "Caelian “Kael” Vàel, age 21.\n\nIvory-white hair, fair skin lightly tanned by the sun, topaz eyes (with violet and golden-bronze glints), a powerful, resonant voice.\n\nLongspear, heavy armour with a helm, and well-made travelling clothes.",

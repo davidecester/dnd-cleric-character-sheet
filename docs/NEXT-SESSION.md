@@ -53,7 +53,7 @@ allowed books, table rulings); this file covers what was in progress and what's 
 - Weapons: one-handed Morningstar works with a shield and Power Attack (1:1). Spear and longspear are two-handed
   (no shield except a buckler, −1 attack); Power Attack doubles with them. Shortspear is one-handed.
 - Gear: +1 Longspear (two-handed), Morningstar, Full Plate, Heavy Steel Shield (+2 AC; armor check penalty −8 with the plate), Periapt of Wisdom +2, Cloak of Resistance +1,
-  Healer's kit (+2 Heal, in Misc). Gold 587 gp after the latest ledger lines (shield −30). Counted items (rations, potions…)
+  Healer's kit (+2 Heal, in Misc). Gold 1284 gp after the latest ledger lines (Iron Watch, Imperial Wage, Lord Morga, Code of Law, shield −30). Counted items (rations, potions…)
   live in the Gear tab's Items & Consumables card (`state.consumables`, name + qty);
   anything else picked up goes in Other Items (`state.otherItems`).
 - Spellbook app (linked on the Magic tab): https://dnd-caelian-spellbook.cesterdav.workers.dev/

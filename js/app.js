@@ -322,19 +322,17 @@
     return true;
   }
 
-  // New feat progression (owner's choice): Extra Turning at 1, Quicken Spell at 3 and Divine Metamagic
-  // (Quicken Spell) at 6 replace Power Attack, Extend Spell and Persistent Spell; Power Attack moves to 9,
-  // Extra Turning again at 12; 15 and 18 open.
+  // New feat progression (owner's choice): Quicken Spell at 3 and Divine Metamagic (Quicken Spell)
+  // at 6 replace Extend Spell and Persistent Spell; Extra Turning at 9 and 12; 15 and 18 open.
   // Applied once; other feats in the list stay as they are.
   function quickenFeatPlan(saved){
     if (num(saved.featPlanRev) >= 1) return false;
     state.featPlan = clone(DEFAULT_DATA.featPlan);
-    var swap = { "power attack":"Extra Turning", "extend spell":"Quicken Spell", "persistent spell":"Divine Metamagic (Quicken Spell)" };
+    var swap = { "extend spell":"Quicken Spell", "persistent spell":"Divine Metamagic (Quicken Spell)" };
     state.feats = (state.feats || []).map(function(f){
       var to = swap[String(f.name || "").trim().toLowerCase()];
       return to ? { name:to, notes:f.notes || "" } : f;
     });
-    state.powerAttack = 0;
     state.featPlanRev = 1;
     return true;
   }

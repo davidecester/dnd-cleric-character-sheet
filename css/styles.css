@@ -249,7 +249,8 @@ details.breakdown[open] summary::after{content:' ▴';}
   color:var(--text-1);font-family:var(--font-mono);font-size:13px;text-align:center;padding:6px 2px;
 }
 .bd-field .auto-readout{color:var(--celestial);background:rgba(127,212,255,0.08);border-color:rgba(127,212,255,.25);}
-.bd-field input[readonly], .stat-box input[readonly]{color:var(--celestial);}
+.bd-field input[readonly]{color:var(--celestial);}
+.stat-box input[readonly]{cursor:default;}
 .bd-field input[readonly]{background:rgba(127,212,255,0.08);border-color:rgba(127,212,255,.25);}
 .ability-cell input[readonly], .hp-values input[readonly]{cursor:default;}
 .bd-field input:focus{outline:none;border-color:var(--celestial);}

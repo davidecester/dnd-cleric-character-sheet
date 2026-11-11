@@ -269,6 +269,8 @@ details.breakdown[open] summary::after{content:' ▴';}
 .list-row input:focus, .list-row textarea:focus{outline:none;border-color:var(--celestial);box-shadow:0 0 0 3px rgba(127,212,255,0.20);}
 .list-row textarea{resize:vertical;min-height:36px;line-height:1.4;}
 .list-row textarea.wrap-field{resize:none;overflow:hidden;min-height:0;display:block;}
+.stat-box textarea.gear-name{width:100%;resize:none;overflow:hidden;min-height:0;display:block;background:transparent;border:none;padding:0;margin-top:2px;color:var(--text-1);font-family:var(--font-body);font-size:14px;line-height:1.35;text-align:left;}
+.stat-box textarea.gear-name:focus{outline:none;}
 .list-row .col-name{flex:1.4;}
 .list-row .col-mid{flex:1;}
 .list-row .col-small{flex:0 0 54px;}

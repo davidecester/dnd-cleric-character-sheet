@@ -431,6 +431,16 @@
     else requestAnimationFrame(function(){ growTextarea(ta); });
     return ta;
   }
+  // Same one-line wrapping behaviour for a textarea already in the page (Armor & Shield names).
+  function wrapExisting(ta){
+    ta.addEventListener("keydown", function(e){ if (e.key === "Enter") e.preventDefault(); });
+    ta.addEventListener("input", function(){
+      if (/\n/.test(ta.value)) ta.value = ta.value.replace(/\s*\n\s*/g, " ");
+      growTextarea(ta);
+    });
+    if (fieldObserver) fieldObserver.observe(ta);
+    else requestAnimationFrame(function(){ growTextarea(ta); });
+  }
   // Hidden fields measure 0 high, so each one is grown again when its width changes
   // (tab or edit view shown, phone rotated).
   var fieldObserver = window.ResizeObserver ? new ResizeObserver(function(entries){
@@ -1252,6 +1262,7 @@
     bindField("sessionNotes", function(){ return state.sessionNotes; }, function(v){ state.sessionNotes = v; });
     bindField("armor", function(){ return state.armor; }, function(v){ state.armor = v; });
     bindField("shield", function(){ return state.shield; }, function(v){ state.shield = v; });
+    ["armor", "shield"].forEach(function(id){ wrapExisting(document.getElementById(id)); });
     document.querySelectorAll("textarea.text-block").forEach(function(ta){ if (ta._renderView && ta.hidden) ta._renderView(); });
   }
 

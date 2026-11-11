@@ -355,7 +355,9 @@
     if (!num(state.ac.shield)) state.ac.shield = 2;
     if (num(state.skillAcp) === -6) state.skillAcp = -8;
     var gear = (state.equipment || []).map(function(e){ return String(e.name || "").toLowerCase(); }).join("\n");
-    if (gear.indexOf("shield") === -1) (state.equipment = state.equipment || []).push({ name:"Heavy Steel Shield" });
+    if (!/shield|scudo/.test(gear)) (state.equipment = state.equipment || []).push({ name:"Heavy Steel Shield" });
+    var paid = (state.ledger || []).some(function(e){ return /shield|scudo/i.test(String(e.desc || "")); });
+    if (!paid) (state.ledger = state.ledger || []).push({ desc:"Heavy Steel Shield", amount:-30 });
     state.shieldRev = 1;
     return true;
   }

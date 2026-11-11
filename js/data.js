@@ -151,7 +151,7 @@ window.CaseFile = window.CaseFile || {};
       { desc:"Light Horse", amount:-75 }, { desc:"Riding Saddle", amount:-10 },
       { desc:"Bit and Bridle", amount:-2 }, { desc:"40 Trail Rations", amount:-20 },
       { desc:"Quest reward", amount:550 }, { desc:"Information and access to a source", amount:-250 },
-      { desc:"Stable for the horse", amount:-1 }
+      { desc:"Stable for the horse", amount:-1 }, { desc:"Heavy Steel Shield", amount:-30 }
     ],
     ledgerRev: 1,
     appearance: "Caelian “Kael” Vàel, age 21.\n\nIvory-white hair, fair skin lightly tanned by the sun, topaz eyes (with violet and golden-bronze glints), a powerful, resonant voice.\n\nLongspear, heavy armour with a helm, and well-made travelling clothes.",

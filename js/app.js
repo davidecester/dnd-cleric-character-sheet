@@ -191,6 +191,14 @@
     Object.keys(inc).forEach(function(l){ if (num(l) <= lvl && inc[l] === key) n++; });
     return n;
   }
+  // BAB is read-only: the input is as wide as its digits so "+4" sits centred under the label.
+  function showBab(){
+    var e = document.getElementById("bab");
+    if (!e) return;
+    e.value = state.bab;
+    e.style.width = Math.max(1, String(state.bab).length) + "ch";
+  }
+
   function featCount(name){
     return (state.feats || []).filter(function(f){ return String(f.name || "").trim().toLowerCase() === name.toLowerCase(); }).length;
   }
@@ -1191,7 +1199,8 @@
     });
 
     var babEl = document.getElementById("bab");
-    babEl.value = state.bab; babEl.readOnly = true; babEl.title = "From your class levels";
+    babEl.readOnly = true; babEl.title = "From your class levels";
+    showBab();
 
     // AC breakdown
     ["armor","shield","dex","size","natural","deflection","misc"].forEach(function(k){
@@ -1439,7 +1448,7 @@
   function rebuild(){
     computeBuild(true);
     renderAbilities();
-    document.getElementById("bab").value = state.bab;
+    showBab();
     ["fort","ref","will"].forEach(function(k){ document.getElementById("save-" + k + "-base").value = state.saves[k].base; });
     document.getElementById("hp-max").value = state.hp.max;
     document.getElementById("hp-current").value = state.hp.current;

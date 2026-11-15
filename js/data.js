@@ -26,7 +26,7 @@ window.CaseFile = window.CaseFile || {};
       { level:3,  name:"Divine Metamagic (Quicken Spell)" },
       { level:6,  name:"Extra Turning" },
       { level:9,  name:"", options:[
-        { name:"Extra Turning", why:"+4 more turn attempts: one more quickened spell each day. Suggested for this level." },
+        { name:"Extra Turning", why:"+4 more turn attempts: one more quickened spell each day." },
         { name:"Improved Toughness", why:"+1 hp per level, counted in max hp." },
         { name:"Toughness", why:"+3 hp, counted in max hp." },
         { name:"Improved Initiative", why:"+4 initiative: act first, buff or heal before the enemy moves." },
@@ -36,7 +36,7 @@ window.CaseFile = window.CaseFile || {};
       ] },
       { level:12, name:"", options:[
         { name:"Extra Turning", why:"+4 more turn attempts: one more quickened spell each day." },
-        { name:"Improved Toughness", why:"+1 hp per level, counted in max hp. Suggested for this level." },
+        { name:"Improved Toughness", why:"+1 hp per level, counted in max hp." },
         { name:"Toughness", why:"+3 hp, counted in max hp." },
         { name:"Improved Initiative", why:"+4 initiative: act first, buff or heal before the enemy moves." },
         { name:"Endurance", why:"+4 against fatigue and harsh weather; opens Diehard." },

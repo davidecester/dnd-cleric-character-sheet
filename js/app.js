@@ -205,6 +205,10 @@
     return (state.feats || []).filter(function(f){ return String(f.name || "").trim().toLowerCase() === name.toLowerCase(); }).length;
   }
 
+  // Hit points from feats: Toughness +3 each time; Improved Toughness (Complete Warrior) +1 per level.
+  function featHp(lvl){ return 3 * featCount("Toughness") + (featCount("Improved Toughness") ? lvl : 0); }
+  function hpFeatKey(){ return featCount("Toughness") + "/" + featCount("Improved Toughness"); }
+
   // Works out everything that follows from class levels and the ability build:
   // total level, ability totals, base attack, base saves, max hp, attacks, spells per day.
   // With adjustCurrent, current hp (and spells left) move by the same amount as their max.
@@ -224,7 +228,7 @@
     });
     state.hpRolls = state.hpRolls || [];
     while (state.hpRolls.length < lvl) state.hpRolls.push("");
-    var con = abilityMod("con"), max = 3 * featCount("Toughness");
+    var con = abilityMod("con"), max = featHp(lvl);
     for (var i = 0; i < lvl; i++) max += Math.max(1, num(state.hpRolls[i]) + con);
     if (adjustCurrent) state.hp.current = num(state.hp.current) + (max - num(state.hp.max));
     state.hp.max = max;
@@ -348,7 +352,7 @@
   }
 
   // Owner's choice: Power Attack is dropped; the feats are Quicken Spell (1), Divine Metamagic
-  // (Quicken Spell) (3) and Extra Turning (6). Applied once; other feats stay as they are.
+  // (Quicken Spell) (3) and Extra Turning (6); plan: Extra Turning 9, Improved Toughness 12. Applied once; other feats stay as they are.
   // Divine Might leaves the open-level options because it needs Power Attack.
   function extraTurningAtFirst(saved){
     if (num(saved.featPlanRev) >= 2) return false;
@@ -369,8 +373,11 @@
       var names = { 1:"Quicken Spell", 3:"Divine Metamagic (Quicken Spell)", 6:"Extra Turning" };
       plan.forEach(function(p){ if (names[num(p.level)]) p.name = names[num(p.level)]; });
     }
+    // Level 12: Improved Toughness instead of a third Extra Turning; open levels get the new options.
     plan.forEach(function(p){
-      if (p.options) p.options = p.options.filter(function(o){ return o.name !== "Divine Might"; });
+      if (num(p.level) === 12 && low(p.name) === "extra turning") p.name = "Improved Toughness";
+      var def = DEFAULT_DATA.featPlan.filter(function(d){ return num(d.level) === num(p.level); })[0];
+      if (p.options && def && def.options) p.options = clone(def.options);
     });
     state.featPlanRev = 2;
     return true;
@@ -1345,9 +1352,9 @@
     });
     if (!view.firstChild) view.innerHTML = '<div class="hint">No attacks yet — tap Edit to add one.</div>';
   }
-  function onFeatsChange(){ renderCombatFeats(); if (featCount("Toughness") !== lastToughness) rebuild(); }
-  var lastToughness = -1;
-  function renderFeats(){ lastToughness = featCount("Toughness"); renderList("featsList", state.feats, FEAT_FIELDS, onFeatsChange); renderFeatsView(); }
+  function onFeatsChange(){ renderCombatFeats(); if (hpFeatKey() !== lastToughness) rebuild(); }
+  var lastToughness = "";
+  function renderFeats(){ lastToughness = hpFeatKey(); renderList("featsList", state.feats, FEAT_FIELDS, onFeatsChange); renderFeatsView(); }
 
   // Extra line computed from the current sheet, for feats whose numbers depend on it.
   function featLiveNote(name, title){
@@ -2048,8 +2055,8 @@
     });
     var con = abilityMod("con"), sum = 0, missing = [];
     for (var i = 0; i < lvl; i++) { sum += num(state.hpRolls[i]); if (state.hpRolls[i] === "" || state.hpRolls[i] === undefined) missing.push(i + 1); }
-    var tough = featCount("Toughness");
-    var txt = "Rolls " + sum + " + Con " + signed(con) + " × " + lvl + (tough ? " + Toughness " + 3 * tough : "") + " = " + state.hp.max + " max hp";
+    var tough = featCount("Toughness"), impTough = featCount("Improved Toughness") ? lvl : 0;
+    var txt = "Rolls " + sum + " + Con " + signed(con) + " × " + lvl + (tough ? " + Toughness " + 3 * tough : "") + (impTough ? " + Improved Toughness " + impTough : "") + " = " + state.hp.max + " max hp";
     if (missing.length) txt += " · enter the roll for level " + missing.join(", ");
     var sumEl = document.getElementById("buildHpSum");
     if (sumEl) { sumEl.textContent = txt; sumEl.classList.toggle("warn", missing.length > 0); }

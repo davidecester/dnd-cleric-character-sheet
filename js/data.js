@@ -26,13 +26,15 @@ window.CaseFile = window.CaseFile || {};
       { level:3,  name:"Divine Metamagic (Quicken Spell)" },
       { level:6,  name:"Extra Turning" },
       { level:9,  name:"Extra Turning" },
-      { level:12, name:"Extra Turning" },
+      { level:12, name:"Improved Toughness" },
       { level:15, name:"", options:[
-        { name:"Extra Turning", why:"+4 more turn attempts: more quickened spells each day." },
+        { name:"Extra Turning", why:"+4 more turn attempts: a third quickened spell each day." },
+        { name:"Improved Initiative", why:"+4 initiative: act first, buff or heal before the enemy moves." },
         { name:"Martial Study (Devoted Spirit)", why:"A Devoted Spirit maneuver for extra melee tricks." }
       ] },
       { level:18, name:"", options:[
-        { name:"Extra Turning", why:"+4 more turn attempts: more quickened spells each day." },
+        { name:"Extra Turning", why:"+4 more turn attempts: a third quickened spell each day." },
+        { name:"Improved Initiative", why:"+4 initiative: act first, buff or heal before the enemy moves." },
         { name:"Martial Study (Devoted Spirit)", why:"A Devoted Spirit maneuver for extra melee tricks." }
       ] }
     ],

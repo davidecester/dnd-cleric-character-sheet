@@ -38,6 +38,8 @@ window.CaseFile = window.CaseFile || {};
     "Spirited Charge": { type:"Fighter", prereq:"Ride-By Attack", combat:true,
       summary:"Mounted charge deals ×2 damage (×3 with a lance)." },
     "Toughness": { type:"General", summary:"+3 hit points." },
+    "Improved Toughness": { type:"General", prereq:"Base Fortitude save +2", source:"Complete Warrior",
+      summary:"+1 hit point per level (counted in max hp)." },
     // ---------- Saves & general ----------
     "Great Fortitude": { type:"General", summary:"+2 Fortitude saves." },
     "Iron Will": { type:"General", summary:"+2 Will saves." },

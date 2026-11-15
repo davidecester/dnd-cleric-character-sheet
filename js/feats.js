@@ -45,6 +45,8 @@ window.CaseFile = window.CaseFile || {};
     "Iron Will": { type:"General", summary:"+2 Will saves." },
     "Lightning Reflexes": { type:"General", summary:"+2 Reflex saves." },
     "Alertness": { type:"General", summary:"+2 Listen and Spot." },
+    "Diehard": { type:"General", prereq:"Endurance",
+      summary:"From −1 to −9 hp: stabilise automatically and may stay conscious (one move or standard action a round; a standard action costs 1 hp)." },
     "Endurance": { type:"General", summary:"+4 vs. exhaustion, environment and nonlethal; sleep in medium armor." },
     "Skill Focus": { type:"General", summary:"+3 to the chosen skill." },
     "Negotiator": { type:"General", summary:"+2 Diplomacy and Sense Motive." },

@@ -37,8 +37,8 @@ allowed books, table rulings); this file covers what was in progress and what's 
    (`state.lastLevelUp`). When prestige classes exist, add a class choice as the first step (`lu.cls`).
 4. **Prestige classes.** The owner plans one or two; they'll send which. Add each to `CLASSES` in
    `js/classes.js` (BAB, saves, hit die, skill points, spellcasting advance via `casterOf`).
-5. **Feat plan, levels 15 and 18:** still to choose (options in the Build card and in the level-up feat step:
-   another Extra Turning, Improved Initiative, Martial Study (Devoted Spirit), or something else).
+5. **Feat plan, levels 9 to 18:** open. The owner wants a pool of suggestions at each feat level (in `featPlan` options):
+   Extra Turning (suggested at 9), Improved Toughness (suggested at 12), Improved Initiative, Endurance, Diehard, Martial Study.
 6. **Check on the owner's iPhone:** hp digits no longer cropped; icon/label centring with IBM Plex Mono.
 
 ## Character facts (Caelian Vàel)
@@ -48,8 +48,8 @@ allowed books, table rulings); this file covers what was in progress and what's 
 - Cleric 6, Neutral Good. Base abilities 18/10/16/10/18/12; +1 Wis at level 4; Periapt of Wisdom +2.
 - HP rolls 8 (max at 1st), then 7s: 61 max. Skill ranks: Concentration 9, Knowledge (religion) 8, Diplomacy 1.
 - Feats: Quicken Spell (1), Divine Metamagic (Quicken Spell) (3), Extra Turning (6). No Power Attack (dropped by
-  the owner; `featPlanRev` 2 swaps it on old sheets). Plan: Extra Turning 9, Improved Toughness 12
-  (+1 hp per level, worked into max hp by `featHp`), 15 and 18 open. Divine
+  the owner; `featPlanRev` 2 swaps it on old sheets). Levels 9 to 18 open, with the pool above
+  (Improved Toughness: +1 hp per level, worked into max hp by `featHp`). Divine
   Metamagic + Quicken costs 5 turn attempts: he has 9/day now (one quickened spell), 13 from level 9 (two).
 - Weapons: one-handed Morningstar works with a shield. Spear and longspear are two-handed
   (no shield except a buckler, −1 attack). Shortspear is one-handed.

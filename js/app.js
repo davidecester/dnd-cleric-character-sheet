@@ -352,7 +352,7 @@
   }
 
   // Owner's choice: Power Attack is dropped; the feats are Quicken Spell (1), Divine Metamagic
-  // (Quicken Spell) (3) and Extra Turning (6); plan: Extra Turning 9, Improved Toughness 12. Applied once; other feats stay as they are.
+  // (Quicken Spell) (3) and Extra Turning (6); later levels are open, with a pool of suggestions. Applied once; other feats stay as they are.
   // Divine Might leaves the open-level options because it needs Power Attack.
   function extraTurningAtFirst(saved){
     if (num(saved.featPlanRev) >= 2) return false;
@@ -373,11 +373,12 @@
       var names = { 1:"Quicken Spell", 3:"Divine Metamagic (Quicken Spell)", 6:"Extra Turning" };
       plan.forEach(function(p){ if (names[num(p.level)]) p.name = names[num(p.level)]; });
     }
-    // Level 12: Improved Toughness instead of a third Extra Turning; open levels get the new options.
+    // Levels 9 and 12 are open again (they held Extra Turning); every open level gets the new pool.
     plan.forEach(function(p){
-      if (num(p.level) === 12 && low(p.name) === "extra turning") p.name = "Improved Toughness";
-      var def = DEFAULT_DATA.featPlan.filter(function(d){ return num(d.level) === num(p.level); })[0];
-      if (p.options && def && def.options) p.options = clone(def.options);
+      var l = num(p.level);
+      if ((l === 9 || l === 12) && low(p.name) === "extra turning" && l > num(state.level)) p.name = "";
+      var def = DEFAULT_DATA.featPlan.filter(function(d){ return num(d.level) === l; })[0];
+      if (!p.name && def && def.options) p.options = clone(def.options);
     });
     state.featPlanRev = 2;
     return true;

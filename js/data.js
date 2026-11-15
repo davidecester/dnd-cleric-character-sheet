@@ -25,16 +25,36 @@ window.CaseFile = window.CaseFile || {};
       { level:1,  name:"Quicken Spell" },
       { level:3,  name:"Divine Metamagic (Quicken Spell)" },
       { level:6,  name:"Extra Turning" },
-      { level:9,  name:"Extra Turning" },
-      { level:12, name:"Improved Toughness" },
-      { level:15, name:"", options:[
-        { name:"Extra Turning", why:"+4 more turn attempts: a third quickened spell each day." },
+      { level:9,  name:"", options:[
+        { name:"Extra Turning", why:"+4 more turn attempts: one more quickened spell each day. Suggested for this level." },
+        { name:"Improved Toughness", why:"+1 hp per level, counted in max hp." },
         { name:"Improved Initiative", why:"+4 initiative: act first, buff or heal before the enemy moves." },
+        { name:"Endurance", why:"+4 against fatigue and harsh weather; opens Diehard." },
+        { name:"Diehard", why:"Stay conscious and act from −1 to −9 hp (needs Endurance)." },
+        { name:"Martial Study (Devoted Spirit)", why:"A Devoted Spirit maneuver for extra melee tricks." }
+      ] },
+      { level:12, name:"", options:[
+        { name:"Extra Turning", why:"+4 more turn attempts: one more quickened spell each day." },
+        { name:"Improved Toughness", why:"+1 hp per level, counted in max hp. Suggested for this level." },
+        { name:"Improved Initiative", why:"+4 initiative: act first, buff or heal before the enemy moves." },
+        { name:"Endurance", why:"+4 against fatigue and harsh weather; opens Diehard." },
+        { name:"Diehard", why:"Stay conscious and act from −1 to −9 hp (needs Endurance)." },
+        { name:"Martial Study (Devoted Spirit)", why:"A Devoted Spirit maneuver for extra melee tricks." }
+      ] },
+      { level:15, name:"", options:[
+        { name:"Extra Turning", why:"+4 more turn attempts: one more quickened spell each day." },
+        { name:"Improved Toughness", why:"+1 hp per level, counted in max hp." },
+        { name:"Improved Initiative", why:"+4 initiative: act first, buff or heal before the enemy moves." },
+        { name:"Endurance", why:"+4 against fatigue and harsh weather; opens Diehard." },
+        { name:"Diehard", why:"Stay conscious and act from −1 to −9 hp (needs Endurance)." },
         { name:"Martial Study (Devoted Spirit)", why:"A Devoted Spirit maneuver for extra melee tricks." }
       ] },
       { level:18, name:"", options:[
-        { name:"Extra Turning", why:"+4 more turn attempts: a third quickened spell each day." },
+        { name:"Extra Turning", why:"+4 more turn attempts: one more quickened spell each day." },
+        { name:"Improved Toughness", why:"+1 hp per level, counted in max hp." },
         { name:"Improved Initiative", why:"+4 initiative: act first, buff or heal before the enemy moves." },
+        { name:"Endurance", why:"+4 against fatigue and harsh weather; opens Diehard." },
+        { name:"Diehard", why:"Stay conscious and act from −1 to −9 hp (needs Endurance)." },
         { name:"Martial Study (Devoted Spirit)", why:"A Devoted Spirit maneuver for extra melee tricks." }
       ] }
     ],

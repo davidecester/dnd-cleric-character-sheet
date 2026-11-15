@@ -80,6 +80,7 @@
         if (saved && swapMagicForEarth(saved)) migrated = true;
         if (saved && addConsumables(saved)) migrated = true;
         if (saved && quickenFeatPlan(saved)) migrated = true;
+        if (saved && extraTurningAtFirst(saved)) migrated = true;
         if (saved && addHeavyShield(saved)) migrated = true;
         (state.featPlan || []).forEach(function(p){
           if (num(p.level) === 18 && p.name === "Combat Reflexes") p.name = "";
@@ -204,6 +205,10 @@
     return (state.feats || []).filter(function(f){ return String(f.name || "").trim().toLowerCase() === name.toLowerCase(); }).length;
   }
 
+  // Hit points from feats: Toughness +3 each time; Improved Toughness (Complete Warrior) +1 per level.
+  function featHp(lvl){ return 3 * featCount("Toughness") + (featCount("Improved Toughness") ? lvl : 0); }
+  function hpFeatKey(){ return featCount("Toughness") + "/" + featCount("Improved Toughness"); }
+
   // Works out everything that follows from class levels and the ability build:
   // total level, ability totals, base attack, base saves, max hp, attacks, spells per day.
   // With adjustCurrent, current hp (and spells left) move by the same amount as their max.
@@ -223,7 +228,7 @@
     });
     state.hpRolls = state.hpRolls || [];
     while (state.hpRolls.length < lvl) state.hpRolls.push("");
-    var con = abilityMod("con"), max = 3 * featCount("Toughness");
+    var con = abilityMod("con"), max = featHp(lvl);
     for (var i = 0; i < lvl; i++) max += Math.max(1, num(state.hpRolls[i]) + con);
     if (adjustCurrent) state.hp.current = num(state.hp.current) + (max - num(state.hp.max));
     state.hp.max = max;
@@ -343,6 +348,39 @@
       return to ? { name:to, notes:f.notes || "" } : f;
     });
     state.featPlanRev = 1;
+    return true;
+  }
+
+  // Owner's choice: Power Attack is dropped; the feats are Quicken Spell (1), Divine Metamagic
+  // (Quicken Spell) (3) and Extra Turning (6); later levels are open, with a pool of suggestions. Applied once; other feats stay as they are.
+  // Divine Might leaves the open-level options because it needs Power Attack.
+  function extraTurningAtFirst(saved){
+    if (num(saved.featPlanRev) >= 2) return false;
+    function low(x){ return String(x || "").trim().toLowerCase(); }
+    var feats = state.feats || [], at = -1, i;
+    for (i = 0; i < feats.length; i++) if (low(feats[i].name) === "power attack") { at = i; break; }
+    if (at >= 0) {
+      feats.splice(at, 1);
+      var after = -1;
+      for (i = 0; i < feats.length; i++) if (low(feats[i].name).indexOf("divine metamagic") === 0) after = i;
+      feats.splice(after >= 0 ? after + 1 : feats.length, 0, { name:"Extra Turning", notes:"" });
+      state.feats = feats;
+      state.powerAttack = 0;
+    }
+    var plan = state.featPlan || [];
+    var first = plan.filter(function(p){ return num(p.level) === 1; })[0];
+    if (first && low(first.name) === "power attack") {
+      var names = { 1:"Quicken Spell", 3:"Divine Metamagic (Quicken Spell)", 6:"Extra Turning" };
+      plan.forEach(function(p){ if (names[num(p.level)]) p.name = names[num(p.level)]; });
+    }
+    // Levels 9 and 12 are open again (they held Extra Turning); every open level gets the new pool.
+    plan.forEach(function(p){
+      var l = num(p.level);
+      if ((l === 9 || l === 12) && low(p.name) === "extra turning" && l > num(state.level)) p.name = "";
+      var def = DEFAULT_DATA.featPlan.filter(function(d){ return num(d.level) === l; })[0];
+      if (!p.name && def && def.options) p.options = clone(def.options);
+    });
+    state.featPlanRev = 2;
     return true;
   }
 
@@ -1315,9 +1353,9 @@
     });
     if (!view.firstChild) view.innerHTML = '<div class="hint">No attacks yet — tap Edit to add one.</div>';
   }
-  function onFeatsChange(){ renderCombatFeats(); if (featCount("Toughness") !== lastToughness) rebuild(); }
-  var lastToughness = -1;
-  function renderFeats(){ lastToughness = featCount("Toughness"); renderList("featsList", state.feats, FEAT_FIELDS, onFeatsChange); renderFeatsView(); }
+  function onFeatsChange(){ renderCombatFeats(); if (hpFeatKey() !== lastToughness) rebuild(); }
+  var lastToughness = "";
+  function renderFeats(){ lastToughness = hpFeatKey(); renderList("featsList", state.feats, FEAT_FIELDS, onFeatsChange); renderFeatsView(); }
 
   // Extra line computed from the current sheet, for feats whose numbers depend on it.
   function featLiveNote(name, title){
@@ -2018,8 +2056,8 @@
     });
     var con = abilityMod("con"), sum = 0, missing = [];
     for (var i = 0; i < lvl; i++) { sum += num(state.hpRolls[i]); if (state.hpRolls[i] === "" || state.hpRolls[i] === undefined) missing.push(i + 1); }
-    var tough = featCount("Toughness");
-    var txt = "Rolls " + sum + " + Con " + signed(con) + " × " + lvl + (tough ? " + Toughness " + 3 * tough : "") + " = " + state.hp.max + " max hp";
+    var tough = featCount("Toughness"), impTough = featCount("Improved Toughness") ? lvl : 0;
+    var txt = "Rolls " + sum + " + Con " + signed(con) + " × " + lvl + (tough ? " + Toughness " + 3 * tough : "") + (impTough ? " + Improved Toughness " + impTough : "") + " = " + state.hp.max + " max hp";
     if (missing.length) txt += " · enter the roll for level " + missing.join(", ");
     var sumEl = document.getElementById("buildHpSum");
     if (sumEl) { sumEl.textContent = txt; sumEl.classList.toggle("warn", missing.length > 0); }

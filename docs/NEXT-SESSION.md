@@ -47,7 +47,7 @@ allowed books, table rulings); this file covers what was in progress and what's 
   +2 Wis, +2 Cha; darkvision 18 m; resist acid/cold/electricity 5; Daylight 1/day; +2 Listen/Spot.
 - Cleric 6, Neutral Good. Base abilities 18/10/16/10/18/12; +1 Wis at level 4; Periapt of Wisdom +2.
 - HP rolls 8 (max at 1st), then 7s: 61 max. Skill ranks: Concentration 9, Knowledge (religion) 8, Diplomacy 1.
-- Feats: Extra Turning (1), Quicken Spell (3), Divine Metamagic (Quicken Spell) (6). No Power Attack (dropped by
+- Feats: Quicken Spell (1), Divine Metamagic (Quicken Spell) (3), Extra Turning (6). No Power Attack (dropped by
   the owner; `featPlanRev` 2 swaps it on old sheets). Plan: Extra Turning 9 and 12, 15 and 18 open. Divine
   Metamagic + Quicken costs 5 turn attempts: he has 9/day now (one quickened spell), 13 at 9 and 17 at 12.
 - Weapons: one-handed Morningstar works with a shield. Spear and longspear are two-handed

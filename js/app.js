@@ -347,19 +347,29 @@
     return true;
   }
 
-  // Owner's choice: Extra Turning replaces Power Attack as the 1st-level feat (sheet and plan).
-  // Applied once; Divine Might leaves the open-level options because it needs Power Attack.
+  // Owner's choice: Power Attack is dropped; the feats are Quicken Spell (1), Divine Metamagic
+  // (Quicken Spell) (3) and Extra Turning (6). Applied once; other feats stay as they are.
+  // Divine Might leaves the open-level options because it needs Power Attack.
   function extraTurningAtFirst(saved){
     if (num(saved.featPlanRev) >= 2) return false;
-    var done = false;
-    state.feats = (state.feats || []).map(function(f){
-      if (done || String(f.name || "").trim().toLowerCase() !== "power attack") return f;
-      done = true;
-      return { name:"Extra Turning", notes:"" };
-    });
-    if (done) state.powerAttack = 0;
-    (state.featPlan || []).forEach(function(p){
-      if (num(p.level) === 1 && String(p.name || "").trim().toLowerCase() === "power attack") p.name = "Extra Turning";
+    function low(x){ return String(x || "").trim().toLowerCase(); }
+    var feats = state.feats || [], at = -1, i;
+    for (i = 0; i < feats.length; i++) if (low(feats[i].name) === "power attack") { at = i; break; }
+    if (at >= 0) {
+      feats.splice(at, 1);
+      var after = -1;
+      for (i = 0; i < feats.length; i++) if (low(feats[i].name).indexOf("divine metamagic") === 0) after = i;
+      feats.splice(after >= 0 ? after + 1 : feats.length, 0, { name:"Extra Turning", notes:"" });
+      state.feats = feats;
+      state.powerAttack = 0;
+    }
+    var plan = state.featPlan || [];
+    var first = plan.filter(function(p){ return num(p.level) === 1; })[0];
+    if (first && low(first.name) === "power attack") {
+      var names = { 1:"Quicken Spell", 3:"Divine Metamagic (Quicken Spell)", 6:"Extra Turning" };
+      plan.forEach(function(p){ if (names[num(p.level)]) p.name = names[num(p.level)]; });
+    }
+    plan.forEach(function(p){
       if (p.options) p.options = p.options.filter(function(o){ return o.name !== "Divine Might"; });
     });
     state.featPlanRev = 2;

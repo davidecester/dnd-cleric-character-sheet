@@ -22,9 +22,9 @@ window.CaseFile = window.CaseFile || {};
     hpRolls: [8, 7, 7, 7, 7, 7],
     // Planned feat progression (feat levels 1, 3, 6, 9…); the build card offers each one when it's due.
     featPlan: [
-      { level:1,  name:"Extra Turning" },
-      { level:3,  name:"Quicken Spell" },
-      { level:6,  name:"Divine Metamagic (Quicken Spell)" },
+      { level:1,  name:"Quicken Spell" },
+      { level:3,  name:"Divine Metamagic (Quicken Spell)" },
+      { level:6,  name:"Extra Turning" },
       { level:9,  name:"Extra Turning" },
       { level:12, name:"Extra Turning" },
       { level:15, name:"", options:[
@@ -100,9 +100,9 @@ window.CaseFile = window.CaseFile || {};
     armor: "Full Plate",
     shield: "Heavy Steel Shield",
     feats: [
-      { name:"Extra Turning", notes:"" },
       { name:"Quicken Spell", notes:"" },
-      { name:"Divine Metamagic (Quicken Spell)", notes:"" }
+      { name:"Divine Metamagic (Quicken Spell)", notes:"" },
+      { name:"Extra Turning", notes:"" }
     ],
     powerAttack: 0,
     resistances: { acid:5, cold:5, electricity:5, fire:0, sonic:0 },

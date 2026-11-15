@@ -28,6 +28,7 @@ window.CaseFile = window.CaseFile || {};
       { level:9,  name:"", options:[
         { name:"Extra Turning", why:"+4 more turn attempts: one more quickened spell each day. Suggested for this level." },
         { name:"Improved Toughness", why:"+1 hp per level, counted in max hp." },
+        { name:"Toughness", why:"+3 hp, counted in max hp." },
         { name:"Improved Initiative", why:"+4 initiative: act first, buff or heal before the enemy moves." },
         { name:"Endurance", why:"+4 against fatigue and harsh weather; opens Diehard." },
         { name:"Diehard", why:"Stay conscious and act from −1 to −9 hp (needs Endurance)." },
@@ -36,6 +37,7 @@ window.CaseFile = window.CaseFile || {};
       { level:12, name:"", options:[
         { name:"Extra Turning", why:"+4 more turn attempts: one more quickened spell each day." },
         { name:"Improved Toughness", why:"+1 hp per level, counted in max hp. Suggested for this level." },
+        { name:"Toughness", why:"+3 hp, counted in max hp." },
         { name:"Improved Initiative", why:"+4 initiative: act first, buff or heal before the enemy moves." },
         { name:"Endurance", why:"+4 against fatigue and harsh weather; opens Diehard." },
         { name:"Diehard", why:"Stay conscious and act from −1 to −9 hp (needs Endurance)." },
@@ -44,6 +46,7 @@ window.CaseFile = window.CaseFile || {};
       { level:15, name:"", options:[
         { name:"Extra Turning", why:"+4 more turn attempts: one more quickened spell each day." },
         { name:"Improved Toughness", why:"+1 hp per level, counted in max hp." },
+        { name:"Toughness", why:"+3 hp, counted in max hp." },
         { name:"Improved Initiative", why:"+4 initiative: act first, buff or heal before the enemy moves." },
         { name:"Endurance", why:"+4 against fatigue and harsh weather; opens Diehard." },
         { name:"Diehard", why:"Stay conscious and act from −1 to −9 hp (needs Endurance)." },
@@ -52,6 +55,7 @@ window.CaseFile = window.CaseFile || {};
       { level:18, name:"", options:[
         { name:"Extra Turning", why:"+4 more turn attempts: one more quickened spell each day." },
         { name:"Improved Toughness", why:"+1 hp per level, counted in max hp." },
+        { name:"Toughness", why:"+3 hp, counted in max hp." },
         { name:"Improved Initiative", why:"+4 initiative: act first, buff or heal before the enemy moves." },
         { name:"Endurance", why:"+4 against fatigue and harsh weather; opens Diehard." },
         { name:"Diehard", why:"Stay conscious and act from −1 to −9 hp (needs Endurance)." },

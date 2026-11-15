@@ -38,7 +38,7 @@ allowed books, table rulings); this file covers what was in progress and what's 
 4. **Prestige classes.** The owner plans one or two; they'll send which. Add each to `CLASSES` in
    `js/classes.js` (BAB, saves, hit die, skill points, spellcasting advance via `casterOf`).
 5. **Feat plan, levels 9 to 18:** open. The owner wants a pool of suggestions at each feat level (in `featPlan` options):
-   Extra Turning (suggested at 9), Improved Toughness (suggested at 12), Improved Initiative, Endurance, Diehard, Martial Study.
+   Extra Turning (suggested at 9), Improved Toughness (suggested at 12), Toughness, Improved Initiative, Endurance, Diehard, Martial Study.
 6. **Check on the owner's iPhone:** hp digits no longer cropped; icon/label centring with IBM Plex Mono.
 
 ## Character facts (Caelian Vàel)

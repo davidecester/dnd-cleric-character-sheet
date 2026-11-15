@@ -80,6 +80,7 @@
         if (saved && swapMagicForEarth(saved)) migrated = true;
         if (saved && addConsumables(saved)) migrated = true;
         if (saved && quickenFeatPlan(saved)) migrated = true;
+        if (saved && extraTurningAtFirst(saved)) migrated = true;
         if (saved && addHeavyShield(saved)) migrated = true;
         (state.featPlan || []).forEach(function(p){
           if (num(p.level) === 18 && p.name === "Combat Reflexes") p.name = "";
@@ -343,6 +344,25 @@
       return to ? { name:to, notes:f.notes || "" } : f;
     });
     state.featPlanRev = 1;
+    return true;
+  }
+
+  // Owner's choice: Extra Turning replaces Power Attack as the 1st-level feat (sheet and plan).
+  // Applied once; Divine Might leaves the open-level options because it needs Power Attack.
+  function extraTurningAtFirst(saved){
+    if (num(saved.featPlanRev) >= 2) return false;
+    var done = false;
+    state.feats = (state.feats || []).map(function(f){
+      if (done || String(f.name || "").trim().toLowerCase() !== "power attack") return f;
+      done = true;
+      return { name:"Extra Turning", notes:"" };
+    });
+    if (done) state.powerAttack = 0;
+    (state.featPlan || []).forEach(function(p){
+      if (num(p.level) === 1 && String(p.name || "").trim().toLowerCase() === "power attack") p.name = "Extra Turning";
+      if (p.options) p.options = p.options.filter(function(o){ return o.name !== "Divine Might"; });
+    });
+    state.featPlanRev = 2;
     return true;
   }
 

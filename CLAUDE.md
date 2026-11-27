@@ -27,11 +27,16 @@ at the end of `styles.css`; check those widths too when adding or reordering car
 
 ## Workflow
 
-- Commit every update to the session's working branch, push it, and **open a pull request
-  against `main`** without waiting to be asked. If an open PR already exists for the branch,
-  push to it instead of opening a new one.
-- If the branch's previous PR has already been merged, bring the branch up to date with `main`
-  (fast-forward or merge) before starting new work, and open a new PR for the new work.
+- Every update gets its **own new branch** made from the latest `main`, named `claude/<topic>`
+  (short, plain words, e.g. `claude/prestige-classes`). Commit, push and **open a pull request
+  against `main`** without waiting to be asked. Follow-up changes to the same update go to the
+  same branch and PR while it is open.
+- GitHub deletes a branch automatically once its PR is merged, so never reuse a merged branch:
+  the next update starts a new one from `main`.
+- When the owner doesn't merge, wants to decide later, or wants to try different ways, keep the
+  work on a branch named `explore/<topic>` (alternatives as `explore/<topic>-<variant>`, e.g.
+  `explore/prestige-contemplative`, `explore/prestige-radiant-servant`), each with its own PR.
+  Leave these branches and PRs open until the owner decides; never delete them.
 - Don't rewrite history on pushed branches (no force-push); use merge commits instead.
 
 ## Conventions
